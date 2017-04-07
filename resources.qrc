@@ -1,0 +1,25 @@
+<RCC>
+    <qresource prefix="/">
+        <file>resources/title.png</file>
+        <file>resources/buttons/commands.png</file>
+        <file>resources/buttons/conditions.png</file>
+        <file>resources/buttons/own_forces.png</file>
+        <file>resources/buttons/positions.png</file>
+        <file>resources/buttons/tactical.png</file>
+        <file>resources/buttons/targets.png</file>
+        <file>resources/toolbar/add.png</file>
+        <file>resources/toolbar/change_mode.png</file>
+        <file>resources/toolbar/changes.png</file>
+        <file>resources/toolbar/delete.png</file>
+        <file>resources/toolbar/edit.png</file>
+        <file>resources/toolbar/exit.png</file>
+        <file>resources/toolbar/history.png</file>
+        <file>resources/toolbar/map.png</file>
+        <file>resources/toolbar/navigator.png</file>
+        <file>resources/toolbar/refresh.png</file>
+        <file>resources/toolbar/reserve_title.png</file>
+        <file>resources/toolbar/save.png</file>
+        <file>resources/toolbar/send.png</file>
+        <file>hittargets.ui</file>
+    </qresource>
+</RCC>
