@@ -7,15 +7,12 @@
 
 #include "battleOrder.h"
 #include "hitTargets.h"
+#include "commands.h"
 
 namespace Ui {
 class MainWindow2;
 }
-
-class BattleOrder;
-class HitTargets;
 /*
-class Commands;
 class Positions;
 class ReceiversDialog;
 */
@@ -31,6 +28,9 @@ public:
     QSqlDatabase db;    
     BattleOrder *c_battleOrder = new BattleOrder(db);
     HitTargets  *c_hitTargets  = new HitTargets(db);
+    Commands    *c_commands    = new Commands(db);
+
+
 
 
 private:

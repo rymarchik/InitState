@@ -13,15 +13,7 @@ MainWindow::MainWindow(QSqlDatabase DB, QWidget *parent) :
 
     ui->toolBox->setCurrentIndex(0);
     slotNavigator();
-
-    /*
-    //условия для начального запуска приложения ("Свои войска"->"Навигатор"):
-    ui->toolBox->setCurrentIndex(0);
-    ui->m_navigator->setChecked(true);
-    ui->tabWidget_0->setTabEnabled(1, false);
-    //заполнение данными:
-    c_battleOrder->openNavigator(ui->navigatorTreeWidget);
-    */
+    c_commands->setTables(ui->navigatorCommandsTree, ui->navigatorCommandsRecivers);
 
     connect( ui->toolBox,     SIGNAL (currentChanged(int)), this, SLOT (slotNavigator()) );
     connect( ui->m_navigator, SIGNAL (triggered()),         this, SLOT (slotNavigator()) );
@@ -56,6 +48,7 @@ void MainWindow::slotNavigator()
      case 2: //страница "Команды и сигналы, документы"
         ui->tabWidget_2->setTabEnabled(1, false);
         ui->tabWidget_2->setTabEnabled(0, true);
+        c_commands->fillNavigator();
 
         break;
      case 3: //страница "Районы и позиции"

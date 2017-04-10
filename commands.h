@@ -1,18 +1,18 @@
 #ifndef COMMANDS_H
 #define COMMANDS_H
 
-#include "baseTabWidget.h"
 #include <QtWidgets>
 #include <QtSql>
 #include <QDateTime>
+#include <QtUiTools>
 
-class Commands : public BaseTabWidget
+class Commands : public QToolBox
 {
     Q_OBJECT
 
 public:
-    Commands(QWidget* parent = 0);
-
+    Commands(QSqlDatabase db, QWidget* parent = 0);
+    void setTables(QTreeWidget *navigatorUpperTree, QTableWidget *navigatorLowerTable);
     void fillNavigator();
     void fillChanges();
     void onAdd();
@@ -20,14 +20,18 @@ public:
     bool onDelete();
     bool onSave();
 
-    QTreeWidget *navigatorTree;
-    QTreeWidget *changesTree;
-
 private:
-    void makeNoteCommand(QTreeWidgetItem *parent, QString name1, QDateTime date, QDateTime date2);
-    void makeNoteDoc(QTreeWidgetItem *parent, QString name1, QDateTime date, QString name3, QString name4);
+    QSqlDatabase db;
+    QTreeWidget* navigatorUpperTree;
+    QTableWidget* navigatorLowerTable;
+    QWidget* contentWidget;
+    int *signalsList;
 
-public slots:
+    void addCommand(QTreeWidgetItem *parent, QString name1, QDateTime date, QDateTime date2);
+    void addDocument(QTreeWidgetItem *parent, QString name1, QDateTime date, QString name3, QString name4);
+
+private slots:
+    void showRecivers();
 
 };
 

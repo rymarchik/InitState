@@ -69,15 +69,15 @@
        <enum>QFrame::Plain</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="battleOrderTool">
        <property name="geometry">
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1123</width>
-         <height>297</height>
+         <width>1119</width>
+         <height>275</height>
         </rect>
        </property>
        <attribute name="icon">
@@ -106,7 +106,7 @@
               <item row="0" column="0">
                <widget class="QTreeWidget" name="navigatorBattleOrder">
                 <property name="headerHidden">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="expandsOnDoubleClick">
                  <bool>false</bool>
@@ -349,8 +349,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1123</width>
-         <height>297</height>
+         <width>1119</width>
+         <height>275</height>
         </rect>
        </property>
        <attribute name="icon">
@@ -492,8 +492,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1123</width>
-         <height>297</height>
+         <width>1119</width>
+         <height>275</height>
         </rect>
        </property>
        <attribute name="icon">
@@ -518,104 +518,16 @@
            </attribute>
            <layout class="QGridLayout" name="gridLayout_8">
             <item row="0" column="0">
-             <widget class="QTreeWidget" name="navigatorTree_4">
-              <property name="headerHidden">
-               <bool>false</bool>
-              </property>
-              <attribute name="headerVisible">
-               <bool>false</bool>
-              </attribute>
-              <attribute name="headerHighlightSections">
-               <bool>true</bool>
-              </attribute>
-              <attribute name="headerShowSortIndicator" stdset="0">
-               <bool>true</bool>
-              </attribute>
+             <widget class="QTreeWidget" name="navigatorCommandsTree">
               <column>
                <property name="text">
-                <string>Наименование</string>
-               </property>
-               <property name="font">
-                <font>
-                 <weight>75</weight>
-                 <bold>true</bold>
-                </font>
-               </property>
-              </column>
-              <column>
-               <property name="text">
-                <string>Состояние</string>
-               </property>
-               <property name="font">
-                <font>
-                 <weight>75</weight>
-                 <bold>true</bold>
-                </font>
-               </property>
-              </column>
-              <column>
-               <property name="text">
-                <string>Режим</string>
-               </property>
-               <property name="font">
-                <font>
-                 <weight>75</weight>
-                 <bold>true</bold>
-                </font>
+                <string notr="true">1</string>
                </property>
               </column>
              </widget>
             </item>
             <item row="1" column="0">
-             <widget class="QTableWidget" name="navigatorSend__2">
-              <attribute name="horizontalHeaderDefaultSectionSize">
-               <number>200</number>
-              </attribute>
-              <column>
-               <property name="text">
-                <string>Получатель</string>
-               </property>
-               <property name="font">
-                <font>
-                 <weight>75</weight>
-                 <bold>true</bold>
-                </font>
-               </property>
-              </column>
-              <column>
-               <property name="text">
-                <string>Время данных</string>
-               </property>
-               <property name="font">
-                <font>
-                 <weight>75</weight>
-                 <bold>true</bold>
-                </font>
-               </property>
-              </column>
-              <column>
-               <property name="text">
-                <string>Состояние отправки</string>
-               </property>
-               <property name="font">
-                <font>
-                 <weight>75</weight>
-                 <bold>true</bold>
-                </font>
-               </property>
-              </column>
-              <column>
-               <property name="text">
-                <string>Состояние передачи</string>
-               </property>
-               <property name="font">
-                <font>
-                 <weight>75</weight>
-                 <bold>true</bold>
-                </font>
-               </property>
-              </column>
-             </widget>
+             <widget class="QTableWidget" name="navigatorCommandsRecivers"/>
             </item>
            </layout>
           </widget>
@@ -633,8 +545,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1123</width>
-         <height>297</height>
+         <width>1119</width>
+         <height>275</height>
         </rect>
        </property>
        <attribute name="icon">
@@ -661,7 +573,7 @@
             <item row="0" column="0">
              <widget class="QTreeWidget" name="navigatorTree_5">
               <property name="headerHidden">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <attribute name="headerVisible">
                <bool>false</bool>
@@ -770,6 +682,14 @@
        </layout>
       </widget>
       <widget class="QWidget" name="tacticalTool">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>1119</width>
+         <height>275</height>
+        </rect>
+       </property>
        <attribute name="icon">
         <iconset resource="resources.qrc">
          <normaloff>:/resources/buttons/tactical.png</normaloff>:/resources/buttons/tactical.png</iconset>
@@ -794,7 +714,7 @@
             <item row="0" column="0">
              <widget class="QTreeWidget" name="navigatorTree_6">
               <property name="headerHidden">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <attribute name="headerVisible">
                <bool>false</bool>
@@ -903,6 +823,14 @@
        </layout>
       </widget>
       <widget class="QWidget" name="targetsTool">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>1119</width>
+         <height>275</height>
+        </rect>
+       </property>
        <attribute name="icon">
         <iconset resource="resources.qrc">
          <normaloff>:/resources/buttons/targets.png</normaloff>:/resources/buttons/targets.png</iconset>
@@ -927,7 +855,7 @@
             <item row="0" column="0">
              <widget class="QTreeWidget" name="navigatorTree_7">
               <property name="headerHidden">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <attribute name="headerVisible">
                <bool>false</bool>
@@ -1045,7 +973,7 @@
      <x>0</x>
      <y>0</y>
      <width>1141</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
   </widget>

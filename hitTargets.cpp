@@ -1,69 +1,10 @@
 #include "hitTargets.h"
-//#include "ui_hittargets.h"
-#include "utility.h"
 
 HitTargets::HitTargets(QSqlDatabase DB, QWidget* parent) : db(DB), QToolBox(parent) //BaseTabWidget(parent)
 {
-/*
-    contentWidget = loadUiFile();
 
-    dataSourceBatteryCB = findChild<QComboBox*>("dataSourceBatteryCB");
-    dataSourceWeaponryCB = findChild<QComboBox*>("dataSourceWeaponryCB");
-    targetNumberLE = findChild<QLineEdit*>("targetNumberLE");
-    targetNameCB = findChild<QComboBox*>("targetNameCB");
-    importanceLE = findChild<QLineEdit*>("importanceLE");
-    detectionTimeDTE = findChild<QDateTimeEdit*>("detectionTimeDTE");
-
-    randomRB = findChild<QRadioButton*>("randomRB");
-    squareRB = findChild<QRadioButton*>("squareRB");
-    roundRB = findChild<QRadioButton*>("roundRB");
-    coordinateLE = findChild<QLineEdit*>("coordinateLE");
-    heightLE = findChild<QLineEdit*>("heightLE");
-    extraCoordinatesLayout = findChild<QVBoxLayout*>("extraCoordinatesLayout");
-    addPointBtn = findChild<QPushButton*>("addPointBtn");
-    removePointBtn = findChild<QPushButton*>("removePointBtn");
-    frontLbl = findChild<QLabel*>("frontLbl");
-    depthLbl = findChild<QLabel*>("depthLbl");
-    deviationLbl = findChild<QLabel*>("deviationLbl");
-    radiusLbl = findChild<QLabel*>("radiusLbl");
-    frontLE = findChild<QLineEdit*>("frontLE");
-    depthLE = findChild<QLineEdit*>("depthLE");
-    deviationLE = findChild<QLineEdit*>("deviationLE");
-    radiusLE = findChild<QLineEdit*>("radiusLE");
-    coverDegreeCB = findChild<QComboBox*>("coverDegreeCB");
-
-    launchChB = findChild<QCheckBox*>("launchChB");
-    explosionChB = findChild<QCheckBox*>("explosionChB");
-    launchTimeDTE = findChild<QDateTimeEdit*>("launchTimeDTE");
-    damageDegreeCB = findChild<QComboBox*>("damageDegreeCB");
-    rocketTypeCB = findChild<QComboBox*>("rocketTypeCB");
-    quantityLE = findChild<QLineEdit*>("quantityLE");
-
-    connect(dataSourceBatteryCB, SIGNAL(currentIndexChanged(int)), this, SLOT(slotChangeDataSourceBattery(int)));
-
-    connect(randomRB, SIGNAL(toggled(bool)), this, SLOT(slotToggleRandomRB()));
-    connect(squareRB, SIGNAL(toggled(bool)), this, SLOT(slotToggleSquareRB()));
-    connect(roundRB, SIGNAL(toggled(bool)), this, SLOT(slotToggleRoundRB()));
-    connect(addPointBtn, SIGNAL(clicked()), this, SLOT(slotAddPoint()));
-    connect(removePointBtn, SIGNAL(clicked()), this, SLOT(slotRemovePoint()));
-
-    connect(launchChB, SIGNAL(clicked()), this, SLOT(slotToggleLaunchCB()));
-    connect(explosionChB, SIGNAL(clicked()), this, SLOT(slotToggleExplosionCB()));
-*/
 }
-/*
-QWidget* HitTargets::loadUiFile() {
-    QUiLoader loader;
 
-    QFile file(":/hittargets.ui");
-    file.open(QFile::ReadOnly);
-
-    QWidget *formWidget = loader.load(&file, this);
-    file.close();
-
-    return formWidget;
-}
-*/
 void HitTargets::fillNavigator(QTableWidget *navigatorTableWidget)
 {
 //    Utility::closeNewEditTab(this);

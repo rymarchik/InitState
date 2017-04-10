@@ -1,52 +1,44 @@
 #include "commands.h"
-#include "utility.h"
 
-Commands::Commands(QWidget* parent) : BaseTabWidget(parent)
+Commands::Commands(QSqlDatabase db, QWidget *parent) : QToolBox(parent)
 {
-    navigatorTree = new QTreeWidget();
-    changesTree = new QTreeWidget();
+    this->db=db;
+}
 
-    navigatorTabLayout = new QVBoxLayout;
-    navigatorTabLayout->addWidget(navigatorTree);
-    navigatorTabLayout->addWidget(navigatorLowerTable);
-
-    navigatorTabWidget = new QWidget;
-    navigatorTabWidget->setLayout(navigatorTabLayout);
-
-    changesTabLayout = new QVBoxLayout;
-    changesTabLayout->addWidget(changesTree);
-    changesTabLayout->addWidget(changesLowerTable);
-
-    changesTabWidget = new QWidget;
-    changesTabWidget->setLayout(changesTabLayout);
+void Commands::setTables(QTreeWidget *navigatorUpperTree, QTableWidget *navigatorLowerTable)
+{
+    this->navigatorUpperTree=navigatorUpperTree;
+    this->navigatorLowerTable=navigatorLowerTable;
+    connect(this->navigatorUpperTree, SIGNAL(itemSelectionChanged()), this, SLOT(showRecivers()));
 }
 
 void Commands::fillNavigator() {
-    Utility::closeNewEditTab(this);
-    navigatorTree->clear();
+    navigatorUpperTree->clear();
     navigatorLowerTable->clear();
-    navigatorTree->clear();
+    navigatorUpperTree->clear();
 
-    navigatorTree->setColumnCount(5);
+    navigatorUpperTree->setColumnCount(5);
     QStringList UpperTableHeaders;
     UpperTableHeaders << "Название команды/сигнала/\nРегистрационный номер" << "Время формирования/\nДата регистрации"
                         << "Время исполнения/\nТип документа" << "Тема документа" << "Источник информации";
-    navigatorTree->setHeaderLabels(UpperTableHeaders);
-    for (int i=0; i < navigatorTree->columnCount(); i++)
+    navigatorUpperTree->setHeaderLabels(UpperTableHeaders);
+    for (int i=0; i < navigatorUpperTree->columnCount(); i++)
     {
-        navigatorTree->resizeColumnToContents(i);
+        navigatorUpperTree->resizeColumnToContents(i);
     }
-    QTreeWidgetItem *commandsSignals = new QTreeWidgetItem(navigatorTree);
+    QTreeWidgetItem *commandsSignals = new QTreeWidgetItem(navigatorUpperTree);
     commandsSignals->setText(0, "Команды и сигналы");
-    QTreeWidgetItem *documents = new QTreeWidgetItem(navigatorTree);
+    commandsSignals->setExpanded(true);
+    QTreeWidgetItem *documents = new QTreeWidgetItem(navigatorUpperTree);
     documents->setText(0, "Документы");
+    documents->setExpanded(true);
     QTreeWidgetItem *out = new QTreeWidgetItem(commandsSignals);
     out->setText(0, "Исходящее");
     QTreeWidgetItem *in = new QTreeWidgetItem(commandsSignals);
     in->setText(0, "Входящее");
     QTreeWidgetItem* root = out;
-    QSqlQuery query;
-    QString selectPattern = "SELECT t1.termname, inf.date_add, atr.execution_time "
+    QSqlQuery query = QSqlQuery(db);
+    QString selectPattern = "SELECT t1.termname, inf.date_add, atr.execution_time, inf.order_id "
             "FROM orders_alerts.orders_alerts_info  inf "
             "JOIN orders_alerts.orders_alerts_attrib atr ON inf.order_id = atr.order_id "
             "JOIN reference_data.terms t1 ON inf.order_tid = t1.termhierarchy;";
@@ -54,8 +46,10 @@ void Commands::fillNavigator() {
         qDebug() << "Unable to make select operation!" << query.lastError();
     }
     int i = 0;
+    signalsList = new int[query.size()];
     while (query.next()) {
-        makeNoteCommand(root, query.value(0).toString(), query.value(1).toDateTime(), query.value(2).toDateTime());
+        addCommand(root, query.value(0).toString(), query.value(1).toDateTime(), query.value(2).toDateTime());
+        signalsList[i] = query.value(3).toInt();
         i++;
     }
     root->setExpanded(true);
@@ -75,7 +69,7 @@ void Commands::fillNavigator() {
     }
     i = 0;
     while (query.next()) {
-        makeNoteDoc(root, query.value(0).toString(), query.value(1).toDateTime(),
+        addDocument(root, query.value(0).toString(), query.value(1).toDateTime(),
                     query.value(2).toString(), query.value(3).toString());
         i++;
     }
@@ -89,7 +83,7 @@ void Commands::fillNavigator() {
 }
 
 void Commands::fillChanges() {
-    Utility::closeNewEditTab(this);
+    /*Utility::closeNewEditTab(this);
     changesTree->clear();
     navigatorLowerTable->clear();
 
@@ -115,16 +109,20 @@ void Commands::fillChanges() {
     while (query.next()) {
         makeNote(root, query.value(0).toString(), query.value(1).toString(), query.value(2).toString());
         i++;
-    }*/
+    }
     changesLowerTable->setColumnCount(3);
     QStringList LowerTableHeaders;
     LowerTableHeaders << "Получатель2" << "Отметка2" << "Время отметки2";
     changesLowerTable->setHorizontalHeaderLabels(LowerTableHeaders);
-    changesLowerTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    changesLowerTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);*/
 }
 
 void Commands::onAdd() {
     //реализация кнопки добавить
+    /*CommandsAddForm *newForm = new CommandsAddForm;
+    contentWidget = newForm;
+    this->addTab(contentWidget, "Новый");
+    this->setCurrentWidget(contentWidget);*/
 }
 
 void Commands::onEdit() {
@@ -141,7 +139,7 @@ bool Commands::onSave() {
     return false;
 }
 
-void Commands::makeNoteCommand(QTreeWidgetItem *parent,
+void Commands::addCommand(QTreeWidgetItem *parent,
                   QString name1, QDateTime date, QDateTime date2)
 {
     QTreeWidgetItem *treeItem = new QTreeWidgetItem();
@@ -152,7 +150,7 @@ void Commands::makeNoteCommand(QTreeWidgetItem *parent,
     parent->addChild(treeItem);
 }
 
-void Commands::makeNoteDoc(QTreeWidgetItem *parent,
+void Commands::addDocument(QTreeWidgetItem *parent,
                   QString name1, QDateTime date, QString name3, QString name4)
 {
     QTreeWidgetItem *treeItem = new QTreeWidgetItem();
@@ -162,4 +160,29 @@ void Commands::makeNoteDoc(QTreeWidgetItem *parent,
     treeItem->setText(3, name4);
 
     parent->addChild(treeItem);
+}
+
+void Commands::showRecivers()
+{
+    QString s = navigatorUpperTree->currentItem()->text(0);
+    if (s.compare("Команды и сигналы") == 0) { return; }
+    if (s.compare("Документы") == 0) { return; }
+    QTreeWidgetItem *parent = navigatorUpperTree->currentItem()->parent();
+    int numb = parent->indexOfChild(navigatorUpperTree->currentItem());
+    QSqlQuery query = QSqlQuery(db);
+    QString selectPattern = "SELECT combatobjectcode, mark_tid, mark_time ";
+    selectPattern = selectPattern+ "FROM orders_alerts.orders_alerts_acceptors WHERE order_id='"+QString::number(signalsList[numb],10)+"';";
+    //qDebug()<<selectPattern;
+    if (!query.exec(selectPattern)) {
+        qDebug() << "Unable to make select operation!" << query.lastError();
+    }
+    int i=0;
+    navigatorLowerTable->clearContents();
+    navigatorLowerTable->setRowCount(query.size());
+    while (query.next()) {
+        navigatorLowerTable->setItem(i, 0, new QTableWidgetItem(query.value(0).toString()));
+        navigatorLowerTable->setItem(i, 1, new QTableWidgetItem(query.value(1).toString()));
+        navigatorLowerTable->setItem(i, 2, new QTableWidgetItem(query.value(2).toString()));
+        i++;
+    }
 }
