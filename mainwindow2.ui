@@ -69,7 +69,7 @@
        <enum>QFrame::Plain</enum>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="battleOrderTool">
        <property name="geometry">
@@ -375,7 +375,7 @@
            </attribute>
            <layout class="QGridLayout" name="gridLayout_6">
             <item row="1" column="0">
-             <widget class="QTableWidget" name="navigatorSend_1">
+             <widget class="QTableWidget" name="navigatorHitTargetsRecivers">
               <attribute name="horizontalHeaderDefaultSectionSize">
                <number>200</number>
               </attribute>
@@ -426,7 +426,7 @@
              </widget>
             </item>
             <item row="0" column="0">
-             <widget class="QTableWidget" name="navigatorHitTargets">
+             <widget class="QTableWidget" name="navigatorHitTargetsTable">
               <attribute name="horizontalHeaderDefaultSectionSize">
                <number>200</number>
               </attribute>

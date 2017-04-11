@@ -10,10 +10,12 @@ MainWindow::MainWindow(QSqlDatabase DB, QWidget *parent) :
     ui(new Ui::MainWindow2)
 {
     ui->setupUi(this);
+    c_battleOrder = new BattleOrder(db);
+    c_hitTargets  = new HitTargets(db, ui->navigatorHitTargetsTable, ui->navigatorHitTargetsRecivers);
+    c_commands    = new Commands(db,ui->navigatorCommandsTree, ui->navigatorCommandsRecivers);
 
     ui->toolBox->setCurrentIndex(0);
     slotNavigator();
-    c_commands->setTables(ui->navigatorCommandsTree, ui->navigatorCommandsRecivers);
 
     connect( ui->toolBox,     SIGNAL (currentChanged(int)), this, SLOT (slotNavigator()) );
     connect( ui->m_navigator, SIGNAL (triggered()),         this, SLOT (slotNavigator()) );
@@ -43,7 +45,7 @@ void MainWindow::slotNavigator()
      case 1: //страница "Поражаемые цели"
         ui->tabWidget_1->setTabEnabled(1, false);
         ui->tabWidget_1->setTabEnabled(0, true);
-        c_hitTargets->fillNavigator(ui->navigatorHitTargets);
+        c_hitTargets->fillNavigator(ui->navigatorHitTargetsTable);
         break;
      case 2: //страница "Команды и сигналы, документы"
         ui->tabWidget_2->setTabEnabled(1, false);
@@ -120,7 +122,7 @@ void MainWindow::slotAdd()
      case 1: //страница "Поражаемые цели"
         ui->tabWidget_1->setTabEnabled(1, false);
         ui->tabWidget_1->setTabEnabled(0, true);
-        c_hitTargets->fillNavigator(ui->navigatorHitTargets);
+        ui->tabWidget_1->addTab(c_hitTargets->onAdd(),"Новый");
         break;
      case 2: //страница "Команды и сигналы, документы"
         ui->tabWidget_2->setTabEnabled(1, false);

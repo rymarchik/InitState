@@ -1,8 +1,12 @@
 #include "commands.h"
 
-Commands::Commands(QSqlDatabase db, QWidget *parent) : QToolBox(parent)
+Commands::Commands(QSqlDatabase db, QTreeWidget *navigatorUpperTree,
+                   QTableWidget *navigatorLowerTable, QWidget *parent) : QToolBox(parent)
 {
     this->db=db;
+    this->navigatorUpperTree=navigatorUpperTree;
+    this->navigatorLowerTable=navigatorLowerTable;
+    connect(this->navigatorUpperTree, SIGNAL(itemSelectionChanged()), this, SLOT(showRecivers()));
 }
 
 void Commands::setTables(QTreeWidget *navigatorUpperTree, QTableWidget *navigatorLowerTable)

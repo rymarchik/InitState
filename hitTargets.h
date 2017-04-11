@@ -11,14 +11,11 @@ class HitTargets : public QToolBox//BaseTabWidget
     Q_OBJECT
 
 public:
-    HitTargets(QSqlDatabase DB = QSqlDatabase::database(), QWidget* parent = 0);
-
-    QSqlDatabase db;
-
+    HitTargets(QSqlDatabase db, QTableWidget *navigatorUpperTable,
+               QTableWidget *navigatorLowerTable, QWidget* parent = 0);
     void fillNavigator(QTableWidget *navigatorTableWidget);
-/*
     void fillChanges();
-    void onAdd();
+    QWidget *onAdd();
     void onEdit();
     bool onDelete();
     bool onSave();
@@ -36,6 +33,9 @@ public:
     QStringList getRocketTypes();
 
 private:
+    QSqlDatabase db;
+    QTableWidget* navigatorUpperTable;
+    QTableWidget* navigatorLowerTable;
     QWidget* contentWidget;
 
     QComboBox* dataSourceBatteryCB;
@@ -71,17 +71,16 @@ private:
     QLineEdit* quantityLE;
 
 public slots:
-    void slotChangeDataSourceBattery(int);
+    //void slotChangeDataSourceBattery(int);
 
-    void slotAddPoint();
+    /*void slotAddPoint();
     void slotRemovePoint();
 
     void slotToggleRandomRB();
     void slotToggleSquareRB();
     void slotToggleRoundRB();
     void slotToggleLaunchCB();
-    void slotToggleExplosionCB();
-*/
+    void slotToggleExplosionCB();*/
 };
 
 #endif // HITTARGETS_H

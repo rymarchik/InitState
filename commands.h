@@ -12,7 +12,7 @@ class Commands : public QToolBox
     Q_OBJECT
 
 public:
-    Commands(QSqlDatabase db, QWidget* parent = 0);
+    Commands(QSqlDatabase db, QTreeWidget *navigatorUpperTree, QTableWidget *navigatorLowerTable, QWidget* parent = 0);
     void setTables(QTreeWidget *navigatorUpperTree, QTableWidget *navigatorLowerTable);
     void fillNavigator();
     void fillChanges();

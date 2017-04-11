@@ -25,16 +25,15 @@ public:
     explicit MainWindow(QSqlDatabase DB = QSqlDatabase::database(), QWidget *parent = 0);
     ~MainWindow();
 
-    QSqlDatabase db;    
-    BattleOrder *c_battleOrder = new BattleOrder(db);
-    HitTargets  *c_hitTargets  = new HitTargets(db);
-    Commands    *c_commands    = new Commands(db);
-
 
 
 
 private:
     Ui::MainWindow2* ui;
+    QSqlDatabase db;
+    BattleOrder *c_battleOrder;
+    HitTargets  *c_hitTargets;
+    Commands    *c_commands;
 
 private slots:
     void slotNavigator(); //заполнение закладки "Навигатор"

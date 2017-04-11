@@ -1,8 +1,57 @@
 #include "hitTargets.h"
 
-HitTargets::HitTargets(QSqlDatabase DB, QWidget* parent) : db(DB), QToolBox(parent) //BaseTabWidget(parent)
+HitTargets::HitTargets(QSqlDatabase db, QTableWidget *navigatorUpperTable,
+                       QTableWidget *navigatorLowerTable, QWidget* parent) : QToolBox(parent) //BaseTabWidget(parent)
 {
+    this->db=db;
+    this->navigatorUpperTable=navigatorUpperTable;
+    this->navigatorLowerTable=navigatorLowerTable;
 
+    contentWidget = loadUiFile();
+
+        dataSourceBatteryCB = findChild<QComboBox*>("dataSourceBatteryCB");
+        dataSourceWeaponryCB = findChild<QComboBox*>("dataSourceWeaponryCB");
+        targetNumberLE = findChild<QLineEdit*>("targetNumberLE");
+        targetNameCB = findChild<QComboBox*>("targetNameCB");
+        importanceLE = findChild<QLineEdit*>("importanceLE");
+        detectionTimeDTE = findChild<QDateTimeEdit*>("detectionTimeDTE");
+
+        randomRB = findChild<QRadioButton*>("randomRB");
+        squareRB = findChild<QRadioButton*>("squareRB");
+        roundRB = findChild<QRadioButton*>("roundRB");
+        coordinateLE = findChild<QLineEdit*>("coordinateLE");
+        heightLE = findChild<QLineEdit*>("heightLE");
+        extraCoordinatesLayout = findChild<QVBoxLayout*>("extraCoordinatesLayout");
+        addPointBtn = findChild<QPushButton*>("addPointBtn");
+        removePointBtn = findChild<QPushButton*>("removePointBtn");
+        frontLbl = findChild<QLabel*>("frontLbl");
+        depthLbl = findChild<QLabel*>("depthLbl");
+        deviationLbl = findChild<QLabel*>("deviationLbl");
+        radiusLbl = findChild<QLabel*>("radiusLbl");
+        frontLE = findChild<QLineEdit*>("frontLE");
+        depthLE = findChild<QLineEdit*>("depthLE");
+        deviationLE = findChild<QLineEdit*>("deviationLE");
+        radiusLE = findChild<QLineEdit*>("radiusLE");
+        coverDegreeCB = findChild<QComboBox*>("coverDegreeCB");
+
+        launchChB = findChild<QCheckBox*>("launchChB");
+        explosionChB = findChild<QCheckBox*>("explosionChB");
+        launchTimeDTE = findChild<QDateTimeEdit*>("launchTimeDTE");
+        damageDegreeCB = findChild<QComboBox*>("damageDegreeCB");
+        rocketTypeCB = findChild<QComboBox*>("rocketTypeCB");
+        quantityLE = findChild<QLineEdit*>("quantityLE");
+}
+
+QWidget* HitTargets::loadUiFile() {
+    QUiLoader loader;
+
+    QFile file(":/hittargets.ui");
+    file.open(QFile::ReadOnly);
+
+    QWidget *formWidget = loader.load(&file, this);
+    file.close();
+
+    return formWidget;
 }
 
 void HitTargets::fillNavigator(QTableWidget *navigatorTableWidget)
@@ -275,33 +324,36 @@ void HitTargets::reinitializeFormData() {
     launchTimeDTE->setDateTime(QDateTime::currentDateTime());
     damageDegreeCB->addItems(getDamageDegrees());
     rocketTypeCB->addItems(getRocketTypes());
-}
+}*/
 
-void HitTargets::onAdd() {
-    reinitializeFormData();
-    this->addTab(contentWidget, "Новый");
-    this->setCurrentWidget(contentWidget);
-
+QWidget *HitTargets::onAdd() {
+    //reinitializeFormData();
+    //this->addTab(contentWidget, "Новый");
+    //this->setCurrentWidget(contentWidget);
+    qDebug() << "точка G";
     dataSourceBatteryCB->addItems(getDataSourceBatteries());
+    qDebug() << "точка G";
     targetNameCB->addItems(getHitTargets());
+    qDebug() << "точка G";
     detectionTimeDTE->setDateTime(QDateTime::currentDateTime());
-
+    qDebug() << "точка G";
     dataSourceBatteryCB->setEnabled(true);
     dataSourceWeaponryCB->setEnabled(true);
     targetNumberLE->setEnabled(true);
     targetNameCB->setEnabled(true);
 
     if (randomRB->isChecked() == true) {
-        slotToggleRandomRB();
+        //slotToggleRandomRB();
     }
     else {
         randomRB->setChecked(true);
     }
-    slotAddPoint();
-    slotAddPoint();
+    //slotAddPoint();
+    //slotAddPoint();
+    return contentWidget;
 }
 
-void HitTargets::onEdit() {
+/*void HitTargets::onEdit() {
     reinitializeFormData();
     this->addTab(contentWidget, "Цель № " + navigatorUpperTable->
                  item(navigatorUpperTable->currentRow(), 0)->text());
@@ -728,7 +780,7 @@ QString HitTargets::constructMessage() {
     }
 
     return msg;
-}
+}*/
 
 QStringList HitTargets::getDataSourceBatteries() {
     QSqlQuery query;
@@ -748,7 +800,7 @@ QStringList HitTargets::getDataSourceBatteries() {
     return list;
 }
 
-QStringList HitTargets::getDataSourceWeaponry() {
+/*QStringList HitTargets::getDataSourceWeaponry() {
     QString targetNumber = dataSourceBatteryCB->currentText().split(' ').first();
     QString targetName = dataSourceBatteryCB->currentText().remove(0, targetNumber.size() + 1);
 
@@ -770,7 +822,7 @@ QStringList HitTargets::getDataSourceWeaponry() {
         list.append(tr("%1").arg(query.value(0).toInt()) + " " + query.value(1).toString());
     }
     return list;
-}
+}*/
 
 QStringList HitTargets::getHitTargets() {
     QSqlQuery query;
@@ -787,7 +839,7 @@ QStringList HitTargets::getHitTargets() {
     return list;
 }
 
-QStringList HitTargets::getCoverDegrees() {
+/*QStringList HitTargets::getCoverDegrees() {
     QSqlQuery query;
     QString selectQuery = "SELECT termname FROM reference_data.terms WHERE termhierarchy ~ '95.20.*' AND "
                           "nlevel(termhierarchy) = 3";
