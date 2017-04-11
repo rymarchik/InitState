@@ -18,7 +18,7 @@ MainWindow::MainWindow(QSqlDatabase DB, QWidget *parent) :
     connect( ui->toolBox,     SIGNAL (currentChanged(int)), this, SLOT (slotNavigator()) );
     connect( ui->m_navigator, SIGNAL (triggered()),         this, SLOT (slotNavigator()) );
     connect( ui->m_changes,   SIGNAL (triggered()),         this, SLOT (slotChanges())   );
-
+    connect( ui->m_add,       SIGNAL (triggered()),         this, SLOT (slotAdd())       );
     connect( ui->m_exit,      SIGNAL (triggered()),         qApp, SLOT(quit())           );
 
     //connect( ui->m_Refresh, SIGNAL (triggered()), this, SLOT (slotRefresh()) );
@@ -103,6 +103,44 @@ void MainWindow::slotChanges()
         break;
      case 5: //страница "Условия ведения боевых действий"
         ui->tabWidget_5->setCurrentWidget( ui->tabChanges_5 );
+        break;
+    }
+}
+
+void MainWindow::slotAdd()
+{
+    qDebug()<< "slotNavigator,tool:" << ui->toolBox->currentIndex();
+    switch ( ui->toolBox->currentIndex() )
+    {
+     case 0: //страница "Свои войска"
+        ui->tabWidget_0->setTabEnabled(1, false);
+        ui->tabWidget_0->setTabEnabled(0, true);
+        c_battleOrder->fillNavigator(ui->navigatorBattleOrder);
+        break;
+     case 1: //страница "Поражаемые цели"
+        ui->tabWidget_1->setTabEnabled(1, false);
+        ui->tabWidget_1->setTabEnabled(0, true);
+        c_hitTargets->fillNavigator(ui->navigatorHitTargets);
+        break;
+     case 2: //страница "Команды и сигналы, документы"
+        ui->tabWidget_2->setTabEnabled(1, false);
+        ui->tabWidget_2->setTabEnabled(0, true);
+        ui->tabWidget_2->addTab(c_commands->onAdd(),"Новый");
+        break;
+     case 3: //страница "Районы и позиции"
+        ui->tabWidget_3->setTabEnabled(1, false);
+        ui->tabWidget_3->setTabEnabled(0, true);
+
+        break;
+     case 4: //страница "Тактическая обстановка"
+        ui->tabWidget_4->setTabEnabled(1, false);
+        ui->tabWidget_4->setTabEnabled(0, true);
+
+        break;
+     case 5: //страница "Условия ведения боевых действий"
+        ui->tabWidget_5->setTabEnabled(1, false);
+        ui->tabWidget_5->setTabEnabled(0, true);
+        //ui->tabWidget_5->setCurrentWidget( ui->tabNavigator_5 );
         break;
     }
 }

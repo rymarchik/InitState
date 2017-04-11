@@ -39,6 +39,7 @@ private:
 private slots:
     void slotNavigator(); //заполнение закладки "Навигатор"
     void slotChanges();   //заполнение закладки "Изменить"
+    void slotAdd();       //заполнение закладки "Изменить"
 
 };
 

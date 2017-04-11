@@ -10,6 +10,7 @@ CommandsAddForm::CommandsAddForm(QWidget *parent) :
     ui->timeExecDTE->setDateTime(QDateTime::currentDateTime());
     ui->timeDocRegister->setDateTime(QDateTime::currentDateTime());
     ui->stackedWidget->setCurrentIndex(0);
+    ui->tableWidget_4->setRowCount(0);
     setCommandsSignals();
     setAttributeExecution();
 
@@ -41,12 +42,21 @@ void CommandsAddForm::changeContent()
 
 void CommandsAddForm::addRecivers()
 {
-
 }
 
 void CommandsAddForm::recieveData(QString parametr, QString value)
 {
-    qDebug() << parametr << value;
+    int n = ui->tableWidget_4->rowCount();
+    if (n == 0) {
+        ui->tableWidget_4->setRowCount(1);
+    }
+    else {
+        ui->tableWidget_4->insertRow(1);
+    }
+    n = ui->tableWidget_4->rowCount();
+    ui->tableWidget_4->setItem(n-1, 0, new QTableWidgetItem(parametr));
+    ui->tableWidget_4->setItem(n-1, 1, new QTableWidgetItem(value));
+
 }
 
 void CommandsAddForm::setCommandsSignals()

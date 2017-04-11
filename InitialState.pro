@@ -22,7 +22,9 @@ SOURCES += main.cpp\
     positions.cpp \
     baseTabWidget.cpp \
     server.cpp \
-    ownforcesform.cpp
+    ownforcesform.cpp \
+    addparamform.cpp \
+    commandsaddform.cpp
 
 HEADERS  += mainwindow.h \
     receiversDialog.h \
@@ -33,7 +35,9 @@ HEADERS  += mainwindow.h \
     positions.h \
     baseTabWidget.h \
     server.h \
-    ownforcesform.h
+    ownforcesform.h \
+    addparamform.h \
+    commandsaddform.h
 
 RESOURCES += \
     resources.qrc
@@ -42,4 +46,6 @@ FORMS += \
     mainwindow.ui \
     hittargets.ui \
     ownforcesform.ui \
-    mainwindow2.ui
+    mainwindow2.ui \
+    addparamform.ui \
+    commandsaddform.ui

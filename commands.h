@@ -5,6 +5,7 @@
 #include <QtSql>
 #include <QDateTime>
 #include <QtUiTools>
+#include "commandsaddform.h"
 
 class Commands : public QToolBox
 {
@@ -15,7 +16,7 @@ public:
     void setTables(QTreeWidget *navigatorUpperTree, QTableWidget *navigatorLowerTable);
     void fillNavigator();
     void fillChanges();
-    void onAdd();
+    CommandsAddForm *onAdd();
     void onEdit();
     bool onDelete();
     bool onSave();

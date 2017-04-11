@@ -117,12 +117,9 @@ void Commands::fillChanges() {
     changesLowerTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);*/
 }
 
-void Commands::onAdd() {
+CommandsAddForm* Commands::onAdd() {
     //реализация кнопки добавить
-    /*CommandsAddForm *newForm = new CommandsAddForm;
-    contentWidget = newForm;
-    this->addTab(contentWidget, "Новый");
-    this->setCurrentWidget(contentWidget);*/
+    return new CommandsAddForm;
 }
 
 void Commands::onEdit() {
