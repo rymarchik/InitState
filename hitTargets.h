@@ -1,7 +1,6 @@
 #ifndef HITTARGETS_H
 #define HITTARGETS_H
 
-#include "baseTabWidget.h"
 #include <QtWidgets>
 #include <QtSql>
 #include <QtUiTools>

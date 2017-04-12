@@ -1,10 +1,11 @@
 #ifndef POSITIONS_H
 #define POSITIONS_H
 
-#include "baseTabWidget.h"
 #include <QtWidgets>
+#include <QtSql>
+#include <QtUiTools>
 
-class Positions : public BaseTabWidget
+class Positions : public QToolBox
 {
     Q_OBJECT
 

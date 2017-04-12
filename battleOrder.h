@@ -1,7 +1,6 @@
 #ifndef BATTLEORDER_H
 #define BATTLEORDER_H
 
-#include <baseTabWidget.h>
 #include <QtWidgets>
 #include <QtSql>
 #include <QStringList>

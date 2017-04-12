@@ -12,10 +12,6 @@
 namespace Ui {
 class MainWindow2;
 }
-/*
-class Positions;
-class ReceiversDialog;
-*/
 
 class MainWindow : public QMainWindow
 {
@@ -38,7 +34,10 @@ private:
 private slots:
     void slotNavigator(); //заполнение закладки "Навигатор"
     void slotChanges();   //заполнение закладки "Изменить"
-    void slotAdd();       //заполнение закладки "Изменить"
+    void slotAdd();       //создвние закладки "Новый"
+    void slotEdit();      //реализация функции "Править"
+    void slotDelete();    //реализация функции "Удалить"
+    void slotSave();      //реализация функции "Сохранить"
 
 };
 

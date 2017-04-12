@@ -21,9 +21,10 @@ MainWindow::MainWindow(QSqlDatabase DB, QWidget *parent) :
     connect( ui->m_navigator, SIGNAL (triggered()),         this, SLOT (slotNavigator()) );
     connect( ui->m_changes,   SIGNAL (triggered()),         this, SLOT (slotChanges())   );
     connect( ui->m_add,       SIGNAL (triggered()),         this, SLOT (slotAdd())       );
+    connect( ui->m_edit,      SIGNAL (triggered()),         this, SLOT (slotEdit())      );
+    connect( ui->m_delete,    SIGNAL (triggered()),         this, SLOT (slotDelete())    );
+    connect( ui->m_save,      SIGNAL (triggered()),         this, SLOT (slotSave())      );
     connect( ui->m_exit,      SIGNAL (triggered()),         qApp, SLOT(quit())           );
-
-    //connect( ui->m_Refresh, SIGNAL (triggered()), this, SLOT (slotRefresh()) );
 }
 
 //заполнение закладки "Навигатор":
@@ -33,40 +34,37 @@ void MainWindow::slotNavigator()
     ui->m_navigator->setChecked(true);
     ui->m_changes->setChecked(false);
 
-    qDebug()<< "slotNavigator,tool:" << ui->toolBox->currentIndex();
-
     switch ( ui->toolBox->currentIndex() )
     {
      case 0: //страница "Свои войска"
-        ui->tabWidget_0->setTabEnabled(1, false);
-        ui->tabWidget_0->setTabEnabled(0, true);
-        c_battleOrder->fillNavigator(ui->navigatorBattleOrder);
+        ui->battleOrderTabWidget->setTabEnabled(0, true);
+        ui->battleOrderTabWidget->setTabEnabled(1, false);
+        c_battleOrder->fillNavigator(ui->navigatorBattleOrderTree);
         break;
      case 1: //страница "Поражаемые цели"
-        ui->tabWidget_1->setTabEnabled(1, false);
-        ui->tabWidget_1->setTabEnabled(0, true);
+        ui->hitTargetsTabWidget->setTabEnabled(0, true);
+        ui->hitTargetsTabWidget->setTabEnabled(1, false);
         c_hitTargets->fillNavigator(ui->navigatorHitTargetsTable);
         break;
      case 2: //страница "Команды и сигналы, документы"
-        ui->tabWidget_2->setTabEnabled(1, false);
-        ui->tabWidget_2->setTabEnabled(0, true);
+        ui->commandsTabWidget->setTabEnabled(0, true);
+        ui->commandsTabWidget->setTabEnabled(1, false);
         c_commands->fillNavigator();
 
         break;
      case 3: //страница "Районы и позиции"
-        ui->tabWidget_3->setTabEnabled(1, false);
-        ui->tabWidget_3->setTabEnabled(0, true);
+        ui->positionsTabWidget->setTabEnabled(0, true);
+        ui->positionsTabWidget->setTabEnabled(1, false);
 
         break;
      case 4: //страница "Тактическая обстановка"
-        ui->tabWidget_4->setTabEnabled(1, false);
-        ui->tabWidget_4->setTabEnabled(0, true);
+        ui->tacticalTabWidget->setTabEnabled(0, true);
+        ui->tacticalTabWidget->setTabEnabled(1, false);
 
         break;
      case 5: //страница "Условия ведения боевых действий"
-        ui->tabWidget_5->setTabEnabled(1, false);
-        ui->tabWidget_5->setTabEnabled(0, true);
-        //ui->tabWidget_5->setCurrentWidget( ui->tabNavigator_5 );
+        ui->conditionsTabWidget->setTabEnabled(0, true);
+        ui->conditionsTabWidget->setTabEnabled(1, false);
         break;
     }
 }
@@ -78,73 +76,79 @@ void MainWindow::slotChanges()
     ui->m_navigator->setChecked(false);
     ui->m_changes->setChecked(true);
 
-    qDebug()<< "slotChanges,tool:" << ui->toolBox->currentIndex();
-    //qDebug()<< "slotChanges,tab:"  << ui->tabWidget_0->currentIndex();
-
     switch ( ui->toolBox->currentIndex() )
     {
      case 0: //страница "Свои войска"
-        ui->tabWidget_0->setTabEnabled(0, false);
-        ui->tabWidget_0->setTabEnabled(1, true);
-
-        ui->tabWidget_0->setCurrentWidget( ui->tabChanges_0 );
-        c_battleOrder->fillChanges(ui->changesBattleOrder);
-
+        ui->battleOrderTabWidget->setTabEnabled(0, false);
+        ui->battleOrderTabWidget->setTabEnabled(1, true);
+        //c_battleOrder->fillChanges(ui->changesBattleOrderTable);
         break;
      case 1: //страница "Поражаемые цели"
-        ui->tabWidget_1->setCurrentWidget( ui->tabChanges_1 );
+        ui->hitTargetsTabWidget->setTabEnabled(0, false);
+        ui->hitTargetsTabWidget->setTabEnabled(1, true);
         break;
      case 2: //страница "Команды и сигналы, документы"
-        ui->tabWidget_2->setCurrentWidget( ui->tabChanges_2 );
+        ui->commandsTabWidget->setTabEnabled(0, false);
+        ui->commandsTabWidget->setTabEnabled(1, true);
         break;
      case 3: //страница "Районы и позиции"
-        ui->tabWidget_3->setCurrentWidget( ui->tabChanges_3 );
+        ui->positionsTabWidget->setTabEnabled(0, false);
+        ui->positionsTabWidget->setTabEnabled(1, true);
         break;
      case 4: //страница "Тактическая обстановка"
-        ui->tabWidget_4->setCurrentWidget( ui->tabChanges_4 );
+        ui->tacticalTabWidget->setTabEnabled(0, false);
+        ui->tacticalTabWidget->setTabEnabled(1, true);
         break;
      case 5: //страница "Условия ведения боевых действий"
-        ui->tabWidget_5->setCurrentWidget( ui->tabChanges_5 );
+        ui->conditionsTabWidget->setTabEnabled(0, false);
+        ui->conditionsTabWidget->setTabEnabled(1, true);
         break;
     }
 }
 
+//создвние закладки "Новый":
 void MainWindow::slotAdd()
 {
     qDebug()<< "slotNavigator,tool:" << ui->toolBox->currentIndex();
     switch ( ui->toolBox->currentIndex() )
     {
      case 0: //страница "Свои войска"
-        ui->tabWidget_0->setTabEnabled(1, false);
-        ui->tabWidget_0->setTabEnabled(0, true);
-        c_battleOrder->fillNavigator(ui->navigatorBattleOrder);
         break;
      case 1: //страница "Поражаемые цели"
-        ui->tabWidget_1->setTabEnabled(1, false);
-        ui->tabWidget_1->setTabEnabled(0, true);
-        ui->tabWidget_1->addTab(c_hitTargets->onAdd(),"Новый");
+        ui->hitTargetsTabWidget->addTab(c_hitTargets->onAdd(),"Новый");
+        ui->hitTargetsTabWidget->setCurrentIndex(2);
         break;
      case 2: //страница "Команды и сигналы, документы"
-        ui->tabWidget_2->setTabEnabled(1, false);
-        ui->tabWidget_2->setTabEnabled(0, true);
-        ui->tabWidget_2->addTab(c_commands->onAdd(),"Новый");
+        ui->commandsTabWidget->addTab(c_commands->onAdd(),"Новый");
+        ui->commandsTabWidget->setCurrentIndex(2);
         break;
      case 3: //страница "Районы и позиции"
-        ui->tabWidget_3->setTabEnabled(1, false);
-        ui->tabWidget_3->setTabEnabled(0, true);
 
         break;
      case 4: //страница "Тактическая обстановка"
-        ui->tabWidget_4->setTabEnabled(1, false);
-        ui->tabWidget_4->setTabEnabled(0, true);
 
         break;
      case 5: //страница "Условия ведения боевых действий"
-        ui->tabWidget_5->setTabEnabled(1, false);
-        ui->tabWidget_5->setTabEnabled(0, true);
-        //ui->tabWidget_5->setCurrentWidget( ui->tabNavigator_5 );
         break;
     }
+}
+
+//реализация функции "Править":
+void MainWindow::slotEdit()
+{
+
+}
+
+//реализация функции "Удалить":
+void MainWindow::slotDelete()
+{
+
+}
+
+//реализация функции "Сохранить"
+void MainWindow::slotSave()
+{
+
 }
 
 MainWindow::~MainWindow()

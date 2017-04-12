@@ -20,11 +20,11 @@ SOURCES += main.cpp\
     battleOrder.cpp \
     commands.cpp \
     positions.cpp \
-    baseTabWidget.cpp \
     server.cpp \
     ownforcesform.cpp \
     addparamform.cpp \
-    commandsaddform.cpp
+    commandsaddform.cpp \
+    basetoolclass.cpp
 
 HEADERS  += mainwindow.h \
     receiversDialog.h \
@@ -33,11 +33,11 @@ HEADERS  += mainwindow.h \
     battleOrder.h \
     commands.h \
     positions.h \
-    baseTabWidget.h \
     server.h \
     ownforcesform.h \
     addparamform.h \
-    commandsaddform.h
+    commandsaddform.h \
+    basetoolclass.h
 
 RESOURCES += \
     resources.qrc

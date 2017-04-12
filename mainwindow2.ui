@@ -69,7 +69,7 @@
        <enum>QFrame::Plain</enum>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>5</number>
       </property>
       <widget class="QWidget" name="battleOrderTool">
        <property name="geometry">
@@ -89,161 +89,157 @@
        </attribute>
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="0">
-         <widget class="QTabWidget" name="tabWidget_0">
+         <widget class="QTabWidget" name="battleOrderTabWidget">
           <property name="currentIndex">
-           <number>1</number>
+           <number>0</number>
           </property>
           <property name="usesScrollButtons">
            <bool>true</bool>
           </property>
-          <widget class="QWidget" name="tabNavigator_0">
+          <widget class="QWidget" name="navigatorBattleOrderPage">
            <attribute name="title">
             <string>Навигатор</string>
            </attribute>
            <layout class="QGridLayout" name="gridLayout_5">
-            <item row="0" column="0">
-             <layout class="QGridLayout" name="gridLayout_4">
-              <item row="0" column="0">
-               <widget class="QTreeWidget" name="navigatorBattleOrder">
-                <property name="headerHidden">
-                 <bool>true</bool>
-                </property>
-                <property name="expandsOnDoubleClick">
-                 <bool>false</bool>
-                </property>
-                <attribute name="headerVisible">
-                 <bool>false</bool>
-                </attribute>
-                <attribute name="headerDefaultSectionSize">
-                 <number>391</number>
-                </attribute>
-                <attribute name="headerHighlightSections">
-                 <bool>true</bool>
-                </attribute>
-                <attribute name="headerShowSortIndicator" stdset="0">
-                 <bool>true</bool>
-                </attribute>
-                <column>
-                 <property name="text">
-                  <string>Наименование</string>
-                 </property>
-                 <property name="font">
-                  <font>
-                   <weight>75</weight>
-                   <bold>true</bold>
-                  </font>
-                 </property>
-                </column>
-                <column>
-                 <property name="text">
-                  <string>Состояние</string>
-                 </property>
-                 <property name="font">
-                  <font>
-                   <weight>75</weight>
-                   <bold>true</bold>
-                  </font>
-                 </property>
-                </column>
-                <column>
-                 <property name="text">
-                  <string>Режим</string>
-                 </property>
-                 <property name="font">
-                  <font>
-                   <weight>75</weight>
-                   <bold>true</bold>
-                  </font>
-                 </property>
-                </column>
-               </widget>
-              </item>
-              <item row="1" column="0">
-               <widget class="QTableWidget" name="navigatorSend_0">
-                <attribute name="horizontalHeaderCascadingSectionResizes">
-                 <bool>false</bool>
-                </attribute>
-                <attribute name="horizontalHeaderDefaultSectionSize">
-                 <number>200</number>
-                </attribute>
-                <attribute name="horizontalHeaderHighlightSections">
-                 <bool>false</bool>
-                </attribute>
-                <attribute name="horizontalHeaderMinimumSectionSize">
-                 <number>37</number>
-                </attribute>
-                <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
-                 <bool>false</bool>
-                </attribute>
-                <attribute name="horizontalHeaderStretchLastSection">
-                 <bool>false</bool>
-                </attribute>
-                <attribute name="verticalHeaderVisible">
-                 <bool>false</bool>
-                </attribute>
-                <attribute name="verticalHeaderCascadingSectionResizes">
-                 <bool>true</bool>
-                </attribute>
-                <attribute name="verticalHeaderDefaultSectionSize">
-                 <number>37</number>
-                </attribute>
-                <column>
-                 <property name="text">
-                  <string>Получатель</string>
-                 </property>
-                 <property name="font">
-                  <font>
-                   <weight>75</weight>
-                   <bold>true</bold>
-                  </font>
-                 </property>
-                </column>
-                <column>
-                 <property name="text">
-                  <string>Время данных</string>
-                 </property>
-                 <property name="font">
-                  <font>
-                   <weight>75</weight>
-                   <bold>true</bold>
-                  </font>
-                 </property>
-                </column>
-                <column>
-                 <property name="text">
-                  <string>Состояние отправки</string>
-                 </property>
-                 <property name="font">
-                  <font>
-                   <weight>75</weight>
-                   <bold>true</bold>
-                  </font>
-                 </property>
-                </column>
-                <column>
-                 <property name="text">
-                  <string>Состояние передачи</string>
-                 </property>
-                 <property name="font">
-                  <font>
-                   <weight>75</weight>
-                   <bold>true</bold>
-                  </font>
-                 </property>
-                </column>
-               </widget>
-              </item>
-             </layout>
+            <item row="1" column="0">
+             <widget class="QTreeWidget" name="navigatorBattleOrderTree">
+              <property name="headerHidden">
+               <bool>true</bool>
+              </property>
+              <property name="expandsOnDoubleClick">
+               <bool>false</bool>
+              </property>
+              <attribute name="headerVisible">
+               <bool>false</bool>
+              </attribute>
+              <attribute name="headerDefaultSectionSize">
+               <number>391</number>
+              </attribute>
+              <attribute name="headerHighlightSections">
+               <bool>true</bool>
+              </attribute>
+              <attribute name="headerShowSortIndicator" stdset="0">
+               <bool>true</bool>
+              </attribute>
+              <column>
+               <property name="text">
+                <string>Наименование</string>
+               </property>
+               <property name="font">
+                <font>
+                 <weight>75</weight>
+                 <bold>true</bold>
+                </font>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Состояние</string>
+               </property>
+               <property name="font">
+                <font>
+                 <weight>75</weight>
+                 <bold>true</bold>
+                </font>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Режим</string>
+               </property>
+               <property name="font">
+                <font>
+                 <weight>75</weight>
+                 <bold>true</bold>
+                </font>
+               </property>
+              </column>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QTableWidget" name="navigatorBattleOrderRecivers">
+              <attribute name="horizontalHeaderCascadingSectionResizes">
+               <bool>false</bool>
+              </attribute>
+              <attribute name="horizontalHeaderDefaultSectionSize">
+               <number>200</number>
+              </attribute>
+              <attribute name="horizontalHeaderHighlightSections">
+               <bool>false</bool>
+              </attribute>
+              <attribute name="horizontalHeaderMinimumSectionSize">
+               <number>37</number>
+              </attribute>
+              <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+               <bool>false</bool>
+              </attribute>
+              <attribute name="horizontalHeaderStretchLastSection">
+               <bool>false</bool>
+              </attribute>
+              <attribute name="verticalHeaderVisible">
+               <bool>false</bool>
+              </attribute>
+              <attribute name="verticalHeaderCascadingSectionResizes">
+               <bool>true</bool>
+              </attribute>
+              <attribute name="verticalHeaderDefaultSectionSize">
+               <number>37</number>
+              </attribute>
+              <column>
+               <property name="text">
+                <string>Получатель</string>
+               </property>
+               <property name="font">
+                <font>
+                 <weight>75</weight>
+                 <bold>true</bold>
+                </font>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Время данных</string>
+               </property>
+               <property name="font">
+                <font>
+                 <weight>75</weight>
+                 <bold>true</bold>
+                </font>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Состояние отправки</string>
+               </property>
+               <property name="font">
+                <font>
+                 <weight>75</weight>
+                 <bold>true</bold>
+                </font>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Состояние передачи</string>
+               </property>
+               <property name="font">
+                <font>
+                 <weight>75</weight>
+                 <bold>true</bold>
+                </font>
+               </property>
+              </column>
+             </widget>
             </item>
            </layout>
           </widget>
-          <widget class="QWidget" name="tabChanges_0">
+          <widget class="QWidget" name="changesBattleOrderPage">
            <attribute name="title">
             <string>Изменить</string>
            </attribute>
            <layout class="QGridLayout" name="gridLayout_15">
             <item row="1" column="0">
-             <widget class="QTableWidget" name="tableWidget_2">
+             <widget class="QTableWidget" name="changesBattleOrderRecivers">
               <column>
                <property name="text">
                 <string>Получатель</string>
@@ -291,7 +287,7 @@
              </widget>
             </item>
             <item row="0" column="0">
-             <widget class="QTableWidget" name="changesBattleOrder">
+             <widget class="QTableWidget" name="changesBattleOrderTable">
               <column>
                <property name="text">
                 <string>Наименование</string>
@@ -362,14 +358,14 @@
        </attribute>
        <layout class="QGridLayout" name="gridLayout_2">
         <item row="0" column="0">
-         <widget class="QTabWidget" name="tabWidget_1">
+         <widget class="QTabWidget" name="hitTargetsTabWidget">
           <property name="currentIndex">
            <number>0</number>
           </property>
           <property name="usesScrollButtons">
            <bool>true</bool>
           </property>
-          <widget class="QWidget" name="tabNavigator_1">
+          <widget class="QWidget" name="navigatorHitTargetsPage">
            <attribute name="title">
             <string>Навигатор</string>
            </attribute>
@@ -478,7 +474,7 @@
             </item>
            </layout>
           </widget>
-          <widget class="QWidget" name="tabChanges_1">
+          <widget class="QWidget" name="changesHitTargetsPage">
            <attribute name="title">
             <string>Изменить</string>
            </attribute>
@@ -505,14 +501,14 @@
        </attribute>
        <layout class="QGridLayout" name="gridLayout_7">
         <item row="0" column="0">
-         <widget class="QTabWidget" name="tabWidget_2">
+         <widget class="QTabWidget" name="commandsTabWidget">
           <property name="currentIndex">
            <number>0</number>
           </property>
           <property name="usesScrollButtons">
            <bool>true</bool>
           </property>
-          <widget class="QWidget" name="tabNavigator_2">
+          <widget class="QWidget" name="navigatorCommandsPage">
            <attribute name="title">
             <string>Навигатор</string>
            </attribute>
@@ -531,7 +527,7 @@
             </item>
            </layout>
           </widget>
-          <widget class="QWidget" name="tabChanges_2">
+          <widget class="QWidget" name="changesCommandsPage">
            <attribute name="title">
             <string>Изменить</string>
            </attribute>
@@ -558,20 +554,20 @@
        </attribute>
        <layout class="QGridLayout" name="gridLayout">
         <item row="0" column="0">
-         <widget class="QTabWidget" name="tabWidget_3">
+         <widget class="QTabWidget" name="positionsTabWidget">
           <property name="currentIndex">
            <number>0</number>
           </property>
           <property name="usesScrollButtons">
            <bool>true</bool>
           </property>
-          <widget class="QWidget" name="tabNavigator_3">
+          <widget class="QWidget" name="navigatorPositionsPage">
            <attribute name="title">
             <string>Навигатор</string>
            </attribute>
            <layout class="QGridLayout" name="gridLayout_10">
             <item row="0" column="0">
-             <widget class="QTreeWidget" name="navigatorTree_5">
+             <widget class="QTreeWidget" name="navigatorPositionsTree">
               <property name="headerHidden">
                <bool>true</bool>
               </property>
@@ -620,7 +616,7 @@
              </widget>
             </item>
             <item row="1" column="0">
-             <widget class="QTableWidget" name="navigatorSend__3">
+             <widget class="QTableWidget" name="navigatorPositionsRecivers">
               <attribute name="horizontalHeaderDefaultSectionSize">
                <number>200</number>
               </attribute>
@@ -672,7 +668,7 @@
             </item>
            </layout>
           </widget>
-          <widget class="QWidget" name="tabChanges_3">
+          <widget class="QWidget" name="changesPositionsPage">
            <attribute name="title">
             <string>Изменить</string>
            </attribute>
@@ -699,20 +695,20 @@
        </attribute>
        <layout class="QGridLayout" name="gridLayout_13">
         <item row="0" column="0">
-         <widget class="QTabWidget" name="tabWidget_4">
+         <widget class="QTabWidget" name="tacticalTabWidget">
           <property name="currentIndex">
            <number>0</number>
           </property>
           <property name="usesScrollButtons">
            <bool>true</bool>
           </property>
-          <widget class="QWidget" name="tabNavigator_4">
+          <widget class="QWidget" name="navigatorTacticalPage">
            <attribute name="title">
             <string>Навигатор</string>
            </attribute>
            <layout class="QGridLayout" name="gridLayout_11">
             <item row="0" column="0">
-             <widget class="QTreeWidget" name="navigatorTree_6">
+             <widget class="QTreeWidget" name="navigatorTacticalPageTree">
               <property name="headerHidden">
                <bool>true</bool>
               </property>
@@ -761,7 +757,7 @@
              </widget>
             </item>
             <item row="1" column="0">
-             <widget class="QTableWidget" name="navigatorSend__4">
+             <widget class="QTableWidget" name="navigatorTacticalRecivers">
               <attribute name="horizontalHeaderDefaultSectionSize">
                <number>200</number>
               </attribute>
@@ -813,7 +809,7 @@
             </item>
            </layout>
           </widget>
-          <widget class="QWidget" name="tabChanges_4">
+          <widget class="QWidget" name="changesTacticalPage">
            <attribute name="title">
             <string>Изменить</string>
            </attribute>
@@ -822,7 +818,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="targetsTool">
+      <widget class="QWidget" name="conditionsTool">
        <property name="geometry">
         <rect>
          <x>0</x>
@@ -840,20 +836,20 @@
        </attribute>
        <layout class="QGridLayout" name="gridLayout_14">
         <item row="0" column="0">
-         <widget class="QTabWidget" name="tabWidget_5">
+         <widget class="QTabWidget" name="conditionsTabWidget">
           <property name="currentIndex">
            <number>0</number>
           </property>
           <property name="usesScrollButtons">
            <bool>true</bool>
           </property>
-          <widget class="QWidget" name="tabNavigator_5">
+          <widget class="QWidget" name="navigatorConditionsPage">
            <attribute name="title">
             <string>Навигатор</string>
            </attribute>
            <layout class="QGridLayout" name="gridLayout_12">
             <item row="0" column="0">
-             <widget class="QTreeWidget" name="navigatorTree_7">
+             <widget class="QTreeWidget" name="navigatorConditionsTree">
               <property name="headerHidden">
                <bool>true</bool>
               </property>
@@ -902,7 +898,7 @@
              </widget>
             </item>
             <item row="1" column="0">
-             <widget class="QTableWidget" name="navigatorSend__5">
+             <widget class="QTableWidget" name="navigatorConditionsRecivers">
               <attribute name="horizontalHeaderDefaultSectionSize">
                <number>200</number>
               </attribute>
@@ -954,7 +950,7 @@
             </item>
            </layout>
           </widget>
-          <widget class="QWidget" name="tabChanges_5">
+          <widget class="QWidget" name="changesConditionsPage">
            <attribute name="title">
             <string>Изменить</string>
            </attribute>
@@ -1005,7 +1001,7 @@
   </widget>
   <action name="m_add">
    <property name="checkable">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="checked">
     <bool>false</bool>
@@ -1037,8 +1033,11 @@
    </property>
   </action>
   <action name="m_edit">
-   <property name="enabled">
+   <property name="checkable">
     <bool>false</bool>
+   </property>
+   <property name="enabled">
+    <bool>true</bool>
    </property>
    <property name="icon">
     <iconset resource="resources.qrc">
@@ -1049,8 +1048,11 @@
    </property>
   </action>
   <action name="m_delete">
-   <property name="enabled">
+   <property name="checkable">
     <bool>false</bool>
+   </property>
+   <property name="enabled">
+    <bool>true</bool>
    </property>
    <property name="icon">
     <iconset resource="resources.qrc">
@@ -1061,8 +1063,11 @@
    </property>
   </action>
   <action name="m_save">
-   <property name="enabled">
+   <property name="checkable">
     <bool>false</bool>
+   </property>
+   <property name="enabled">
+    <bool>true</bool>
    </property>
    <property name="icon">
     <iconset resource="resources.qrc">
