@@ -5,26 +5,27 @@
 #include <QtSql>
 #include <QDateTime>
 #include <QtUiTools>
+#include "basetoolclass.h"
 #include "commandsaddform.h"
 
-class Commands : public QToolBox
+class Commands : public BaseToolClass
 {
     Q_OBJECT
 
 public:
-    Commands(QSqlDatabase db, QTreeWidget *navigatorUpperTree, QTableWidget *navigatorLowerTable, QWidget* parent = 0);
-    void setTables(QTreeWidget *navigatorUpperTree, QTableWidget *navigatorLowerTable);
+    Commands(QSqlDatabase db, QTreeWidget *navigatorTree,
+             QTableWidget *navigatorReciversTable, QTreeWidget *changesTree,
+             QTableWidget *changesReciversTable, QWidget* parent = 0);
     void fillNavigator();
     void fillChanges();
-    CommandsAddForm *onAdd();
-    void onEdit();
+    QWidget *onAdd();
+    QWidget *onEdit();
     bool onDelete();
     bool onSave();
 
 private:
-    QSqlDatabase db;
-    QTreeWidget* navigatorUpperTree;
-    QTableWidget* navigatorLowerTable;
+    QTreeWidget* navigatorTree;
+    QTreeWidget* changesTree;
     QWidget* contentWidget;
     int *signalsList;
 

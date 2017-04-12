@@ -4,20 +4,26 @@
 #include <QtWidgets>
 #include <QtSql>
 #include <QStringList>
+#include "basetoolclass.h"
 
-class BattleOrder : public QToolBox
+class BattleOrder : public BaseToolClass
 {
     Q_OBJECT
 
 public:
-    BattleOrder(QSqlDatabase DB = QSqlDatabase::database(), QWidget* parent = 0);
-    //~BattleOrder();
-    QSqlDatabase db;
+    BattleOrder(QSqlDatabase db, QTreeWidget *navigatorTree,
+                QTableWidget *navigatorReciversTable, QTableWidget *changesTree,
+                QTableWidget *changesReciversTable, QWidget* parent = 0);
+    void fillNavigator();
+    void fillChanges();
+    QWidget *onAdd();
+    QWidget *onEdit();
+    bool onDelete();
+    bool onSave();
 
-    void fillNavigator(QTreeWidget *navigatorTreeWidget);
-    void fillChanges(QTableWidget *changesTableWidget);
-
-public slots:
+private:
+    QTreeWidget* navigatorTree;
+    QTableWidget* changesTable;
 };
 
 #endif // BATTLEORDER_H

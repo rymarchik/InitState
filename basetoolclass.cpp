@@ -1,7 +1,7 @@
 #include "basetoolclass.h"
 
 BaseToolClass::BaseToolClass(QSqlDatabase db, QTableWidget *navigatorReciversTable,
-                             QTableWidget *changesReciversTable, QWidget* parent = 0) : QToolBox(parent)
+                             QTableWidget *changesReciversTable, QWidget* parent) : QToolBox(parent)
 {
     this->db = db;
     this->navigatorReciversTable = navigatorReciversTable;

@@ -1,13 +1,14 @@
 #include "hitTargets.h"
 
-HitTargets::HitTargets(QSqlDatabase db, QTableWidget *navigatorUpperTable,
-                       QTableWidget *navigatorLowerTable, QWidget* parent) : QToolBox(parent) //BaseTabWidget(parent)
+HitTargets::HitTargets(QSqlDatabase db, QTableWidget *navigatorTable,
+                       QTableWidget *navigatorReciversTable, QTableWidget *changesTable,
+                       QTableWidget *changesReciversTable, QWidget *parent)
+        : BaseToolClass(db, navigatorReciversTable, changesReciversTable, parent)
 {
-    this->db=db;
-    this->navigatorUpperTable=navigatorUpperTable;
-    this->navigatorLowerTable=navigatorLowerTable;
+        this->navigatorTable = navigatorTable;
+        this->changesTable = changesTable;
 
-    contentWidget = loadUiFile();
+        contentWidget = loadUiFile();
 
         dataSourceBatteryCB = findChild<QComboBox*>("dataSourceBatteryCB");
         dataSourceWeaponryCB = findChild<QComboBox*>("dataSourceWeaponryCB");
@@ -54,11 +55,11 @@ QWidget* HitTargets::loadUiFile() {
     return formWidget;
 }
 
-void HitTargets::fillNavigator(QTableWidget *navigatorTableWidget)
+void HitTargets::fillNavigator()
 {
 //    Utility::closeNewEditTab(this);
 //    navigatorUpperTable->clear();
-    navigatorTableWidget->clear();
+    navigatorTable->clear();
 
     QSqlQuery query = QSqlQuery(db);
     QString selectPattern = "SELECT tp.target_number, t.termname, cs1.object_number, t1.termname, "
@@ -73,14 +74,14 @@ void HitTargets::fillNavigator(QTableWidget *navigatorTableWidget)
         qDebug() << "Unable to make select operation!" << query.lastError();
     }
 
-    navigatorTableWidget->setColumnCount(3);
-    navigatorTableWidget->setRowCount(query.size());
+    navigatorTable->setColumnCount(3);
+    navigatorTable->setRowCount(query.size());
 
     int i = 0;
     while (query.next()) {
-        navigatorTableWidget->setItem(i, 0, new QTableWidgetItem(tr("%1").arg(query.value(0).toInt())));
-        navigatorTableWidget->setItem(i, 1, new QTableWidgetItem(query.value(1).toString()));
-        navigatorTableWidget->setItem(i, 2, new QTableWidgetItem(tr("%1").arg(query.value(2).toInt()) + " " +
+        navigatorTable->setItem(i, 0, new QTableWidgetItem(tr("%1").arg(query.value(0).toInt())));
+        navigatorTable->setItem(i, 1, new QTableWidgetItem(query.value(1).toString()));
+        navigatorTable->setItem(i, 2, new QTableWidgetItem(tr("%1").arg(query.value(2).toInt()) + " " +
                                                                 query.value(3).toString() + "/" +
                                                                 tr("%1").arg(query.value(4).toInt()) + " " +
                                                                 query.value(5).toString()));
@@ -98,6 +99,11 @@ void HitTargets::fillNavigator(QTableWidget *navigatorTableWidget)
     navigatorLowerTable->setHorizontalHeaderLabels(navigatorLowerTableHeaders);
     navigatorLowerTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch)
 */
+}
+
+void HitTargets::fillChanges()
+{
+
 }
 /*
 void HitTargets::fillChanges() {
@@ -351,6 +357,21 @@ QWidget *HitTargets::onAdd() {
     //slotAddPoint();
     //slotAddPoint();
     return contentWidget;
+}
+
+QWidget *HitTargets::onEdit()
+{
+    return 0;
+}
+
+bool HitTargets::onDelete()
+{
+    return 0;
+}
+
+bool HitTargets::onSave()
+{
+    return 0;
 }
 
 /*void HitTargets::onEdit() {

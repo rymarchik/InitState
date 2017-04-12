@@ -4,18 +4,21 @@
 #include <QtWidgets>
 #include <QtSql>
 #include <QtUiTools>
+#include "basetoolclass.h"
 
-class HitTargets : public QToolBox//BaseTabWidget
+
+class HitTargets : public BaseToolClass
 {
     Q_OBJECT
 
 public:
-    HitTargets(QSqlDatabase db, QTableWidget *navigatorUpperTable,
-               QTableWidget *navigatorLowerTable, QWidget* parent = 0);
-    void fillNavigator(QTableWidget *navigatorTableWidget);
+    HitTargets(QSqlDatabase db, QTableWidget *navigatorTable,
+               QTableWidget *navigatorReciversTable, QTableWidget *changesTable,
+               QTableWidget *changesReciversTable, QWidget* parent = 0);
+    void fillNavigator();
     void fillChanges();
     QWidget *onAdd();
-    void onEdit();
+    QWidget *onEdit();
     bool onDelete();
     bool onSave();
 
@@ -33,8 +36,8 @@ public:
 
 private:
     QSqlDatabase db;
-    QTableWidget* navigatorUpperTable;
-    QTableWidget* navigatorLowerTable;
+    QTableWidget* navigatorTable;
+    QTableWidget* changesTable;
     QWidget* contentWidget;
 
     QComboBox* dataSourceBatteryCB;

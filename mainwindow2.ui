@@ -69,7 +69,7 @@
        <enum>QFrame::Plain</enum>
       </property>
       <property name="currentIndex">
-       <number>5</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="battleOrderTool">
        <property name="geometry">
@@ -91,7 +91,7 @@
         <item row="0" column="0">
          <widget class="QTabWidget" name="battleOrderTabWidget">
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <property name="usesScrollButtons">
            <bool>true</bool>
@@ -360,7 +360,7 @@
         <item row="0" column="0">
          <widget class="QTabWidget" name="hitTargetsTabWidget">
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <property name="usesScrollButtons">
            <bool>true</bool>
@@ -478,6 +478,14 @@
            <attribute name="title">
             <string>Изменить</string>
            </attribute>
+           <layout class="QGridLayout" name="gridLayout_16">
+            <item row="0" column="0">
+             <widget class="QTableWidget" name="changesHitTargetsTable"/>
+            </item>
+            <item row="1" column="0">
+             <widget class="QTableWidget" name="changesHitTargetsRecivers"/>
+            </item>
+           </layout>
           </widget>
          </widget>
         </item>
@@ -503,7 +511,7 @@
         <item row="0" column="0">
          <widget class="QTabWidget" name="commandsTabWidget">
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <property name="usesScrollButtons">
            <bool>true</bool>
@@ -531,6 +539,20 @@
            <attribute name="title">
             <string>Изменить</string>
            </attribute>
+           <layout class="QGridLayout" name="gridLayout_4">
+            <item row="0" column="0">
+             <widget class="QTreeWidget" name="changesCommandsTree">
+              <column>
+               <property name="text">
+                <string notr="true">1</string>
+               </property>
+              </column>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QTableWidget" name="changesCommandsRecivers"/>
+            </item>
+           </layout>
           </widget>
          </widget>
         </item>

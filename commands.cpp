@@ -1,39 +1,32 @@
 #include "commands.h"
 
-Commands::Commands(QSqlDatabase db, QTreeWidget *navigatorUpperTree,
-                   QTableWidget *navigatorLowerTable, QWidget *parent) : QToolBox(parent)
+Commands::Commands(QSqlDatabase db, QTreeWidget *navigatorTree,
+                   QTableWidget *navigatorReciversTable, QTreeWidget *changesTree,
+                   QTableWidget *changesReciversTable, QWidget *parent)
+    : BaseToolClass(db, navigatorReciversTable, changesReciversTable, parent)
 {
-    this->db=db;
-    this->navigatorUpperTree=navigatorUpperTree;
-    this->navigatorLowerTable=navigatorLowerTable;
-    connect(this->navigatorUpperTree, SIGNAL(itemSelectionChanged()), this, SLOT(showRecivers()));
-}
-
-void Commands::setTables(QTreeWidget *navigatorUpperTree, QTableWidget *navigatorLowerTable)
-{
-    this->navigatorUpperTree=navigatorUpperTree;
-    this->navigatorLowerTable=navigatorLowerTable;
-    connect(this->navigatorUpperTree, SIGNAL(itemSelectionChanged()), this, SLOT(showRecivers()));
+    this->navigatorTree = navigatorTree;
+    this->changesTree = changesTree;
+    connect(this->navigatorTree, SIGNAL(itemSelectionChanged()), this, SLOT(showRecivers()));
 }
 
 void Commands::fillNavigator() {
-    navigatorUpperTree->clear();
-    navigatorLowerTable->clear();
-    navigatorUpperTree->clear();
-
-    navigatorUpperTree->setColumnCount(5);
+    navigatorTree->clear();
+    changesTree->clear();
+    navigatorTree->clear();
+    navigatorTree->setColumnCount(5);
     QStringList UpperTableHeaders;
     UpperTableHeaders << "Название команды/сигнала/\nРегистрационный номер" << "Время формирования/\nДата регистрации"
                         << "Время исполнения/\nТип документа" << "Тема документа" << "Источник информации";
-    navigatorUpperTree->setHeaderLabels(UpperTableHeaders);
-    for (int i=0; i < navigatorUpperTree->columnCount(); i++)
+    navigatorTree->setHeaderLabels(UpperTableHeaders);
+    for (int i=0; i < navigatorTree->columnCount(); i++)
     {
-        navigatorUpperTree->resizeColumnToContents(i);
+        navigatorTree->resizeColumnToContents(i);
     }
-    QTreeWidgetItem *commandsSignals = new QTreeWidgetItem(navigatorUpperTree);
+    QTreeWidgetItem *commandsSignals = new QTreeWidgetItem(navigatorTree);
     commandsSignals->setText(0, "Команды и сигналы");
     commandsSignals->setExpanded(true);
-    QTreeWidgetItem *documents = new QTreeWidgetItem(navigatorUpperTree);
+    QTreeWidgetItem *documents = new QTreeWidgetItem(navigatorTree);
     documents->setText(0, "Документы");
     documents->setExpanded(true);
     QTreeWidgetItem *out = new QTreeWidgetItem(commandsSignals);
@@ -79,16 +72,15 @@ void Commands::fillNavigator() {
     }
     root->setExpanded(true);
 
-    navigatorLowerTable->setColumnCount(3);
+    navigatorReciversTable->setColumnCount(3);
     QStringList LowerTableHeaders;
     LowerTableHeaders << "Получатель" << "Отметка" << "Время отметки";
-    navigatorLowerTable->setHorizontalHeaderLabels(LowerTableHeaders);
-    navigatorLowerTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    navigatorReciversTable->setHorizontalHeaderLabels(LowerTableHeaders);
+    navigatorReciversTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 }
 
 void Commands::fillChanges() {
-    /*Utility::closeNewEditTab(this);
-    changesTree->clear();
+    /*changesTree->clear();
     navigatorLowerTable->clear();
 
     changesTree->setColumnCount(7);
@@ -100,20 +92,6 @@ void Commands::fillChanges() {
     {
         changesTree->resizeColumnToContents(i);
     }
-    QTreeWidgetItem *root = changesTree->topLevelItem(0);
-    /*QSqlQuery query;
-    QString selectPattern = "SELECT orders_alerts.orders_alerts_info.order_tid, "
-            "orders_alerts.orders_alerts_info.date_add, orders_alerts.orders_alerts_attrib.execution_time "
-            "FROM orders_alerts.orders_alerts_info JOIN orders_alerts.orders_alerts_attrib "
-            "ON orders_alerts.orders_alerts_info.order_id = orders_alerts.orders_alerts_attrib.order_id;";
-    if (!query.exec(selectPattern)) {
-        qDebug() << "Unable to make select operation!" << query.lastError();
-    }
-    int i = 0;
-    while (query.next()) {
-        makeNote(root, query.value(0).toString(), query.value(1).toString(), query.value(2).toString());
-        i++;
-    }
     changesLowerTable->setColumnCount(3);
     QStringList LowerTableHeaders;
     LowerTableHeaders << "Получатель2" << "Отметка2" << "Время отметки2";
@@ -121,13 +99,14 @@ void Commands::fillChanges() {
     changesLowerTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);*/
 }
 
-CommandsAddForm* Commands::onAdd() {
+QWidget *Commands::onAdd() {
     //реализация кнопки добавить
     return new CommandsAddForm;
 }
 
-void Commands::onEdit() {
+QWidget *Commands::onEdit() {
     //реализация кнопки править
+    return 0;
 }
 
 bool Commands::onDelete() {
@@ -165,11 +144,11 @@ void Commands::addDocument(QTreeWidgetItem *parent,
 
 void Commands::showRecivers()
 {
-    QString s = navigatorUpperTree->currentItem()->text(0);
+    QString s = navigatorTree->currentItem()->text(0);
     if (s.compare("Команды и сигналы") == 0) { return; }
     if (s.compare("Документы") == 0) { return; }
-    QTreeWidgetItem *parent = navigatorUpperTree->currentItem()->parent();
-    int numb = parent->indexOfChild(navigatorUpperTree->currentItem());
+    QTreeWidgetItem *parent = navigatorTree->currentItem()->parent();
+    int numb = parent->indexOfChild(navigatorTree->currentItem());
     QSqlQuery query = QSqlQuery(db);
     QString selectPattern = "SELECT combatobjectcode, mark_tid, mark_time ";
     selectPattern = selectPattern+ "FROM orders_alerts.orders_alerts_acceptors WHERE order_id='"+QString::number(signalsList[numb],10)+"';";
@@ -178,12 +157,12 @@ void Commands::showRecivers()
         qDebug() << "Unable to make select operation!" << query.lastError();
     }
     int i=0;
-    navigatorLowerTable->clearContents();
-    navigatorLowerTable->setRowCount(query.size());
+    navigatorReciversTable->clearContents();
+    navigatorReciversTable->setRowCount(query.size());
     while (query.next()) {
-        navigatorLowerTable->setItem(i, 0, new QTableWidgetItem(query.value(0).toString()));
-        navigatorLowerTable->setItem(i, 1, new QTableWidgetItem(query.value(1).toString()));
-        navigatorLowerTable->setItem(i, 2, new QTableWidgetItem(query.value(2).toString()));
+        navigatorReciversTable->setItem(i, 0, new QTableWidgetItem(query.value(0).toString()));
+        navigatorReciversTable->setItem(i, 1, new QTableWidgetItem(query.value(1).toString()));
+        navigatorReciversTable->setItem(i, 2, new QTableWidgetItem(query.value(2).toString()));
         i++;
     }
 }

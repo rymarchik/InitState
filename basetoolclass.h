@@ -9,11 +9,13 @@ class BaseToolClass : public QToolBox
 {
 public:
     BaseToolClass(QSqlDatabase db, QTableWidget *navigatorReciversTable,
-                  QTableWidget *changesReciversTable, QWidget* parent = 0);
-    virtual QWidget* onAdd();
-    virtual QWidget* onEdit();
-    virtual bool onDelete();
-    virtual bool onSave();
+                  QTableWidget *changesReciversTable, QWidget* parent);
+    virtual void fillNavigator() = 0;
+    virtual void fillChanges() = 0;
+    virtual QWidget *onAdd() = 0;
+    virtual QWidget *onEdit() = 0;
+    virtual bool onDelete() = 0;
+    virtual bool onSave() = 0;
 
 protected:
     QSqlDatabase  db;

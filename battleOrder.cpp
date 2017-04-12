@@ -3,16 +3,20 @@
 
 #include <QDebug>
 
-BattleOrder::BattleOrder(QSqlDatabase DB, QWidget* parent) : db(DB), QToolBox(parent)
-{
+BattleOrder::BattleOrder(QSqlDatabase db, QTreeWidget *navigatorTree,
+                         QTableWidget *navigatorReciversTable, QTableWidget *changesTree,
+                         QTableWidget *changesReciversTable, QWidget *parent)
+          : BaseToolClass(db, navigatorReciversTable, changesReciversTable, parent)
+      {
+          this->navigatorTree = navigatorTree;
+          this->changesTable = changesTree;
+      }
 
-}
-
-void BattleOrder::fillNavigator(QTreeWidget *navigatorTreeWidget)
+void BattleOrder::fillNavigator()
 {
      QStringList list;
-     navigatorTreeWidget->clear();
-     navigatorTreeWidget->setHeaderLabel("");
+     navigatorTree->clear();
+     navigatorTree->setHeaderLabel("");
 
      QTreeWidgetItem *rootItem, *classifItem;
      QHash <QString,QTreeWidgetItem*> hashItems;
@@ -21,7 +25,7 @@ void BattleOrder::fillNavigator(QTreeWidget *navigatorTreeWidget)
      list << "Наименование" << "Состояние" << "Режим";
      rootItem = new QTreeWidgetItem(list);
 
-     navigatorTreeWidget->setHeaderLabels(list);
+     navigatorTree->setHeaderLabels(list);
      classifItem = rootItem;
 
      //qDebug() << db;
@@ -53,7 +57,7 @@ void BattleOrder::fillNavigator(QTreeWidget *navigatorTreeWidget)
          QString sParentCode;
          if (!termhierarchy.contains(".", Qt::CaseInsensitive))
          {
-             navigatorTreeWidget->addTopLevelItem(item);
+             navigatorTree->addTopLevelItem(item);
              classifItem->addChild(item);
          }
          else
@@ -69,7 +73,7 @@ void BattleOrder::fillNavigator(QTreeWidget *navigatorTreeWidget)
                  rootItem = i.value();
                  rootItem->addChild(item);
                  //ui->treeWidget->collapseItem(rootItem);
-                 navigatorTreeWidget->expandItem( rootItem );
+                 navigatorTree->expandItem( rootItem );
              }
          }
          hashItems[termhierarchy] = item;
@@ -78,21 +82,35 @@ void BattleOrder::fillNavigator(QTreeWidget *navigatorTreeWidget)
      db.commit();
 
      //скрыть 4-ую колонку:
-     navigatorTreeWidget->hideColumn(3);
+     navigatorTree->hideColumn(3);
 
-     navigatorTreeWidget->sortByColumn(0, Qt::AscendingOrder);
+     navigatorTree->sortByColumn(0, Qt::AscendingOrder);
 
      QApplication::restoreOverrideCursor();
      classifItem->setExpanded(true);
 }
 
-void BattleOrder::fillChanges(QTableWidget *changesTableWidget)
+void BattleOrder::fillChanges()
 {
     qDebug()<<"changes";
 }
-/*
-BattleOrder::~BattleOrder()
-{
 
+QWidget *BattleOrder::onAdd()
+{
+    return 0;
 }
-*/
+
+QWidget *BattleOrder::onEdit()
+{
+    return 0;
+}
+
+bool BattleOrder::onDelete()
+{
+    return 0;
+}
+
+bool BattleOrder::onSave()
+{
+    return 0;
+}

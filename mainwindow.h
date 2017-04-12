@@ -5,6 +5,7 @@
 #include <QtWidgets>
 #include <QtSql>
 
+#include "basetoolclass.h"
 #include "battleOrder.h"
 #include "hitTargets.h"
 #include "commands.h"
@@ -27,11 +28,14 @@ public:
 private:
     Ui::MainWindow2* ui;
     QSqlDatabase db;
-    BattleOrder *c_battleOrder;
-    HitTargets  *c_hitTargets;
-    Commands    *c_commands;
+    BaseToolClass *currentContent;
+    QTabWidget    *currentTabWidget;
+    BattleOrder   *c_battleOrder;
+    HitTargets    *c_hitTargets;
+    Commands      *c_commands;
 
 private slots:
+    void slotChangeCurrentClass();
     void slotNavigator(); //заполнение закладки "Навигатор"
     void slotChanges();   //заполнение закладки "Изменить"
     void slotAdd();       //создвние закладки "Новый"
