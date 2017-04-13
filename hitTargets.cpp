@@ -3,11 +3,10 @@
 HitTargets::HitTargets(QSqlDatabase db, QTableWidget *navigatorTable,
                        QTableWidget *navigatorReciversTable, QTableWidget *changesTable,
                        QTableWidget *changesReciversTable, QWidget *parent)
-        : BaseToolClass(db, navigatorReciversTable, changesReciversTable, parent)
+        : navigatorTable(navigatorTable),
+          changesTable(changesTable),
+          BaseToolClass(db, navigatorReciversTable, changesReciversTable, parent)
 {
-        this->navigatorTable = navigatorTable;
-        this->changesTable = changesTable;
-
         contentWidget = loadUiFile();
 
         dataSourceBatteryCB = findChild<QComboBox*>("dataSourceBatteryCB");

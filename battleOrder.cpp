@@ -4,13 +4,14 @@
 #include <QDebug>
 
 BattleOrder::BattleOrder(QSqlDatabase db, QTreeWidget *navigatorTree,
-                         QTableWidget *navigatorReciversTable, QTableWidget *changesTree,
+                         QTableWidget *navigatorReciversTable, QTableWidget *changesTable,
                          QTableWidget *changesReciversTable, QWidget *parent)
-          : BaseToolClass(db, navigatorReciversTable, changesReciversTable, parent)
-      {
-          this->navigatorTree = navigatorTree;
-          this->changesTable = changesTree;
-      }
+          : navigatorTree(navigatorTree),
+            changesTable(changesTable),
+            BaseToolClass(db, navigatorReciversTable, changesReciversTable, parent)
+{
+
+}
 
 void BattleOrder::fillNavigator()
 {

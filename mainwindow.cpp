@@ -78,6 +78,7 @@ void MainWindow::slotSave()
 
 }
 
+//Изменение ссылок на актуальный класс:
 void MainWindow::slotChangeCurrentClass()
 {
     switch ( ui->toolBox->currentIndex() )
@@ -111,6 +112,7 @@ MainWindow::~MainWindow()
 {
     delete c_battleOrder;
     delete c_hitTargets;
+    delete c_commands;
     delete ui;
 }
 
