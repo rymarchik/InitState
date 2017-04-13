@@ -24,7 +24,8 @@ SOURCES += main.cpp\
     ownforcesform.cpp \
     addparamform.cpp \
     commandsaddform.cpp \
-    basetoolclass.cpp
+    basetoolclass.cpp \
+    addreciversform.cpp
 
 HEADERS  += mainwindow.h \
     receiversDialog.h \
@@ -37,7 +38,8 @@ HEADERS  += mainwindow.h \
     ownforcesform.h \
     addparamform.h \
     commandsaddform.h \
-    basetoolclass.h
+    basetoolclass.h \
+    addreciversform.h
 
 RESOURCES += \
     resources.qrc
@@ -48,4 +50,5 @@ FORMS += \
     ownforcesform.ui \
     mainwindow2.ui \
     addparamform.ui \
-    commandsaddform.ui
+    commandsaddform.ui \
+    addreciversform.ui

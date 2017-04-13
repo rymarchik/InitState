@@ -6,6 +6,7 @@
 #include <QtSql>
 #include <QTreeWidget>
 #include "addparamform.h"
+#include "addreciversform.h"
 
 namespace Ui {
 class CommandsAddForm;
@@ -25,6 +26,7 @@ private:
     void setAttributeExecution();
 
     AddParamForm *addParamForm;
+    AddReciversForm *addReciversForm;
 
 private slots:
     void changeEnabledTimerExec();

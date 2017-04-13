@@ -15,14 +15,13 @@ CommandsAddForm::CommandsAddForm(QWidget *parent) :
     setAttributeExecution();
 
     addParamForm= new AddParamForm();
+    addReciversForm = new AddReciversForm();
 
     connect(ui->timeExecBox, SIGNAL(clicked(bool)), this, SLOT(changeEnabledTimerExec()));
     connect(ui->menuBox, SIGNAL(currentIndexChanged(int)), this, SLOT(changeContent()));
     connect(ui->addParamBut, SIGNAL(clicked()), addParamForm, SLOT(show()));
     connect(addParamForm, SIGNAL(sendData(QString, QString)), this, SLOT(recieveData(QString, QString)));
-    connect(ui->addReciverBut, SIGNAL(clicked()), this, SLOT(addRecivers()));
-
-
+    connect(ui->addReciverBut, SIGNAL(clicked()), addReciversForm, SLOT(show()));
 }
 
 CommandsAddForm::~CommandsAddForm()
