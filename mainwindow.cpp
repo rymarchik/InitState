@@ -9,28 +9,26 @@ MainWindow::MainWindow(QSqlDatabase DB, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow2)
 {
+    qDebug() << "1";
     ui->setupUi(this);
-    c_battleOrder = new BattleOrder(db,ui->navigatorBattleOrderTree,ui->navigatorBattleOrderRecivers,
-                                    ui->changesBattleOrderTable,ui->changesBattleOrderRecivers);
-    c_hitTargets  = new HitTargets(db, ui->navigatorHitTargetsTable, ui->navigatorHitTargetsRecivers,
-                                   ui->changesHitTargetsTable, ui->changesHitTargetsRecivers);
-    c_commands    = new Commands(db,ui->navigatorCommandsTree, ui->navigatorCommandsRecivers,
-                                 ui->changesCommandsTree, ui->changesCommandsRecivers);
+    qDebug() << "2";
+    c_battleOrder = new BattleOrder(db,ui->navigatorBattleOrderTree,ui->navigatorBattleOrderReceivers,
+                                    ui->changesBattleOrderTable,ui->changesBattleOrderReceivers);
+    c_hitTargets  = new HitTargets(db, ui->navigatorHitTargetsTable, ui->navigatorHitTargetsReceivers,
+                                   ui->changesHitTargetsTable, ui->changesHitTargetsReceivers);
+    c_commands    = new Commands(db,ui->navigatorCommandsTree, ui->navigatorCommandsReceivers,
+                                 ui->changesCommandsTree, ui->changesCommandsReceivers);
+    qDebug() << "3";
 
     currentContent = c_battleOrder;
     currentTabWidget = ui->battleOrderTabWidget;
 
+    qDebug() << "4";
     ui->toolBox->setCurrentIndex(0);
     slotNavigator();
 
-    connect( ui->toolBox,     SIGNAL (currentChanged(int)), this, SLOT (slotChangeCurrentClass()) );
-    connect( ui->m_navigator, SIGNAL (triggered()),         this, SLOT (slotNavigator())          );
-    connect( ui->m_changes,   SIGNAL (triggered()),         this, SLOT (slotChanges())            );
-    connect( ui->m_add,       SIGNAL (triggered()),         this, SLOT (slotAdd())                );
-    connect( ui->m_edit,      SIGNAL (triggered()),         this, SLOT (slotEdit())               );
-    connect( ui->m_delete,    SIGNAL (triggered()),         this, SLOT (slotDelete())             );
-    connect( ui->m_save,      SIGNAL (triggered()),         this, SLOT (slotSave())               );
-    connect( ui->m_exit,      SIGNAL (triggered()),         qApp, SLOT (quit())                   );
+    qDebug() << "5";
+    connect(ui->m_exit, SIGNAL(triggered()), qApp, SLOT(quit()));
 }
 
 //заполнение закладки "Навигатор":
@@ -53,7 +51,7 @@ void MainWindow::slotChanges()
     currentTabWidget->setCurrentIndex(1);
 }
 
-//создвние закладки "Новый":
+//создание вкладки "Новый":
 void MainWindow::slotAdd()
 {
     currentTabWidget->addTab(currentContent->onAdd(),"Новый");
@@ -78,10 +76,18 @@ void MainWindow::slotSave()
 
 }
 
+void MainWindow::slotMap() {
+
+}
+
+void MainWindow::slotSend() {
+
+}
+
 //Изменение ссылок на актуальный класс:
-void MainWindow::slotChangeCurrentClass()
+void MainWindow::slotChangeCurrentClass(int index)
 {
-    switch ( ui->toolBox->currentIndex() )
+    switch (index)
     {
      case 0: //страница "Свои войска"
         currentContent = c_battleOrder;

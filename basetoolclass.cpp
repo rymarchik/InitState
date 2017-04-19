@@ -1,10 +1,10 @@
 #include "basetoolclass.h"
 
-BaseToolClass::BaseToolClass(QSqlDatabase db, QTableWidget *navigatorReciversTable,
-                             QTableWidget *changesReciversTable, QWidget* parent)
+BaseToolClass::BaseToolClass(QSqlDatabase db, QTableWidget *navigatorReceiversTable,
+                             QTableWidget *changesReceiversTable, QWidget* parent)
     : db(db),
-      navigatorReciversTable(navigatorReciversTable),
-      changesReciversTable(changesReciversTable),
+      navigatorReceiversTable(navigatorReceiversTable),
+      changesReceiversTable(changesReceiversTable),
       QToolBox(parent)
 {
 

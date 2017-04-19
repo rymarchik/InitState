@@ -223,55 +223,26 @@
       <string>Геометрия цели</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="1" column="1">
-       <widget class="QRadioButton" name="squareRB">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>Прямоугольник</string>
-        </property>
-       </widget>
-      </item>
       <item row="1" column="3">
-       <widget class="QRadioButton" name="roundRB">
+       <widget class="QPushButton" name="pickCoordinatesBtn">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="text">
+         <string>Съем координат</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QComboBox" name="coverDegreeCB">
         <property name="font">
          <font>
           <weight>50</weight>
           <bold>false</bold>
          </font>
-        </property>
-        <property name="text">
-         <string>Круговая</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="coverDegreeLbl">
-        <property name="font">
-         <font>
-          <pointsize>9</pointsize>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>Степень укрытия</string>
         </property>
        </widget>
       </item>
@@ -297,17 +268,40 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
-       <widget class="QComboBox" name="coverDegreeCB">
+      <item row="1" column="1">
+       <widget class="QRadioButton" name="squareRB">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="font">
          <font>
           <weight>50</weight>
           <bold>false</bold>
          </font>
         </property>
+        <property name="text">
+         <string>Прямоугольник</string>
+        </property>
        </widget>
       </item>
-      <item row="2" column="0" colspan="4">
+      <item row="3" column="0">
+       <widget class="QLabel" name="coverDegreeLbl">
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Степень укрытия</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0" colspan="5">
        <widget class="QFrame" name="coordinatesBlock">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -562,7 +556,6 @@
           </widget>
          </item>
         </layout>
-        <zorder>verticalLayoutWidget</zorder>
         <zorder>heightLE</zorder>
         <zorder>heightLbl</zorder>
         <zorder>coordinateLbl</zorder>
@@ -577,17 +570,35 @@
         <zorder>depthLE</zorder>
         <zorder>radiusLbl</zorder>
         <zorder>radiusLE</zorder>
-        <zorder>verticalLayoutWidget</zorder>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QRadioButton" name="roundRB">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Круговая</string>
+        </property>
        </widget>
       </item>
      </layout>
-     <zorder>generalInfoBlock</zorder>
      <zorder>randomRB</zorder>
      <zorder>coverDegreeLbl</zorder>
      <zorder>coverDegreeCB</zorder>
      <zorder>coordinatesBlock</zorder>
-     <zorder>roundRB</zorder>
      <zorder>squareRB</zorder>
+     <zorder>pickCoordinatesBtn</zorder>
+     <zorder>roundRB</zorder>
     </widget>
    </item>
    <item>
@@ -765,7 +776,6 @@
        </widget>
       </item>
      </layout>
-     <zorder>targetGeometryBlock</zorder>
      <zorder>damageDegreeLbl</zorder>
      <zorder>quantityLbl</zorder>
      <zorder>rocketTypeLbl</zorder>

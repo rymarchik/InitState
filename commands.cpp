@@ -72,11 +72,11 @@ void Commands::fillNavigator() {
     }
     root->setExpanded(true);
 
-    navigatorReciversTable->setColumnCount(3);
+    navigatorReceiversTable->setColumnCount(3);
     QStringList LowerTableHeaders;
     LowerTableHeaders << "Получатель" << "Отметка" << "Время отметки";
-    navigatorReciversTable->setHorizontalHeaderLabels(LowerTableHeaders);
-    navigatorReciversTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    navigatorReceiversTable->setHorizontalHeaderLabels(LowerTableHeaders);
+    navigatorReceiversTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 }
 
 void Commands::fillChanges() {
@@ -157,12 +157,12 @@ void Commands::showRecivers()
         qDebug() << "Unable to make select operation!" << query.lastError();
     }
     int i=0;
-    navigatorReciversTable->clearContents();
-    navigatorReciversTable->setRowCount(query.size());
+    navigatorReceiversTable->clearContents();
+    navigatorReceiversTable->setRowCount(query.size());
     while (query.next()) {
-        navigatorReciversTable->setItem(i, 0, new QTableWidgetItem(query.value(0).toString()));
-        navigatorReciversTable->setItem(i, 1, new QTableWidgetItem(query.value(1).toString()));
-        navigatorReciversTable->setItem(i, 2, new QTableWidgetItem(query.value(2).toString()));
+        navigatorReceiversTable->setItem(i, 0, new QTableWidgetItem(query.value(0).toString()));
+        navigatorReceiversTable->setItem(i, 1, new QTableWidgetItem(query.value(1).toString()));
+        navigatorReceiversTable->setItem(i, 2, new QTableWidgetItem(query.value(2).toString()));
         i++;
     }
 }

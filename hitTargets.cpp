@@ -1,64 +1,55 @@
 #include "hitTargets.h"
+#include "utility.h"
 
 HitTargets::HitTargets(QSqlDatabase db, QTableWidget *navigatorTable,
-                       QTableWidget *navigatorReciversTable, QTableWidget *changesTable,
-                       QTableWidget *changesReciversTable, QWidget *parent)
+                       QTableWidget *navigatorReceiversTable, QTableWidget *changesTable,
+                       QTableWidget *changesReceiversTable, QWidget *parent)
         : navigatorTable(navigatorTable),
           changesTable(changesTable),
-          BaseToolClass(db, navigatorReciversTable, changesReciversTable, parent)
+          BaseToolClass(db, navigatorReceiversTable, changesReceiversTable, parent)
 {
-        contentWidget = loadUiFile();
+//        contentWidget = loadUiFile();
 
-        dataSourceBatteryCB = findChild<QComboBox*>("dataSourceBatteryCB");
-        dataSourceWeaponryCB = findChild<QComboBox*>("dataSourceWeaponryCB");
-        targetNumberLE = findChild<QLineEdit*>("targetNumberLE");
-        targetNameCB = findChild<QComboBox*>("targetNameCB");
-        importanceLE = findChild<QLineEdit*>("importanceLE");
-        detectionTimeDTE = findChild<QDateTimeEdit*>("detectionTimeDTE");
+//        dataSourceBatteryCB = findChild<QComboBox*>("dataSourceBatteryCB");
+//        dataSourceWeaponryCB = findChild<QComboBox*>("dataSourceWeaponryCB");
+//        targetNumberLE = findChild<QLineEdit*>("targetNumberLE");
+//        targetNameCB = findChild<QComboBox*>("targetNameCB");
+//        importanceLE = findChild<QLineEdit*>("importanceLE");
+//        detectionTimeDTE = findChild<QDateTimeEdit*>("detectionTimeDTE");
 
-        randomRB = findChild<QRadioButton*>("randomRB");
-        squareRB = findChild<QRadioButton*>("squareRB");
-        roundRB = findChild<QRadioButton*>("roundRB");
-        coordinateLE = findChild<QLineEdit*>("coordinateLE");
-        heightLE = findChild<QLineEdit*>("heightLE");
-        extraCoordinatesLayout = findChild<QVBoxLayout*>("extraCoordinatesLayout");
-        addPointBtn = findChild<QPushButton*>("addPointBtn");
-        removePointBtn = findChild<QPushButton*>("removePointBtn");
-        frontLbl = findChild<QLabel*>("frontLbl");
-        depthLbl = findChild<QLabel*>("depthLbl");
-        deviationLbl = findChild<QLabel*>("deviationLbl");
-        radiusLbl = findChild<QLabel*>("radiusLbl");
-        frontLE = findChild<QLineEdit*>("frontLE");
-        depthLE = findChild<QLineEdit*>("depthLE");
-        deviationLE = findChild<QLineEdit*>("deviationLE");
-        radiusLE = findChild<QLineEdit*>("radiusLE");
-        coverDegreeCB = findChild<QComboBox*>("coverDegreeCB");
+//        randomRB = findChild<QRadioButton*>("randomRB");
+//        squareRB = findChild<QRadioButton*>("squareRB");
+//        roundRB = findChild<QRadioButton*>("roundRB");
+//        coordinateLE = findChild<QLineEdit*>("coordinateLE");
+//        heightLE = findChild<QLineEdit*>("heightLE");
+//        extraCoordinatesLayout = findChild<QVBoxLayout*>("extraCoordinatesLayout");
+//        addPointBtn = findChild<QPushButton*>("addPointBtn");
+//        removePointBtn = findChild<QPushButton*>("removePointBtn");
+//        frontLbl = findChild<QLabel*>("frontLbl");
+//        depthLbl = findChild<QLabel*>("depthLbl");
+//        deviationLbl = findChild<QLabel*>("deviationLbl");
+//        radiusLbl = findChild<QLabel*>("radiusLbl");
+//        frontLE = findChild<QLineEdit*>("frontLE");
+//        depthLE = findChild<QLineEdit*>("depthLE");
+//        deviationLE = findChild<QLineEdit*>("deviationLE");
+//        radiusLE = findChild<QLineEdit*>("radiusLE");
+//        coverDegreeCB = findChild<QComboBox*>("coverDegreeCB");
 
-        launchChB = findChild<QCheckBox*>("launchChB");
-        explosionChB = findChild<QCheckBox*>("explosionChB");
-        launchTimeDTE = findChild<QDateTimeEdit*>("launchTimeDTE");
-        damageDegreeCB = findChild<QComboBox*>("damageDegreeCB");
-        rocketTypeCB = findChild<QComboBox*>("rocketTypeCB");
-        quantityLE = findChild<QLineEdit*>("quantityLE");
+//        launchChB = findChild<QCheckBox*>("launchChB");
+//        explosionChB = findChild<QCheckBox*>("explosionChB");
+//        launchTimeDTE = findChild<QDateTimeEdit*>("launchTimeDTE");
+//        damageDegreeCB = findChild<QComboBox*>("damageDegreeCB");
+//        rocketTypeCB = findChild<QComboBox*>("rocketTypeCB");
+//        quantityLE = findChild<QLineEdit*>("quantityLE");
 }
 
-QWidget* HitTargets::loadUiFile() {
-    QUiLoader loader;
-
-    QFile file(":/hittargets.ui");
-    file.open(QFile::ReadOnly);
-
-    QWidget *formWidget = loader.load(&file, this);
-    file.close();
-
-    return formWidget;
-}
-
-void HitTargets::fillNavigator()
-{
+void HitTargets::fillNavigator() {
+    Utility::initializeTableSettings(navigatorTable);
+    Utility::initializeTableSettings(navigatorReceiversTable);
 //    Utility::closeNewEditTab(this);
-//    navigatorUpperTable->clear();
-    navigatorTable->clear();
+
+    navigatorTable->setRowCount(0);
+    navigatorReceiversTable->setRowCount(0);
 
     QSqlQuery query = QSqlQuery(db);
     QString selectPattern = "SELECT tp.target_number, t.termname, cs1.object_number, t1.termname, "
@@ -73,7 +64,6 @@ void HitTargets::fillNavigator()
         qDebug() << "Unable to make select operation!" << query.lastError();
     }
 
-    navigatorTable->setColumnCount(3);
     navigatorTable->setRowCount(query.size());
 
     int i = 0;
@@ -86,43 +76,24 @@ void HitTargets::fillNavigator()
                                                                 query.value(5).toString()));
         i++;
     }
-/*
-    QStringList navigatorUpperTableHeaders;
-    navigatorUpperTableHeaders << "№" << "Наименование" << "Источник данных";
-    navigatorUpperTable->setHorizontalHeaderLabels(navigatorUpperTableHeaders);
-    navigatorUpperTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
-    navigatorLowerTable->setColumnCount(4);
-    QStringList navigatorLowerTableHeaders;
-    navigatorLowerTableHeaders << "Получатель" << "Время данных" << "Состояние отправки" << "Состояние передачи";
-    navigatorLowerTable->setHorizontalHeaderLabels(navigatorLowerTableHeaders);
-    navigatorLowerTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch)
-*/
+//    navigatorTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+//    navigatorReceiversTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 }
 
-void HitTargets::fillChanges()
-{
-
-}
-/*
 void HitTargets::fillChanges() {
-    Utility::closeNewEditTab(this);
-    changesUpperTable->clear();
-    changesLowerTable->clear();
+    Utility::initializeTableSettings(changesTable);
+    Utility::initializeTableSettings(changesReceiversTable);
+//    Utility::closeNewEditTab(this);
 
-    changesUpperTable->setColumnCount(5);
-    QStringList changesUpperTableHeaders;
-    changesUpperTableHeaders << "№" << "Наименование" << "Источник" << "Событие" << "Время события";
-    changesUpperTable->setHorizontalHeaderLabels(changesUpperTableHeaders);
-    changesUpperTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    changesTable->setRowCount(0);
+    changesReceiversTable->setRowCount(0);
 
-    changesLowerTable->setColumnCount(4);
-    QStringList changesLowerTableHeaders;
-    changesLowerTableHeaders << "Получатель" << "Время данных" << "Состояние отправки" << "Состояние передачи";
-    changesLowerTable->setHorizontalHeaderLabels(changesLowerTableHeaders);
-    changesLowerTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    changesTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    changesReceiversTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 }
 
+/*
 void HitTargets::slotAddPoint() {
     QLabel* newCoordLbl = new QLabel("Координата");
     QLabel* newHeightLbl = new QLabel("Высота, м");
@@ -332,30 +303,31 @@ void HitTargets::reinitializeFormData() {
 }*/
 
 QWidget *HitTargets::onAdd() {
-    //reinitializeFormData();
-    //this->addTab(contentWidget, "Новый");
-    //this->setCurrentWidget(contentWidget);
-    qDebug() << "точка G";
-    dataSourceBatteryCB->addItems(getDataSourceBatteries());
-    qDebug() << "точка G";
-    targetNameCB->addItems(getHitTargets());
-    qDebug() << "точка G";
-    detectionTimeDTE->setDateTime(QDateTime::currentDateTime());
-    qDebug() << "точка G";
-    dataSourceBatteryCB->setEnabled(true);
-    dataSourceWeaponryCB->setEnabled(true);
-    targetNumberLE->setEnabled(true);
-    targetNameCB->setEnabled(true);
+//    //reinitializeFormData();
+//    //this->addTab(contentWidget, "Новый");
+//    //this->setCurrentWidget(contentWidget);
+//    qDebug() << "точка G";
+//    dataSourceBatteryCB->addItems(getDataSourceBatteries());
+//    qDebug() << "точка G";
+//    targetNameCB->addItems(getHitTargets());
+//    qDebug() << "точка G";
+//    detectionTimeDTE->setDateTime(QDateTime::currentDateTime());
+//    qDebug() << "точка G";
+//    dataSourceBatteryCB->setEnabled(true);
+//    dataSourceWeaponryCB->setEnabled(true);
+//    targetNumberLE->setEnabled(true);
+//    targetNameCB->setEnabled(true);
 
-    if (randomRB->isChecked() == true) {
-        //slotToggleRandomRB();
-    }
-    else {
-        randomRB->setChecked(true);
-    }
-    //slotAddPoint();
-    //slotAddPoint();
-    return contentWidget;
+//    if (randomRB->isChecked() == true) {
+//        //slotToggleRandomRB();
+//    }
+//    else {
+//        randomRB->setChecked(true);
+//    }
+//    //slotAddPoint();
+//    //slotAddPoint();
+//    return new HitTargetsTabForm;
+    return 0;
 }
 
 QWidget *HitTargets::onEdit()
@@ -802,23 +774,23 @@ QString HitTargets::constructMessage() {
     return msg;
 }*/
 
-QStringList HitTargets::getDataSourceBatteries() {
-    QSqlQuery query;
-    QString selectQuery = "SELECT object_number, termname FROM own_forces.combatstructure JOIN "
-                          "reference_data.terms ON termhierarchy = object_name WHERE "
-                          "combat_hierarchy IN (SELECT combat_hierarchy FROM own_forces.combatstructure "
-                          "WHERE nlevel(combat_hierarchy) = 1 AND type_army = '22.10' AND type_mode = 0 "
-                          "AND date_delete is null) ORDER BY object_number";
-    if (!query.exec(selectQuery)) {
-        qDebug() << "Unable to make select operation!" << query.lastError();
-    }
+//QStringList HitTargets::getDataSourceBatteries() {
+//    QSqlQuery query;
+//    QString selectQuery = "SELECT object_number, termname FROM own_forces.combatstructure JOIN "
+//                          "reference_data.terms ON termhierarchy = object_name WHERE "
+//                          "combat_hierarchy IN (SELECT combat_hierarchy FROM own_forces.combatstructure "
+//                          "WHERE nlevel(combat_hierarchy) = 1 AND type_army = '22.10' AND type_mode = 0 "
+//                          "AND date_delete is null) ORDER BY object_number";
+//    if (!query.exec(selectQuery)) {
+//        qDebug() << "Unable to make select operation!" << query.lastError();
+//    }
 
-    QStringList list;
-    while (query.next()) {
-        list.append(tr("%1").arg(query.value(0).toInt()) + " " + query.value(1).toString());
-    }
-    return list;
-}
+//    QStringList list;
+//    while (query.next()) {
+//        list.append(tr("%1").arg(query.value(0).toInt()) + " " + query.value(1).toString());
+//    }
+//    return list;
+//}
 
 /*QStringList HitTargets::getDataSourceWeaponry() {
     QString targetNumber = dataSourceBatteryCB->currentText().split(' ').first();
@@ -844,20 +816,20 @@ QStringList HitTargets::getDataSourceBatteries() {
     return list;
 }*/
 
-QStringList HitTargets::getHitTargets() {
-    QSqlQuery query;
-    QString selectQuery = "SELECT termname FROM reference_data.terms WHERE termhierarchy ~ '90.*' AND "
-                          "nlevel(termhierarchy) = 3";
-    if (!query.exec(selectQuery)) {
-        qDebug() << "Unable to make select operation!" << query.lastError();
-    }
+//QStringList HitTargets::getHitTargets() {
+//    QSqlQuery query;
+//    QString selectQuery = "SELECT termname FROM reference_data.terms WHERE termhierarchy ~ '90.*' AND "
+//                          "nlevel(termhierarchy) = 3";
+//    if (!query.exec(selectQuery)) {
+//        qDebug() << "Unable to make select operation!" << query.lastError();
+//    }
 
-    QStringList list;
-    while (query.next()) {
-        list.append(query.value(0).toString());
-    }
-    return list;
-}
+//    QStringList list;
+//    while (query.next()) {
+//        list.append(query.value(0).toString());
+//    }
+//    return list;
+//}
 
 /*QStringList HitTargets::getCoverDegrees() {
     QSqlQuery query;
