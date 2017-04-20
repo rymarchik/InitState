@@ -790,5 +790,144 @@
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>dataSourceBatteryCB</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>HitTargets</receiver>
+   <slot>slotChangeDataSourceBattery(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>483</x>
+     <y>37</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>417</x>
+     <y>339</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>launchChB</sender>
+   <signal>clicked()</signal>
+   <receiver>HitTargets</receiver>
+   <slot>slotToggleLaunchCB()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>87</x>
+     <y>526</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>417</x>
+     <y>339</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>explosionChB</sender>
+   <signal>clicked()</signal>
+   <receiver>HitTargets</receiver>
+   <slot>slotToggleExplosionCB()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>301</x>
+     <y>526</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>417</x>
+     <y>339</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>randomRB</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>HitTargets</receiver>
+   <slot>slotToggleRandomRB()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>115</x>
+     <y>247</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>417</x>
+     <y>339</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>roundRB</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>HitTargets</receiver>
+   <slot>slotToggleRoundRB()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>514</x>
+     <y>247</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>417</x>
+     <y>339</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>squareRB</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>HitTargets</receiver>
+   <slot>slotToggleSquareRB()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>315</x>
+     <y>247</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>417</x>
+     <y>339</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>addPointBtn</sender>
+   <signal>clicked()</signal>
+   <receiver>HitTargets</receiver>
+   <slot>slotAddPoint()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>215</x>
+     <y>320</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>417</x>
+     <y>339</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>removePointBtn</sender>
+   <signal>clicked()</signal>
+   <receiver>HitTargets</receiver>
+   <slot>slotRemovePoint()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>607</x>
+     <y>320</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>417</x>
+     <y>339</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>slotChangeDataSourceBattery(int)</slot>
+  <slot>slotToggleRandomRB()</slot>
+  <slot>slotToggleSquareRB()</slot>
+  <slot>slotToggleRoundRB()</slot>
+  <slot>slotAddPoint()</slot>
+  <slot>slotRemovePoint()</slot>
+  <slot>slotToggleLaunchCB()</slot>
+  <slot>slotToggleExplosionCB()</slot>
+ </slots>
 </ui>

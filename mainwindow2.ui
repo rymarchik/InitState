@@ -1342,22 +1342,6 @@
     </hint>
    </hints>
   </connection>
-  <connection>
-   <sender>toolBox</sender>
-   <signal>currentChanged(int)</signal>
-   <receiver>MainWindow2</receiver>
-   <slot>slotChangeCurrentClass(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>570</x>
-     <y>312</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>570</x>
-     <y>289</y>
-    </hint>
-   </hints>
-  </connection>
  </connections>
  <slots>
   <slot>slotNavigator()</slot>
@@ -1368,6 +1352,5 @@
   <slot>slotSave()</slot>
   <slot>slotMap()</slot>
   <slot>slotSend()</slot>
-  <slot>slotChangeCurrentClass(int)</slot>
  </slots>
 </ui>

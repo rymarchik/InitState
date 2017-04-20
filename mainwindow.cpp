@@ -9,46 +9,45 @@ MainWindow::MainWindow(QSqlDatabase DB, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow2)
 {
-    qDebug() << "1";
     ui->setupUi(this);
-    qDebug() << "2";
+
     c_battleOrder = new BattleOrder(db,ui->navigatorBattleOrderTree,ui->navigatorBattleOrderReceivers,
                                     ui->changesBattleOrderTable,ui->changesBattleOrderReceivers);
     c_hitTargets  = new HitTargets(db, ui->navigatorHitTargetsTable, ui->navigatorHitTargetsReceivers,
                                    ui->changesHitTargetsTable, ui->changesHitTargetsReceivers);
     c_commands    = new Commands(db,ui->navigatorCommandsTree, ui->navigatorCommandsReceivers,
                                  ui->changesCommandsTree, ui->changesCommandsReceivers);
-    qDebug() << "3";
 
     currentContent = c_battleOrder;
     currentTabWidget = ui->battleOrderTabWidget;
 
-    qDebug() << "4";
     ui->toolBox->setCurrentIndex(0);
     slotNavigator();
 
-    qDebug() << "5";
+    connect(ui->toolBox, SIGNAL(currentChanged(int)), this, SLOT(slotChangeCurrentClass(int)));
     connect(ui->m_exit, SIGNAL(triggered()), qApp, SLOT(quit()));
 }
 
 //заполнение закладки "Навигатор":
 void MainWindow::slotNavigator()
 {
-    //включение/выключение кнопок:
     ui->m_navigator->setChecked(true);
     ui->m_changes->setChecked(false);
     currentContent->fillNavigator();
     currentTabWidget->setCurrentIndex(0);
+    currentTabWidget->setTabEnabled(0, true);
+    currentTabWidget->setTabEnabled(1, false);
 }
 
 //заполнение закладки "Изменить":
 void MainWindow::slotChanges()
 {
-    //включение/выключение кнопок:
     ui->m_navigator->setChecked(false);
     ui->m_changes->setChecked(true);
     currentContent->fillChanges();
     currentTabWidget->setCurrentIndex(1);
+    currentTabWidget->setTabEnabled(0, false);
+    currentTabWidget->setTabEnabled(1, true);
 }
 
 //создание вкладки "Новый":
