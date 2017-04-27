@@ -21,8 +21,6 @@ CommandsAddForm::CommandsAddForm(QWidget *parent) :
     connect(ui->addParamBut, SIGNAL(clicked()), addParamForm, SLOT(show()));
     connect(addParamForm, SIGNAL(sendData(QString, QString)), this, SLOT(recieveData(QString, QString)));
     connect(ui->addReciverBut, SIGNAL(clicked()), this, SLOT(addRecivers()));
-
-
 }
 
 CommandsAddForm::~CommandsAddForm()

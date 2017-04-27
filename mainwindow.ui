@@ -26,7 +26,7 @@
    <string>Исходная обстановка</string>
   </property>
   <property name="windowIcon">
-   <iconset>
+   <iconset resource="resources.qrc">
     <normaloff>:/resources/title.png</normaloff>:/resources/title.png</iconset>
   </property>
   <property name="autoFillBackground">
@@ -81,7 +81,7 @@
         </rect>
        </property>
        <attribute name="icon">
-        <iconset>
+        <iconset resource="resources.qrc">
          <normaloff>:/resources/buttons/own_forces.png</normaloff>:/resources/buttons/own_forces.png</iconset>
        </attribute>
        <attribute name="label">
@@ -91,7 +91,7 @@
         <item row="0" column="0">
          <widget class="QTabWidget" name="battleOrderTabWidget">
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <property name="usesScrollButtons">
            <bool>true</bool>
@@ -104,7 +104,7 @@
             <item row="1" column="0">
              <widget class="QTreeWidget" name="navigatorBattleOrderTree">
               <property name="headerHidden">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="expandsOnDoubleClick">
                <bool>false</bool>
@@ -296,6 +296,17 @@
               </attribute>
               <column>
                <property name="text">
+                <string>Идентификатор</string>
+               </property>
+               <property name="font">
+                <font>
+                 <weight>75</weight>
+                 <bold>true</bold>
+                </font>
+               </property>
+              </column>
+              <column>
+               <property name="text">
                 <string>Наименование</string>
                </property>
                <property name="font">
@@ -356,7 +367,7 @@
         </rect>
        </property>
        <attribute name="icon">
-        <iconset>
+        <iconset resource="resources.qrc">
          <normaloff>:/resources/buttons/conditions.png</normaloff>:/resources/buttons/conditions.png</iconset>
        </attribute>
        <attribute name="label">
@@ -507,7 +518,7 @@
         </rect>
        </property>
        <attribute name="icon">
-        <iconset>
+        <iconset resource="resources.qrc">
          <normaloff>:/resources/buttons/commands.png</normaloff>:/resources/buttons/commands.png</iconset>
        </attribute>
        <attribute name="label">
@@ -578,7 +589,7 @@
         </rect>
        </property>
        <attribute name="icon">
-        <iconset>
+        <iconset resource="resources.qrc">
          <normaloff>:/resources/buttons/positions.png</normaloff>:/resources/buttons/positions.png</iconset>
        </attribute>
        <attribute name="label">
@@ -601,7 +612,7 @@
             <item row="0" column="0">
              <widget class="QTreeWidget" name="navigatorPositionsTree">
               <property name="headerHidden">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="expandsOnDoubleClick">
                <bool>false</bool>
@@ -692,7 +703,7 @@
             <item row="0" column="0">
              <widget class="QTreeWidget" name="changesPositionsTree">
               <property name="headerHidden">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="expandsOnDoubleClick">
                <bool>false</bool>
@@ -876,7 +887,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="resources.qrc">
      <normaloff>:/resources/toolbar/add.png</normaloff>:/resources/toolbar/add.png</iconset>
    </property>
    <property name="text">
@@ -891,7 +902,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="resources.qrc">
      <normaloff>:/resources/toolbar/navigator.png</normaloff>:/resources/toolbar/navigator.png</iconset>
    </property>
    <property name="text">
@@ -906,7 +917,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="resources.qrc">
      <normaloff>:/resources/toolbar/edit.png</normaloff>:/resources/toolbar/edit.png</iconset>
    </property>
    <property name="text">
@@ -921,7 +932,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="resources.qrc">
      <normaloff>:/resources/toolbar/delete.png</normaloff>:/resources/toolbar/delete.png</iconset>
    </property>
    <property name="text">
@@ -936,7 +947,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="resources.qrc">
      <normaloff>:/resources/toolbar/save.png</normaloff>:/resources/toolbar/save.png</iconset>
    </property>
    <property name="text">
@@ -948,7 +959,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="resources.qrc">
      <normaloff>:/resources/toolbar/map.png</normaloff>:/resources/toolbar/map.png</iconset>
    </property>
    <property name="text">
@@ -960,7 +971,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="resources.qrc">
      <normaloff>:/resources/toolbar/send.png</normaloff>:/resources/toolbar/send.png</iconset>
    </property>
    <property name="text">
@@ -969,7 +980,7 @@
   </action>
   <action name="m_history">
    <property name="icon">
-    <iconset>
+    <iconset resource="resources.qrc">
      <normaloff>:/resources/toolbar/history.png</normaloff>:/resources/toolbar/history.png</iconset>
    </property>
    <property name="text">
@@ -978,7 +989,7 @@
   </action>
   <action name="m_changeMode">
    <property name="icon">
-    <iconset>
+    <iconset resource="resources.qrc">
      <normaloff>:/resources/toolbar/change_mode.png</normaloff>:/resources/toolbar/change_mode.png</iconset>
    </property>
    <property name="text">
@@ -987,7 +998,7 @@
   </action>
   <action name="m_exit">
    <property name="icon">
-    <iconset>
+    <iconset resource="resources.qrc">
      <normaloff>:/resources/toolbar/exit.png</normaloff>:/resources/toolbar/exit.png</iconset>
    </property>
    <property name="text">
@@ -1002,7 +1013,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="resources.qrc">
      <normaloff>:/resources/toolbar/changes.png</normaloff>:/resources/toolbar/changes.png</iconset>
    </property>
    <property name="text">
@@ -1010,6 +1021,8 @@
    </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

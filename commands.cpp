@@ -2,10 +2,10 @@
 
 Commands::Commands(QSqlDatabase db, QTreeWidget *navigatorTree,
                    QTableWidget *navigatorReciversTable, QTreeWidget *changesTree,
-                   QTableWidget *changesReciversTable, QWidget *parent)
-    : navigatorTree(navigatorTree),
-      changesTree(changesTree),
-      BaseToolClass(db, navigatorReciversTable, changesReciversTable, parent)
+                   QTableWidget *changesReciversTable, QWidget *parent) :
+    navigatorTree(navigatorTree),
+    changesTree(changesTree),
+    BaseToolClass(db, navigatorReciversTable, changesReciversTable, parent)
 {
     connect(this->navigatorTree, SIGNAL(itemSelectionChanged()), this, SLOT(showRecivers()));
 }

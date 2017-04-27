@@ -5,10 +5,10 @@
 
 BattleOrder::BattleOrder(QSqlDatabase db, QTreeWidget *navigatorTree,
                          QTableWidget *navigatorReciversTable, QTableWidget *changesTable,
-                         QTableWidget *changesReciversTable, QWidget *parent)
-          : navigatorTree(navigatorTree),
-            changesTable(changesTable),
-            BaseToolClass(db, navigatorReciversTable, changesReciversTable, parent)
+                         QTableWidget *changesReciversTable, QWidget *parent) :
+    navigatorTree(navigatorTree),
+    changesTable(changesTable),
+    BaseToolClass(db, navigatorReciversTable, changesReciversTable, parent)
 {
 
 }
@@ -91,16 +91,17 @@ void BattleOrder::fillChanges()
     changesTable->hideColumn(0);
 
     QSqlQuery sql = QSqlQuery(db);
-    if (!sql.exec(  "SELECT c.combat_hierarchy, c.object_number || ' ' || t0.termname, t3.termname "
+    if (!sql.exec(  "SELECT c.combat_hierarchy, concat(c.object_number || ' ' || t0.termname, '/', c2.object_number || ' ' || t1.termname), t3.termname, ' ', now() "
                     "FROM own_forces.combatstructure c "
+                    "LEFT JOIN own_forces.combatstructure c2    ON c2.combat_hierarchy = subltree(c.combat_hierarchy,0,1) AND c2.combat_hierarchy ~ '*{1}' "
                     "LEFT JOIN own_forces.currentmode cur       ON cur.combat_hierarchy = c.combat_hierarchy "
                     "LEFT JOIN own_forces.combatobject_manner m ON m.combat_hierarchy = c.combat_hierarchy "
                     "LEFT JOIN reference_data.terms t0          ON c.object_name = t0.termhierarchy "
-                    "LEFT JOIN reference_data.terms t1          ON c.object_name = t1.termhierarchy "
+                    "LEFT JOIN reference_data.terms t1          ON c2.object_name = t1.termhierarchy "
                     "LEFT JOIN reference_data.terms t2          ON m.manner_tid  = t2.termhierarchy "
                     "LEFT JOIN reference_data.terms t3          ON cur.currentmode_tid = t3.termhierarchy "
                     "WHERE c.date_delete IS NULL "
-                    "      AND c.combat_hierarchy ~ '!.*{1}' " ))
+                    "      AND c.combat_hierarchy ~ '!.*{1}'" ))
     {
         db.rollback();
         QApplication::restoreOverrideCursor();
@@ -116,6 +117,7 @@ void BattleOrder::fillChanges()
         changesTable->setItem(i, 1, new QTableWidgetItem(sql.value(1).toString()));
         changesTable->setItem(i, 2, new QTableWidgetItem(sql.value(2).toString()));
         changesTable->setItem(i, 3, new QTableWidgetItem(sql.value(3).toString()));
+        changesTable->setItem(i, 4, new QTableWidgetItem(sql.value(4).toString()));
     }
     db.commit();
 }

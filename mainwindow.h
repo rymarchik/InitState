@@ -22,13 +22,13 @@ public:
     explicit MainWindow(QSqlDatabase DB = QSqlDatabase::database(), QWidget *parent = 0);
     ~MainWindow();
 
-
 private:
     Ui::MainWindow* ui;
     QSqlDatabase db;
 
     BaseToolClass *currentContent;
     QTabWidget    *currentTabWidget;
+
     BattleOrder   *c_battleOrder;
     HitTargets    *c_hitTargets;
     Commands      *c_commands;
@@ -36,12 +36,11 @@ private:
 private slots:
     void slotChangeCurrentClass();
     void slotNavigator(); //заполнение закладки "Навигатор"
-    void slotChanges();   //заполнение закладки "Изменить"
-    void slotAdd();       //создвние закладки "Новый"
+    void slotChanges();   //заполнение закладки "Изменения"
+    void slotAdd();       //создание закладки "Новый"
     void slotEdit();      //реализация функции "Править"
     void slotDelete();    //реализация функции "Удалить"
     void slotSave();      //реализация функции "Сохранить"
-
 };
 
 #endif // MAINWINDOW_H

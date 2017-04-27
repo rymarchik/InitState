@@ -10,11 +10,14 @@ MainWindow::MainWindow(QSqlDatabase DB, QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    c_battleOrder = new BattleOrder(db,ui->navigatorBattleOrderTree,ui->navigatorBattleOrderRecivers,
-                                    ui->changesBattleOrderTable,ui->changesBattleOrderRecivers);
+
+    c_battleOrder = new BattleOrder(db, ui->navigatorBattleOrderTree, ui->navigatorBattleOrderRecivers,
+                                    ui->changesBattleOrderTable, ui->changesBattleOrderRecivers);
+
     c_hitTargets  = new HitTargets(db, ui->navigatorHitTargetsTable, ui->navigatorHitTargetsRecivers,
                                    ui->changesHitTargetsTable, ui->changesHitTargetsRecivers);
-    c_commands    = new Commands(db,ui->navigatorCommandsTree, ui->navigatorCommandsRecivers,
+
+    c_commands    = new Commands(db, ui->navigatorCommandsTree, ui->navigatorCommandsRecivers,
                                  ui->changesCommandsTree, ui->changesCommandsRecivers);
 
     currentContent = c_battleOrder;
@@ -96,12 +99,6 @@ void MainWindow::slotChangeCurrentClass()
         currentTabWidget = ui->commandsTabWidget;
         break;
      case 3: //страница "Районы и позиции"
-
-        break;
-     case 4: //страница "Тактическая обстановка"
-
-        break;
-     case 5: //страница "Условия ведения боевых действий"
 
         break;
     }

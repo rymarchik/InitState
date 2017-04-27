@@ -22,7 +22,7 @@ public:
     bool onSave();
 
 private:
-    QTreeWidget* navigatorTree;
+    QTreeWidget*  navigatorTree;
     QTableWidget* changesTable;
 };
 

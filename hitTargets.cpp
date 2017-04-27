@@ -2,44 +2,44 @@
 
 HitTargets::HitTargets(QSqlDatabase db, QTableWidget *navigatorTable,
                        QTableWidget *navigatorReciversTable, QTableWidget *changesTable,
-                       QTableWidget *changesReciversTable, QWidget *parent)
-        : navigatorTable(navigatorTable),
-          changesTable(changesTable),
-          BaseToolClass(db, navigatorReciversTable, changesReciversTable, parent)
+                       QTableWidget *changesReciversTable, QWidget *parent) :
+    navigatorTable(navigatorTable),
+    changesTable(changesTable),
+    BaseToolClass(db, navigatorReciversTable, changesReciversTable, parent)
 {
-        contentWidget = loadUiFile();
+    contentWidget = loadUiFile();
 
-        dataSourceBatteryCB = findChild<QComboBox*>("dataSourceBatteryCB");
-        dataSourceWeaponryCB = findChild<QComboBox*>("dataSourceWeaponryCB");
-        targetNumberLE = findChild<QLineEdit*>("targetNumberLE");
-        targetNameCB = findChild<QComboBox*>("targetNameCB");
-        importanceLE = findChild<QLineEdit*>("importanceLE");
-        detectionTimeDTE = findChild<QDateTimeEdit*>("detectionTimeDTE");
+    dataSourceBatteryCB = findChild<QComboBox*>("dataSourceBatteryCB");
+    dataSourceWeaponryCB = findChild<QComboBox*>("dataSourceWeaponryCB");
+    targetNumberLE = findChild<QLineEdit*>("targetNumberLE");
+    targetNameCB = findChild<QComboBox*>("targetNameCB");
+    importanceLE = findChild<QLineEdit*>("importanceLE");
+    detectionTimeDTE = findChild<QDateTimeEdit*>("detectionTimeDTE");
 
-        randomRB = findChild<QRadioButton*>("randomRB");
-        squareRB = findChild<QRadioButton*>("squareRB");
-        roundRB = findChild<QRadioButton*>("roundRB");
-        coordinateLE = findChild<QLineEdit*>("coordinateLE");
-        heightLE = findChild<QLineEdit*>("heightLE");
-        extraCoordinatesLayout = findChild<QVBoxLayout*>("extraCoordinatesLayout");
-        addPointBtn = findChild<QPushButton*>("addPointBtn");
-        removePointBtn = findChild<QPushButton*>("removePointBtn");
-        frontLbl = findChild<QLabel*>("frontLbl");
-        depthLbl = findChild<QLabel*>("depthLbl");
-        deviationLbl = findChild<QLabel*>("deviationLbl");
-        radiusLbl = findChild<QLabel*>("radiusLbl");
-        frontLE = findChild<QLineEdit*>("frontLE");
-        depthLE = findChild<QLineEdit*>("depthLE");
-        deviationLE = findChild<QLineEdit*>("deviationLE");
-        radiusLE = findChild<QLineEdit*>("radiusLE");
-        coverDegreeCB = findChild<QComboBox*>("coverDegreeCB");
+    randomRB = findChild<QRadioButton*>("randomRB");
+    squareRB = findChild<QRadioButton*>("squareRB");
+    roundRB = findChild<QRadioButton*>("roundRB");
+    coordinateLE = findChild<QLineEdit*>("coordinateLE");
+    heightLE = findChild<QLineEdit*>("heightLE");
+    extraCoordinatesLayout = findChild<QVBoxLayout*>("extraCoordinatesLayout");
+    addPointBtn = findChild<QPushButton*>("addPointBtn");
+    removePointBtn = findChild<QPushButton*>("removePointBtn");
+    frontLbl = findChild<QLabel*>("frontLbl");
+    depthLbl = findChild<QLabel*>("depthLbl");
+    deviationLbl = findChild<QLabel*>("deviationLbl");
+    radiusLbl = findChild<QLabel*>("radiusLbl");
+    frontLE = findChild<QLineEdit*>("frontLE");
+    depthLE = findChild<QLineEdit*>("depthLE");
+    deviationLE = findChild<QLineEdit*>("deviationLE");
+    radiusLE = findChild<QLineEdit*>("radiusLE");
+    coverDegreeCB = findChild<QComboBox*>("coverDegreeCB");
 
-        launchChB = findChild<QCheckBox*>("launchChB");
-        explosionChB = findChild<QCheckBox*>("explosionChB");
-        launchTimeDTE = findChild<QDateTimeEdit*>("launchTimeDTE");
-        damageDegreeCB = findChild<QComboBox*>("damageDegreeCB");
-        rocketTypeCB = findChild<QComboBox*>("rocketTypeCB");
-        quantityLE = findChild<QLineEdit*>("quantityLE");
+    launchChB = findChild<QCheckBox*>("launchChB");
+    explosionChB = findChild<QCheckBox*>("explosionChB");
+    launchTimeDTE = findChild<QDateTimeEdit*>("launchTimeDTE");
+    damageDegreeCB = findChild<QComboBox*>("damageDegreeCB");
+    rocketTypeCB = findChild<QComboBox*>("rocketTypeCB");
+    quantityLE = findChild<QLineEdit*>("quantityLE");
 }
 
 QWidget* HitTargets::loadUiFile() {
