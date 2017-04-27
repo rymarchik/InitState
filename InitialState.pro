@@ -21,7 +21,6 @@ SOURCES += main.cpp\
     commands.cpp \
     positions.cpp \
     server.cpp \
-    ownforcesform.cpp \
     addparamform.cpp \
     commandsaddform.cpp \
     basetoolclass.cpp
@@ -34,7 +33,6 @@ HEADERS  += mainwindow.h \
     commands.h \
     positions.h \
     server.h \
-    ownforcesform.h \
     addparamform.h \
     commandsaddform.h \
     basetoolclass.h
@@ -43,9 +41,7 @@ RESOURCES += \
     resources.qrc
 
 FORMS += \
-    mainwindow.ui \
     hittargets.ui \
-    ownforcesform.ui \
-    mainwindow2.ui \
     addparamform.ui \
-    commandsaddform.ui
+    commandsaddform.ui \
+    mainwindow.ui

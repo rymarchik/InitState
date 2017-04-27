@@ -12,7 +12,7 @@ class BattleOrder : public BaseToolClass
 
 public:
     BattleOrder(QSqlDatabase db, QTreeWidget *navigatorTree,
-                QTableWidget *navigatorReciversTable, QTableWidget *changesTree,
+                QTableWidget *navigatorReciversTable, QTableWidget *changesTable,
                 QTableWidget *changesReciversTable, QWidget* parent = 0);
     void fillNavigator();
     void fillChanges();

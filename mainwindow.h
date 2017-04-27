@@ -11,7 +11,7 @@
 #include "commands.h"
 
 namespace Ui {
-class MainWindow2;
+class MainWindow;
 }
 
 class MainWindow : public QMainWindow
@@ -23,11 +23,10 @@ public:
     ~MainWindow();
 
 
-
-
 private:
-    Ui::MainWindow2* ui;
+    Ui::MainWindow* ui;
     QSqlDatabase db;
+
     BaseToolClass *currentContent;
     QTabWidget    *currentTabWidget;
     BattleOrder   *c_battleOrder;
