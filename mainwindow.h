@@ -42,6 +42,7 @@ private slots:
     void slotMap();
     void slotSend();
 
+    void slotOnCloseTab(int);
 };
 
 #endif // MAINWINDOW_H

@@ -18,6 +18,8 @@ public:
     ~HitTargetsTabForm();
     Ui::HitTargets *ui;
 
+    void onAddSetup();
+    void onEditSetup();
     void reinitializeFormData();
     void addFilledPoints();
     QStringList getDataSourceBatteries();
@@ -26,6 +28,11 @@ public:
     QStringList getCoverDegrees();
     QStringList getDamageDegrees();
     QStringList getRocketTypes();
+
+    QComboBox* getDataSourceBatteryCB();
+    QComboBox* getDataSourceWeaponryCB();
+    QLineEdit* getTargetNumberLE();
+    QComboBox* getTargetNumberCB();
 
 private:
     QFont font = QFont("MS Shell Dlg 2", 9, QFont::Bold);

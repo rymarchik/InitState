@@ -1,12 +1,13 @@
 #include "hitTargets.h"
+#include "hitTargetsTabForm.h"
 #include "utility.h"
 
 HitTargets::HitTargets(QSqlDatabase db, QTableWidget *navigatorTable,
                        QTableWidget *navigatorReceiversTable, QTableWidget *changesTable,
-                       QTableWidget *changesReceiversTable, QWidget *parent)
-        : navigatorTable(navigatorTable),
-          changesTable(changesTable),
-          BaseToolClass(db, navigatorReceiversTable, changesReceiversTable, parent)
+                       QTableWidget *changesReceiversTable, QWidget *parent):
+    navigatorTable(navigatorTable),
+    changesTable(changesTable),
+    BaseToolClass(db, navigatorReceiversTable, changesReceiversTable, parent)
 {
 }
 
@@ -61,148 +62,30 @@ void HitTargets::fillChanges() {
 }
 
 QWidget *HitTargets::onAdd() {
-//    //reinitializeFormData();
-//    //this->addTab(contentWidget, "Новый");
-//    //this->setCurrentWidget(contentWidget);
-
-//    dataSourceBatteryCB->addItems(getDataSourceBatteries());
-//    targetNameCB->addItems(getHitTargets());
-//    detectionTimeDTE->setDateTime(QDateTime::currentDateTime());
-
-//    dataSourceBatteryCB->setEnabled(true);
-//    dataSourceWeaponryCB->setEnabled(true);
-//    targetNumberLE->setEnabled(true);
-//    targetNameCB->setEnabled(true);
-
-//    if (randomRB->isChecked() == true) {
-//        slotToggleRandomRB();
-//    }
-//    else {
-//        randomRB->setChecked(true);
-//    }
-//    slotAddPoint();
-//    slotAddPoint();
-    return new HitTargetsTabForm;
-//    return 0;
+    HitTargetsTabForm* form = new HitTargetsTabForm;
+    form->onAddSetup();
+    return form;
 }
 
-QWidget *HitTargets::onEdit()
-{
+QWidget *HitTargets::onEdit() {
+    HitTargetsTabForm* form = new HitTargetsTabForm;
+    form->getDataSourceBatteryCB()->addItem(navigatorTable->item(navigatorTable->currentRow(), 2)->text().split('/').last());
+    form->getDataSourceWeaponryCB()->addItem(navigatorTable->item(navigatorTable->currentRow(), 2)->text().split('/').first());
+    form->getTargetNumberLE()->setText(navigatorTable->item(navigatorTable->currentRow(), 0)->text());
+    form->getTargetNumberCB()->addItem(navigatorTable->item(navigatorTable->currentRow(), 1)->text());
+    form->onEditSetup();
+    return form;
+}
+
+bool HitTargets::onDelete() {
     return 0;
 }
 
-bool HitTargets::onDelete()
-{
+bool HitTargets::onSave() {
     return 0;
 }
 
-bool HitTargets::onSave()
-{
-    return 0;
-}
-
-/*void HitTargets::onEdit() {
-    reinitializeFormData();
-    this->addTab(contentWidget, "Цель № " + navigatorUpperTable->
-                 item(navigatorUpperTable->currentRow(), 0)->text());
-    this->setCurrentWidget(contentWidget);
-
-    dataSourceBatteryCB->addItem(navigatorUpperTable->item(navigatorUpperTable->currentRow(), 2)->text().split('/').last());
-    dataSourceWeaponryCB->addItem(navigatorUpperTable->item(navigatorUpperTable->currentRow(), 2)->text().split('/').first());
-    targetNumberLE->setText(navigatorUpperTable->item(navigatorUpperTable->currentRow(), 0)->text());
-    targetNameCB->addItem(navigatorUpperTable->item(navigatorUpperTable->currentRow(), 1)->text());
-
-    dataSourceBatteryCB->setEnabled(false);
-    dataSourceWeaponryCB->setEnabled(false);
-    targetNumberLE->setEnabled(false);
-    targetNameCB->setEnabled(false);
-
-    QSqlQuery query;
-    QString selectPattern = "SELECT importance, target_time, target_geometry, t2.termname FROM "
-                            "obj_targets.target_params JOIN reference_data.terms t1 ON "
-                            "t1.termhierarchy = target_name JOIN reference_data.terms t2 ON "
-                            "t2.termhierarchy = cover_degree WHERE target_number = %1 AND "
-                            "t1.termname = '%2' ";
-    QString selectQuery = selectPattern.arg(targetNumberLE->text()).arg(targetNameCB->currentText());
-
-    if (!query.exec(selectQuery)) {
-        qDebug() << "Unable to make select operation!" << query.lastError();
-    }
-
-    query.next();
-    importanceLE->setText(query.value(0).toString());
-    detectionTimeDTE->setDateTime(query.value(1).toDateTime());
-
-    switch (query.value(2).toInt()) {
-    case 0: {
-        if (randomRB->isChecked() == true)
-                slotToggleRandomRB();
-        else
-            randomRB->setChecked(true);
-
-        addFilledPoints();
-        break;
-    }
-    case 1: {
-        slotAddPoint();
-        slotAddPoint();
-        if (squareRB->isChecked() == true)
-            slotToggleSquareRB();
-        else
-            squareRB->setChecked(true);
-
-        QSqlQuery squareQuery;
-        QString squarePatternQuery = "SELECT ST_X(target_location), ST_Y(target_location), "
-                                     "ST_Z(target_location), front, depth, deviation FROM "
-                                     "obj_targets.target_params JOIN reference_data.terms ON "
-                                     "termhierarchy = target_name WHERE target_number = %1 AND "
-                                     "termname = '%2'";
-        QString squareFullQuery = squarePatternQuery.arg(targetNumberLE->text()).arg(targetNameCB->currentText());
-
-        if (!squareQuery.exec(squareFullQuery)) {
-            qDebug() << "Unable to make select operation!" << squareQuery.lastError();
-        }
-        squareQuery.next();
-
-        coordinateLE->setText(Utility::convertCoordToDegreeFormat(squareQuery.value(0).toDouble()) +
-                              Utility::convertCoordToDegreeFormat(squareQuery.value(1).toDouble()));
-        heightLE->setText(QString::number(squareQuery.value(2).toDouble()));
-        frontLE->setText(QString::number(squareQuery.value(3).toInt()));
-        depthLE->setText(QString::number(squareQuery.value(4).toInt()));
-        deviationLE->setText(QString::number(squareQuery.value(5).toInt()));
-        break;
-    }
-    case 2: {
-        slotAddPoint();
-        slotAddPoint();
-        if (roundRB->isChecked() == true)
-            slotToggleRoundRB();
-        else
-            roundRB->setChecked(true);
-
-        QSqlQuery roundQuery;
-        QString roundPatternQuery = "SELECT ST_X(target_location), ST_Y(target_location), "
-                                    "ST_Z(target_location), radius FROM obj_targets.target_params "
-                                    "JOIN reference_data.terms ON termhierarchy = target_name "
-                                    "WHERE target_number = %1 AND termname = '%2'";
-        QString roundFullQuery = roundPatternQuery.arg(targetNumberLE->text()).arg(targetNameCB->currentText());
-
-        if (!roundQuery.exec(roundFullQuery)) {
-            qDebug() << "Unable to make select operation!" << roundQuery.lastError();
-        }
-        roundQuery.next();
-
-        coordinateLE->setText(Utility::convertCoordToDegreeFormat(roundQuery.value(0).toDouble()) +
-                              Utility::convertCoordToDegreeFormat(roundQuery.value(1).toDouble()));
-        heightLE->setText(QString::number(roundQuery.value(2).toDouble()));
-        radiusLE->setText(QString::number(roundQuery.value(3).toInt()));
-        break;
-    }
-    }
-
-    coverDegreeCB->setCurrentText(query.value(3).toString());
-}
-
+/*
 bool HitTargets::onDelete() {
     QSqlQuery query;
     QString deleteQuery = "UPDATE obj_targets.target_params SET delete_time = now() WHERE "

@@ -11,6 +11,13 @@ MainWindow::MainWindow(QSqlDatabase DB, QWidget *parent) :
 {
     ui->setupUi(this);
 
+    ui->battleOrderTabWidget->tabBar()->tabButton(0, QTabBar::RightSide)->resize(0, 0);
+    ui->battleOrderTabWidget->tabBar()->tabButton(1, QTabBar::RightSide)->resize(0, 0);
+    ui->hitTargetsTabWidget->tabBar()->tabButton(0, QTabBar::RightSide)->resize(0, 0);
+    ui->hitTargetsTabWidget->tabBar()->tabButton(1, QTabBar::RightSide)->resize(0, 0);
+    ui->commandsTabWidget->tabBar()->tabButton(0, QTabBar::RightSide)->resize(0, 0);
+    ui->commandsTabWidget->tabBar()->tabButton(1, QTabBar::RightSide)->resize(0, 0);
+
     c_battleOrder = new BattleOrder(db,ui->navigatorBattleOrderTree,ui->navigatorBattleOrderReceivers,
                                     ui->changesBattleOrderTable,ui->changesBattleOrderReceivers);
     c_hitTargets  = new HitTargets(db, ui->navigatorHitTargetsTable, ui->navigatorHitTargetsReceivers,
@@ -53,14 +60,17 @@ void MainWindow::slotChanges()
 //создание вкладки "Новый":
 void MainWindow::slotAdd()
 {
-    currentTabWidget->addTab(currentContent->onAdd(),"Новый");
-    currentTabWidget->setCurrentIndex(2);
+    QWidget* addTab = currentContent->onAdd();
+    currentTabWidget->addTab(addTab, "Новый");
+    currentTabWidget->setCurrentWidget(addTab);
 }
 
 //реализация функции "Править":
 void MainWindow::slotEdit()
 {
-
+    QWidget* editTab = currentContent->onEdit();
+    currentTabWidget->addTab(editTab, "Цель № ");
+    currentTabWidget->setCurrentWidget(editTab);
 }
 
 //реализация функции "Удалить":
@@ -103,14 +113,13 @@ void MainWindow::slotChangeCurrentClass(int index)
      case 3: //страница "Районы и позиции"
 
         break;
-     case 4: //страница "Тактическая обстановка"
-
-        break;
-     case 5: //страница "Условия ведения боевых действий"
-
-        break;
     }
     slotNavigator();
+}
+
+void MainWindow::slotOnCloseTab(int index) {
+    QTabWidget* tabwgt = (QTabWidget*)sender();
+    tabwgt->removeTab(index);
 }
 
 MainWindow::~MainWindow()
