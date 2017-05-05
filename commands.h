@@ -24,14 +24,16 @@ public:
     bool onSave();
 
 private:
+    const QString OWN_NAME="Машина боевого управления";
     QTreeWidget* navigatorTree;
     QTreeWidget* changesTree;
-    QWidget* contentWidget;
-    int *signalsList;
+    CommandsAddForm *addWidget;
+    int saveMode; //0 новый, 1 изменить
 
-    void addCommand(QTreeWidgetItem *parent, QString name1, QDateTime date, QDateTime date2);
+    void addCommand(QTreeWidgetItem *parent, QString name1, QDateTime date, QDateTime date2, QString code);
     void addDocument(QTreeWidgetItem *parent, QString name1, QDateTime date, QString name3, QString name4);
 
+    bool saveCommand(QString object, QString command, QString time);
 private slots:
     void showRecivers();
 

@@ -9,9 +9,15 @@ int main(int argc, char *argv[])
 
     QSqlDatabase DB = QSqlDatabase::addDatabase("QPSQL");
     DB.setDatabaseName("A200");
-    DB.setUserName("asrymarchik");
+    /*DB.setUserName("asrymarchik");
     DB.setPassword("123456");
-    DB.setHostName("192.168.1.42");
+    DB.setHostName("192.168.1.42");*/
+
+    DB.setUserName("postgres");
+    DB.setPassword("qwerty");
+    DB.setHostName("127.0.0.1");
+
+    //DbWorker DBconnection( "127.0.0.1", 5432, "Database_MBU", "postgres", "qwerty" );
 
     if (!DB.open())
     {

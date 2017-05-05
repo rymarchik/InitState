@@ -17,7 +17,7 @@ void Commands::fillNavigator() {
     navigatorTree->setColumnCount(5);
     QStringList UpperTableHeaders;
     UpperTableHeaders << "Название команды/сигнала/\nРегистрационный номер" << "Время формирования/\nДата регистрации"
-                        << "Время исполнения/\nТип документа" << "Тема документа" << "Источник информации";
+                        << "Время исполнения/\nТип документа" << "Тема документа" << "Источник информации"<<"код";
     navigatorTree->setHeaderLabels(UpperTableHeaders);
     for (int i=0; i < navigatorTree->columnCount(); i++)
     {
@@ -42,12 +42,9 @@ void Commands::fillNavigator() {
     if (!query.exec(selectPattern)) {
         qDebug() << "Unable to make select operation!" << query.lastError();
     }
-    int i = 0;
-    signalsList = new int[query.size()];
     while (query.next()) {
-        addCommand(root, query.value(0).toString(), query.value(1).toDateTime(), query.value(2).toDateTime());
-        signalsList[i] = query.value(3).toInt();
-        i++;
+        addCommand(root, query.value(0).toString(), query.value(1).toDateTime(),
+                         query.value(2).toDateTime(),query.value(3).toString());
     }
     root->setExpanded(true);
     out = new QTreeWidgetItem(documents);
@@ -64,11 +61,9 @@ void Commands::fillNavigator() {
     if (!query.exec(selectPattern)) {
         qDebug() << "Unable to make select operation!" << query.lastError();
     }
-    i = 0;
     while (query.next()) {
         addDocument(root, query.value(0).toString(), query.value(1).toDateTime(),
                     query.value(2).toString(), query.value(3).toString());
-        i++;
     }
     root->setExpanded(true);
 
@@ -77,6 +72,7 @@ void Commands::fillNavigator() {
     LowerTableHeaders << "Получатель" << "Отметка" << "Время отметки";
     navigatorReciversTable->setHorizontalHeaderLabels(LowerTableHeaders);
     navigatorReciversTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    navigatorTree->hideColumn(5);
 }
 
 void Commands::fillChanges() {
@@ -101,7 +97,8 @@ void Commands::fillChanges() {
 
 QWidget *Commands::onAdd() {
     //реализация кнопки добавить
-    return new CommandsAddForm;
+    addWidget = new CommandsAddForm(OWN_NAME);
+    return addWidget;
 }
 
 QWidget *Commands::onEdit() {
@@ -116,16 +113,26 @@ bool Commands::onDelete() {
 
 bool Commands::onSave() {
     //реализация кнопки сохранить
+    bool commandOrDoc = addWidget->getCommandOrDoc();
+    QString command = addWidget->getCommandName();
+    QString timeAdd = addWidget->getTimeAdd();
+    QString timeExec = addWidget->getTimeExec();
+    QString AttributeExec = addWidget->getAttributeExec();
+    QStringList parametrs = addWidget->getParametrList();
+    QStringList receivers = addWidget->getReceiversList();
+    if(!commandOrDoc) qDebug() <<saveCommand(OWN_NAME, command, timeAdd);
+    //else saveDoc();
     return false;
 }
 
 void Commands::addCommand(QTreeWidgetItem *parent,
-                  QString name1, QDateTime date, QDateTime date2)
+                  QString name1, QDateTime date, QDateTime date2, QString code)
 {
     QTreeWidgetItem *treeItem = new QTreeWidgetItem();
     treeItem->setText(0, name1);
     treeItem->setText(1, date.toString("dd.MM.yyyy hh:mm:ss"));
     treeItem->setText(2, date2.toString("dd.MM.yyyy hh:mm:ss"));
+    treeItem->setText(5, code);
 
     parent->addChild(treeItem);
 }
@@ -147,11 +154,11 @@ void Commands::showRecivers()
     QString s = navigatorTree->currentItem()->text(0);
     if (s.compare("Команды и сигналы") == 0) { return; }
     if (s.compare("Документы") == 0) { return; }
-    QTreeWidgetItem *parent = navigatorTree->currentItem()->parent();
-    int numb = parent->indexOfChild(navigatorTree->currentItem());
+    QString code = navigatorTree->currentItem()->text(5);
     QSqlQuery query = QSqlQuery(db);
     QString selectPattern = "SELECT combatobjectcode, mark_tid, mark_time ";
-    selectPattern = selectPattern+ "FROM orders_alerts.orders_alerts_acceptors WHERE order_id='"+QString::number(signalsList[numb],10)+"';";
+    qDebug() << code;
+    selectPattern = selectPattern+ "FROM orders_alerts.orders_alerts_acceptors WHERE order_id='"+code+"';";
     //qDebug()<<selectPattern;
     if (!query.exec(selectPattern)) {
         qDebug() << "Unable to make select operation!" << query.lastError();
@@ -165,4 +172,56 @@ void Commands::showRecivers()
         navigatorReciversTable->setItem(i, 2, new QTableWidgetItem(query.value(2).toString()));
         i++;
     }
+}
+
+bool Commands::saveCommand(QString object, QString command, QString time)
+{
+    QSqlQuery query = QSqlQuery( db );
+    QString s = "";
+    s = "SELECT reference_data.terms.termhierarchy FROM reference_data.terms WHERE reference_data.terms.termname ='"+object+"';";
+    if (!query.exec(s)) {
+        return false;
+    }
+    else {
+            while ( query.next() ) {
+                object = query.value( 0 ).toString();
+            }
+    }
+    query = QSqlQuery( db );
+    s = "";
+    s = "SELECT reference_data.terms.termhierarchy FROM reference_data.terms WHERE reference_data.terms.termname ='"+command+"';";
+    if (!query.exec(s)) {
+        return false;
+    }
+    else {
+            while ( query.next() ) {
+                command = query.value( 0 ).toString();
+            }
+    }
+    query = QSqlQuery( db );
+    if (!query.exec("SELECT order_id FROM orders_alerts.orders_alerts_info ORDER BY order_id DESC LIMIT 1;")) {
+        return false;
+    }
+    else {
+        int id;
+        while ( query.next() ) {
+            id = query.value( 0 ).toInt();
+        }
+        id++;
+        db.transaction();
+        query.prepare( "INSERT INTO orders_alerts.orders_alerts_info( "
+                       "combatobjectcode, order_id, training_object, order_tid, date_add, date_edit, date_delete, id_manager) "
+                       "VALUES (?, ?, ?, ?, ?, ?, ?, ?);");
+        query.addBindValue( object );
+        query.addBindValue( id );
+        query.addBindValue( "true" );
+        query.addBindValue( command );
+        query.addBindValue(time);
+        query.addBindValue(time);
+        query.addBindValue(time/*"null"*/);
+        query.addBindValue("1");
+        query.exec();
+        return db.commit();
+    }
+    return false;
 }

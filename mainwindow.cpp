@@ -75,7 +75,7 @@ void MainWindow::slotDelete()
 //реализация функции "Сохранить"
 void MainWindow::slotSave()
 {
-
+    currentContent->onSave();
 }
 
 //Изменение ссылок на актуальный класс:

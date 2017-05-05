@@ -17,10 +17,17 @@ class CommandsAddForm : public QWidget
     Q_OBJECT
 
 public:
-    explicit CommandsAddForm(QWidget *parent = 0);
+    explicit CommandsAddForm(QString ownName, QWidget *parent = 0);
     ~CommandsAddForm();
     Ui::CommandsAddForm *ui;
 
+    bool getCommandOrDoc();
+    QString getCommandName();
+    QString getTimeAdd();
+    QString getTimeExec();
+    QString getAttributeExec();
+    QStringList getParametrList();
+    QStringList getReceiversList();
 private:
     void setCommandsSignals();
     void setAttributeExecution();
