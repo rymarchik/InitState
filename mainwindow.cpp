@@ -69,13 +69,17 @@ void MainWindow::slotEdit()
 //реализация функции "Удалить":
 void MainWindow::slotDelete()
 {
-
+    if (currentContent->onDelete()) {
+        currentContent->fillNavigator();
+        currentTabWidget->setCurrentIndex(0);
+    }
 }
 
 //реализация функции "Сохранить"
 void MainWindow::slotSave()
 {
-    currentContent->onSave();
+    qDebug() << currentTabWidget->currentIndex();
+    qDebug() << currentContent->onSave(currentTabWidget->currentIndex()-2);
 }
 
 //Изменение ссылок на актуальный класс:

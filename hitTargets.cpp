@@ -368,7 +368,7 @@ bool HitTargets::onDelete()
     return 0;
 }
 
-bool HitTargets::onSave()
+bool HitTargets::onSave(int number)
 {
     return 0;
 }

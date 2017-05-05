@@ -111,7 +111,7 @@ bool BattleOrder::onDelete()
     return 0;
 }
 
-bool BattleOrder::onSave()
+bool BattleOrder::onSave(int number)
 {
     return 0;
 }

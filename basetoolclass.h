@@ -15,7 +15,7 @@ public:
     virtual QWidget *onAdd() = 0;
     virtual QWidget *onEdit() = 0;
     virtual bool onDelete() = 0;
-    virtual bool onSave() = 0;
+    virtual bool onSave(int number) = 0;
 
 protected:
     QSqlDatabase  db;

@@ -20,7 +20,7 @@ public:
     QWidget *onAdd();
     QWidget *onEdit();
     bool onDelete();
-    bool onSave();
+    bool onSave(int number);
 
     QWidget* loadUiFile();
     void reinitializeFormData();
