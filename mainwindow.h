@@ -33,6 +33,7 @@ private:
     HitTargets    *c_hitTargets;
     Commands      *c_commands;
 
+
 private slots:
     void slotChangeCurrentClass();
     void slotNavigator(); //заполнение закладки "Навигатор"

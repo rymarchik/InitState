@@ -23,7 +23,10 @@ SOURCES += main.cpp\
     server.cpp \
     addparamform.cpp \
     commandsaddform.cpp \
-    basetoolclass.cpp
+    basetoolclass.cpp \
+    battleOrderChangesBM.cpp \
+    battleOrderChangesMBU.cpp \
+    battleOrderChangesTZM.cpp
 
 HEADERS  += mainwindow.h \
     receiversDialog.h \
@@ -35,7 +38,10 @@ HEADERS  += mainwindow.h \
     server.h \
     addparamform.h \
     commandsaddform.h \
-    basetoolclass.h
+    basetoolclass.h \
+    battleOrderChangesBM.h \
+    battleOrderChangesMBU.h \
+    battleOrderChangesTZM.h
 
 RESOURCES += \
     resources.qrc
@@ -44,4 +50,7 @@ FORMS += \
     hittargets.ui \
     addparamform.ui \
     commandsaddform.ui \
-    mainwindow.ui
+    mainwindow.ui \
+    battleOrderChangesBM.ui \
+    battleOrderChangesMBU.ui \
+    battleOrderChangesTZM.ui

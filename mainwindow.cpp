@@ -1,5 +1,4 @@
 #include "mainwindow.h"
-//#include "ui_mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QDebug>
 
@@ -20,7 +19,7 @@ MainWindow::MainWindow(QSqlDatabase DB, QWidget *parent) :
     c_commands    = new Commands(db, ui->navigatorCommandsTree, ui->navigatorCommandsRecivers,
                                  ui->changesCommandsTree, ui->changesCommandsRecivers);
 
-    currentContent = c_battleOrder;
+    currentContent  = c_battleOrder;
     currentTabWidget = ui->battleOrderTabWidget;
 
     ui->toolBox->setCurrentIndex(0);
@@ -59,14 +58,21 @@ void MainWindow::slotChanges()
 //создвние закладки "Новый":
 void MainWindow::slotAdd()
 {
-    currentTabWidget->addTab(currentContent->onAdd(),"Новый");
-    currentTabWidget->setCurrentIndex(2);
+    ui->m_navigator->setChecked(false);
+
+    int i;
+    i = currentTabWidget->addTab(currentContent->onAdd(),"Новый");
+    currentTabWidget->setCurrentIndex(i);
 }
 
 //реализация функции "Править":
 void MainWindow::slotEdit()
 {
+    ui->m_navigator->setChecked(false); //выключение кнопки "Навигатор":
 
+    int i=0;
+    i = currentTabWidget->addTab(currentContent->onEdit(), "Редактирование");
+    currentTabWidget->setCurrentIndex(i);
 }
 
 //реализация функции "Удалить":
