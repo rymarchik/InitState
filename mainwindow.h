@@ -11,7 +11,7 @@
 #include "commands.h"
 
 namespace Ui {
-class MainWindow2;
+class MainWindow;
 }
 
 class MainWindow : public QMainWindow
@@ -23,7 +23,7 @@ public:
     ~MainWindow();
 
 private:
-    Ui::MainWindow2* ui;
+    Ui::MainWindow* ui;
     QSqlDatabase db;
     BaseToolClass *currentContent;
     QTabWidget    *currentTabWidget;
@@ -35,14 +35,16 @@ private slots:
     void slotChangeCurrentClass(int);
     void slotNavigator(); //заполнение закладки "Навигатор"
     void slotChanges();   //заполнение закладки "Изменить"
-    void slotAdd();       //создвние закладки "Новый"
+    void slotAdd();       //создание закладки "Новый"
     void slotEdit();      //реализация функции "Править"
     void slotDelete();    //реализация функции "Удалить"
     void slotSave();      //реализация функции "Сохранить"
     void slotMap();
     void slotSend();
 
+    void slotOnChangeTab(int);
     void slotOnCloseTab(int);
+    void slotOnItemSelected();
 };
 
 #endif // MAINWINDOW_H

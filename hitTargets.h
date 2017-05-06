@@ -19,11 +19,16 @@ public:
     QWidget *onAdd();
     QWidget *onEdit();
     bool onDelete();
-    bool onSave();
+    bool onSave(int);
+
+    void removeForm(int);
+    int removeFormFromNavigator();
+    QString getTargetNumber();
 
 private:
     QTableWidget* navigatorTable;
     QTableWidget* changesTable;
+    QList<HitTargetsTabForm*> formList;
 
 public slots:
 

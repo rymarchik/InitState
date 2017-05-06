@@ -2,10 +2,10 @@
 
 BaseToolClass::BaseToolClass(QSqlDatabase db, QTableWidget *navigatorReceiversTable,
                              QTableWidget *changesReceiversTable, QWidget* parent)
-    : db(db),
+    : QToolBox(parent),
+      db(db),
       navigatorReceiversTable(navigatorReceiversTable),
-      changesReceiversTable(changesReceiversTable),
-      QToolBox(parent)
+      changesReceiversTable(changesReceiversTable)
 {
 
 }

@@ -1,7 +1,6 @@
 #pragma once
 
-#include <QWidget>
-#include <QString>
+#include <QtWidgets>
 #include <QtSql>
 #include <QFont>
 
@@ -19,7 +18,9 @@ public:
     Ui::HitTargets *ui;
 
     void onAddSetup();
-    void onEditSetup();
+    void onEditSetup(QTableWidget*);
+    bool onSaveSetup();
+
     void reinitializeFormData();
     void addFilledPoints();
     QStringList getDataSourceBatteries();
@@ -29,10 +30,8 @@ public:
     QStringList getDamageDegrees();
     QStringList getRocketTypes();
 
-    QComboBox* getDataSourceBatteryCB();
-    QComboBox* getDataSourceWeaponryCB();
-    QLineEdit* getTargetNumberLE();
-    QComboBox* getTargetNumberCB();
+    QString getTargetNumberString();
+    QString getTargetNameString();
 
 private:
     QFont font = QFont("MS Shell Dlg 2", 9, QFont::Bold);

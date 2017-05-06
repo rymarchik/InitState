@@ -1,13 +1,12 @@
 #include "mainwindow.h"
-//#include "ui_mainwindow.h"
-#include "ui_mainwindow2.h"
+#include "ui_mainwindow.h"
 #include <QDebug>
 
 
 MainWindow::MainWindow(QSqlDatabase DB, QWidget *parent) :
     db(DB),
     QMainWindow(parent),
-    ui(new Ui::MainWindow2)
+    ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
 
@@ -69,20 +68,85 @@ void MainWindow::slotAdd()
 void MainWindow::slotEdit()
 {
     QWidget* editTab = currentContent->onEdit();
-    currentTabWidget->addTab(editTab, "Цель № ");
+    QString tabName;
+
+    switch (ui->toolBox->currentIndex())
+    {
+     case 0: //страница "Свои войска"
+
+        break;
+     case 1: //страница "Поражаемые цели"
+        tabName = c_hitTargets->getTargetNumber();
+        break;
+     case 2: //страница "Команды и сигналы, документы"
+
+        break;
+     case 3: //страница "Районы и позиции"
+
+        break;
+    }
+
+    currentTabWidget->addTab(editTab, tabName);
     currentTabWidget->setCurrentWidget(editTab);
 }
 
 //реализация функции "Удалить":
 void MainWindow::slotDelete()
 {
+    switch (ui->toolBox->currentIndex())
+    {
+     case 0: //страница "Свои войска"
 
+        break;
+     case 1: //страница "Поражаемые цели"
+        if (c_hitTargets->onDelete()) {
+            if (currentTabWidget->currentIndex() > 1) {
+                slotOnCloseTab(currentTabWidget->currentIndex());
+            }
+            else if (currentTabWidget->currentIndex() == 0) {
+                int index = c_hitTargets->removeFormFromNavigator();
+                switch (index) {
+                case -1:
+                    break;
+                default:
+                    qDebug() << index;
+                    currentTabWidget->removeTab(index);
+                    break;
+                }
+            }
+            slotNavigator();
+        }
+        break;
+     case 2: //страница "Команды и сигналы, документы"
+
+        break;
+     case 3: //страница "Районы и позиции"
+
+        break;
+    }
 }
 
 //реализация функции "Сохранить"
 void MainWindow::slotSave()
 {
+    switch (ui->toolBox->currentIndex())
+    {
+     case 0: //страница "Свои войска"
 
+        break;
+     case 1: //страница "Поражаемые цели"
+        if (c_hitTargets->onSave(currentTabWidget->currentIndex())) {
+            slotOnCloseTab(currentTabWidget->currentIndex());
+            slotNavigator();
+        }
+        break;
+     case 2: //страница "Команды и сигналы, документы"
+
+        break;
+     case 3: //страница "Районы и позиции"
+
+        break;
+    }
 }
 
 void MainWindow::slotMap() {
@@ -117,9 +181,52 @@ void MainWindow::slotChangeCurrentClass(int index)
     slotNavigator();
 }
 
-void MainWindow::slotOnCloseTab(int index) {
-    QTabWidget* tabwgt = (QTabWidget*)sender();
-    tabwgt->removeTab(index);
+void MainWindow::slotOnChangeTab(int index)
+{
+    switch (index)
+    {
+    case 0: //вкладка Навигатор
+        ui->m_edit->setEnabled(false);
+        ui->m_delete->setEnabled(false);
+        ui->m_save->setEnabled(false);
+        break;
+    case 1: //вкладка Изменения
+        ui->m_edit->setEnabled(false);
+        ui->m_delete->setEnabled(false);
+        ui->m_save->setEnabled(false);
+        break;
+    default: //остальные вкладки
+        ui->m_edit->setEnabled(false);
+        ui->m_delete->setEnabled(true);
+        ui->m_save->setEnabled(true);
+        break;
+    }
+}
+
+void MainWindow::slotOnCloseTab(int index)
+{
+    switch (ui->toolBox->currentIndex())
+    {
+     case 0: //страница "Свои войска"
+
+        break;
+     case 1: //страница "Поражаемые цели"
+        c_hitTargets->removeForm(index);
+        currentTabWidget->removeTab(index);
+        break;
+     case 2: //страница "Команды и сигналы, документы"
+
+        break;
+     case 3: //страница "Районы и позиции"
+
+        break;
+    }
+}
+
+void MainWindow::slotOnItemSelected()
+{
+    ui->m_edit->setEnabled(true);
+    ui->m_delete->setEnabled(true);
 }
 
 MainWindow::~MainWindow()
@@ -129,5 +236,3 @@ MainWindow::~MainWindow()
     delete c_commands;
     delete ui;
 }
-
-

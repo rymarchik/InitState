@@ -114,7 +114,7 @@ bool Commands::onDelete() {
     return false;
 }
 
-bool Commands::onSave() {
+bool Commands::onSave(int) {
     //реализация кнопки сохранить
     return false;
 }

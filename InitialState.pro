@@ -45,9 +45,8 @@ RESOURCES += \
     resources.qrc
 
 FORMS += \
-    mainwindow.ui \
     hittargets.ui \
     ownforcesform.ui \
-    mainwindow2.ui \
     addparamform.ui \
-    commandsaddform.ui
+    commandsaddform.ui \
+    mainwindow.ui

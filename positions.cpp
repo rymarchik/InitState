@@ -27,7 +27,7 @@ bool Positions::onDelete() {
     return false;
 }
 
-bool Positions::onSave() {
+bool Positions::onSave(int) {
     //реализация кнопки сохранить
     return false;
 }
