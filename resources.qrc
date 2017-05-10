@@ -20,6 +20,5 @@
         <file>resources/toolbar/reserve_title.png</file>
         <file>resources/toolbar/save.png</file>
         <file>resources/toolbar/send.png</file>
-        <file>hittargets.ui</file>
     </qresource>
 </RCC>

@@ -8,19 +8,19 @@
 class BaseToolClass : public QToolBox
 {
 public:
-    BaseToolClass(QSqlDatabase db, QTableWidget *navigatorReciversTable,
-                  QTableWidget *changesReciversTable, QWidget* parent);
+    BaseToolClass(QSqlDatabase db, QTableWidget *navigatorReceiversTable,
+                  QTableWidget *changesReceiversTable, QWidget* parent);
     virtual void fillNavigator() = 0;
     virtual void fillChanges() = 0;
     virtual QWidget *onAdd() = 0;
     virtual QWidget *onEdit() = 0;
     virtual bool onDelete() = 0;
-    virtual bool onSave() = 0;
+    virtual bool onSave(int) = 0;
 
 protected:
     QSqlDatabase  db;
-    QTableWidget* navigatorReciversTable;
-    QTableWidget* changesReciversTable;
+    QTableWidget* navigatorReceiversTable;
+    QTableWidget* changesReceiversTable;
 };
 
 #endif // BASETOOLCLASS_H

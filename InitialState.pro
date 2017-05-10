@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui sql network uitools
+QT       += core gui sql network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -27,6 +27,7 @@ SOURCES += main.cpp\
     battleOrderChangesBM.cpp \
     battleOrderChangesMBU.cpp \
     battleOrderChangesTZM.cpp
+    hitTargetsTabForm.cpp
 
 HEADERS  += mainwindow.h \
     receiversDialog.h \
@@ -42,6 +43,7 @@ HEADERS  += mainwindow.h \
     battleOrderChangesBM.h \
     battleOrderChangesMBU.h \
     battleOrderChangesTZM.h
+    hitTargetsTabForm.h
 
 RESOURCES += \
     resources.qrc

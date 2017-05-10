@@ -3,7 +3,7 @@
 
 #include <QtWidgets>
 #include <QtSql>
-#include <QtUiTools>
+#include "basetoolclass.h"
 
 class Positions : public QToolBox
 {
@@ -17,7 +17,7 @@ public:
     void onAdd();
     void onEdit();
     bool onDelete();
-    bool onSave();
+    bool onSave(int);
 
 private:
     QTreeWidget* navigatorUpperTree;
