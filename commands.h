@@ -4,7 +4,6 @@
 #include <QtWidgets>
 #include <QtSql>
 #include <QDateTime>
-#include <QtUiTools>
 #include "basetoolclass.h"
 #include "commandsaddform.h"
 

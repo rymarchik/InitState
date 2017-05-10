@@ -159,6 +159,10 @@ void MainWindow::slotSend() {
 //Изменение ссылок на актуальный класс:
 void MainWindow::slotChangeCurrentClass(int index)
 {
+    ui->m_edit->setEnabled(false);
+    ui->m_delete->setEnabled(false);
+    ui->m_save->setEnabled(false);
+
     switch (index)
     {
      case 0: //страница "Свои войска"

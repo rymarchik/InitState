@@ -26,7 +26,7 @@ SOURCES += main.cpp\
     basetoolclass.cpp \
     battleOrderChangesBM.cpp \
     battleOrderChangesMBU.cpp \
-    battleOrderChangesTZM.cpp
+    battleOrderChangesTZM.cpp \
     hitTargetsTabForm.cpp
 
 HEADERS  += mainwindow.h \
@@ -42,7 +42,7 @@ HEADERS  += mainwindow.h \
     basetoolclass.h \
     battleOrderChangesBM.h \
     battleOrderChangesMBU.h \
-    battleOrderChangesTZM.h
+    battleOrderChangesTZM.h \
     hitTargetsTabForm.h
 
 RESOURCES += \
