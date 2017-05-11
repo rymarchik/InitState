@@ -70,14 +70,9 @@ void Commands::fillNavigator() {
     navigatorReceiversTable->setColumnCount(3);
     QStringList LowerTableHeaders;
     LowerTableHeaders << "Получатель" << "Отметка" << "Время отметки";
-<<<<<<< HEAD
     navigatorReceiversTable->setHorizontalHeaderLabels(LowerTableHeaders);
     navigatorReceiversTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-=======
-    navigatorReciversTable->setHorizontalHeaderLabels(LowerTableHeaders);
-    navigatorReciversTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     navigatorTree->hideColumn(5);
->>>>>>> yurkovBranch
 }
 
 void Commands::fillChanges() {
@@ -235,15 +230,9 @@ void Commands::showRecivers()
     navigatorReceiversTable->clearContents();
     navigatorReceiversTable->setRowCount(query.size());
     while (query.next()) {
-<<<<<<< HEAD
         navigatorReceiversTable->setItem(i, 0, new QTableWidgetItem(query.value(0).toString()));
         navigatorReceiversTable->setItem(i, 1, new QTableWidgetItem(query.value(1).toString()));
         navigatorReceiversTable->setItem(i, 2, new QTableWidgetItem(query.value(2).toString()));
-=======
-        navigatorReciversTable->setItem(i, 0, new QTableWidgetItem(query.value(0).toString()));
-        navigatorReciversTable->setItem(i, 1, new QTableWidgetItem(convertCodeToReferenceName(query.value(1).toString())));
-        navigatorReciversTable->setItem(i, 2, new QTableWidgetItem(query.value(2).toString()));
->>>>>>> yurkovBranch
         i++;
     }
 }
