@@ -293,3 +293,22 @@ bool Commands::deleteDocument(QString id)
         return true;
     }
 }
+
+
+/*QStringList HitTargetsTabForm::getDataSourceBatteries() {
+    QSqlQuery query;
+    QString selectQuery = "SELECT object_number, termname FROM own_forces.combatstructure JOIN "
+                          "reference_data.terms ON termhierarchy = object_name WHERE "
+                          "combat_hierarchy IN (SELECT combat_hierarchy FROM own_forces.combatstructure "
+                          "WHERE nlevel(combat_hierarchy) = 1 AND type_army = '22.10' AND type_mode = 0 "
+                          "AND date_delete is null) ORDER BY object_number";
+    if (!query.exec(selectQuery)) {
+        qDebug() << "Unable to make select operation!" << query.lastError();
+    }
+
+    QStringList list;
+    while (query.next()) {
+        list.append(tr("%1").arg(query.value(0).toInt()) + " " + query.value(1).toString());
+    }
+    return list;
+}*/
