@@ -1,11 +1,12 @@
 #include "commandsaddform.h"
 #include "ui_commandsaddform.h"
 
-CommandsAddForm::CommandsAddForm(QWidget *parent) :
+CommandsAddForm::CommandsAddForm(QString ownName, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::CommandsAddForm)
 {
     ui->setupUi(this);
+    ui->dataSourceLine->setText(ownName);
     ui->timeCreateDTE->setDateTime(QDateTime::currentDateTime());
     ui->timeExecDTE->setDateTime(QDateTime::currentDateTime());
     ui->timeDocRegister->setDateTime(QDateTime::currentDateTime());
@@ -15,17 +16,57 @@ CommandsAddForm::CommandsAddForm(QWidget *parent) :
     setAttributeExecution();
 
     addParamForm= new AddParamForm();
+    addReciversForm = new AddReciversForm();
 
     connect(ui->timeExecBox, SIGNAL(clicked(bool)), this, SLOT(changeEnabledTimerExec()));
     connect(ui->menuBox, SIGNAL(currentIndexChanged(int)), this, SLOT(changeContent()));
     connect(ui->addParamBut, SIGNAL(clicked()), addParamForm, SLOT(show()));
     connect(addParamForm, SIGNAL(sendData(QString, QString)), this, SLOT(recieveData(QString, QString)));
-    connect(ui->addReciverBut, SIGNAL(clicked()), this, SLOT(addRecivers()));
+    connect(ui->addReciverBut, SIGNAL(clicked()), addReciversForm, SLOT(show()));
 }
 
 CommandsAddForm::~CommandsAddForm()
 {
     delete ui;
+}
+
+bool CommandsAddForm::getCommandOrDoc()
+{
+    if (ui->menuBox->currentIndex() == 0) return false;
+    else return true;
+}
+
+QString CommandsAddForm::getCommandName()
+{
+    return ui->commandsSignalsBox->currentText();
+}
+
+QString CommandsAddForm::getTimeAdd()
+{
+    return ui->timeCreateDTE->text();
+}
+
+QString CommandsAddForm::getTimeExec()
+{
+    if (ui->timeExecBox->isChecked()) return ui->timeExecDTE->text();
+    else return "0";
+}
+
+QString CommandsAddForm::getAttributeExec()
+{
+    return ui->attrExecBox->currentText();
+}
+
+QStringList CommandsAddForm::getParametrList()
+{
+    QStringList paramList;
+    return paramList;
+}
+
+QStringList CommandsAddForm::getReceiversList()
+{
+    QStringList receiverList;
+    return receiverList;
 }
 
 void CommandsAddForm::changeContent()

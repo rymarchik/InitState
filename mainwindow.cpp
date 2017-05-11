@@ -117,7 +117,10 @@ void MainWindow::slotDelete()
         }
         break;
      case 2: //страница "Команды и сигналы, документы"
-
+        if (currentContent->onDelete()) {
+                currentContent->fillNavigator();
+                currentTabWidget->setCurrentIndex(0);
+        }
         break;
      case 3: //страница "Районы и позиции"
 
@@ -126,25 +129,10 @@ void MainWindow::slotDelete()
 }
 
 //реализация функции "Сохранить"
-void MainWindow::slotSave()
-{
-    switch (ui->toolBox->currentIndex())
-    {
-     case 0: //страница "Свои войска"
-
-        break;
-     case 1: //страница "Поражаемые цели"
-        if (c_hitTargets->onSave(currentTabWidget->currentIndex())) {
-            slotOnCloseTab(currentTabWidget->currentIndex());
-            slotNavigator();
-        }
-        break;
-     case 2: //страница "Команды и сигналы, документы"
-
-        break;
-     case 3: //страница "Районы и позиции"
-
-        break;
+void MainWindow::slotSave() {
+    if (currentContent->onSave(currentTabWidget->currentIndex())) {
+        slotOnCloseTab(currentTabWidget->currentIndex());
+        slotNavigator();
     }
 }
 

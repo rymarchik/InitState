@@ -20,17 +20,22 @@ public:
     QWidget *onAdd();
     QWidget *onEdit();
     bool onDelete();
-    bool onSave(int);
-
+    bool onSave(int number);
 private:
+    const QString OWN_NAME="Машина боевого управления";
     QTreeWidget* navigatorTree;
     QTreeWidget* changesTree;
-    QWidget* contentWidget;
-    int *signalsList;
+    QList<CommandsAddForm *> addWidgetList;
+    int saveMode; //0 новый, 1 изменить
 
-    void addCommand(QTreeWidgetItem *parent, QString name1, QDateTime date, QDateTime date2);
-    void addDocument(QTreeWidgetItem *parent, QString name1, QDateTime date, QString name3, QString name4);
-
+    void addCommand(QTreeWidgetItem *parent, QString name1, QDateTime date, QDateTime date2, QString code);
+    void addDocument(QTreeWidgetItem *parent, QString name1, QDateTime date, QString name3, QString name4, QString code);
+    QString convertCodeToReferenceName(QString code);
+    QString convertReferenceNameTOCode(QString referenceName);
+    bool saveCommand(QString object, QString command, QString time);
+    bool saveDocument(QString object, QString command, QString time);
+    bool deleteCommand(QString id);
+    bool deleteDocument(QString id);
 private slots:
     void showRecivers();
 

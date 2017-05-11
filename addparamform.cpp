@@ -27,7 +27,7 @@ AddParamForm::~AddParamForm()
 
 void AddParamForm::on_reverseButton_clicked()
 {
-    QMessageBox::information(0, "Отмена", "Добавление параметра отменено");
+    QMessageBox::information(0, "OK", "Добавление параметра отменено");
     this->close();
 }
 
