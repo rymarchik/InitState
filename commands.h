@@ -6,6 +6,9 @@
 #include <QDateTime>
 #include "basetoolclass.h"
 #include "commandsaddform.h"
+#include "utility.h"
+#include "commandsmessagebox.h"
+
 
 class Commands : public BaseToolClass
 {
@@ -21,6 +24,7 @@ public:
     QWidget *onEdit();
     bool onDelete();
     bool onSave(int number);
+    void removeForm(int index);
 private:
     const QString OWN_NAME="Машина боевого управления";
     QTreeWidget* navigatorTree;
@@ -30,9 +34,7 @@ private:
 
     void addCommand(QTreeWidgetItem *parent, QString name1, QDateTime date, QDateTime date2, QString code);
     void addDocument(QTreeWidgetItem *parent, QString name1, QDateTime date, QString name3, QString name4, QString code);
-    QString convertCodeToReferenceName(QString code);
-    QString convertReferenceNameTOCode(QString referenceName);
-    bool saveCommand(QString object, QString command, QString time);
+    bool saveCommand(QString object, CommandsMessageBox box);
     bool saveDocument(QString object, QString command, QString time);
     bool deleteCommand(QString id);
     bool deleteDocument(QString id);

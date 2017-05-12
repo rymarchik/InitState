@@ -135,6 +135,11 @@ void BattleOrder::fillChanges()
     db.commit();
 }
 
+void BattleOrder::removeForm(int)
+{
+
+}
+
 QWidget *BattleOrder::onAdd()
 {
     return 0;

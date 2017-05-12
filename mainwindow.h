@@ -4,7 +4,9 @@
 #include <QMainWindow>
 #include <QtWidgets>
 #include <QtSql>
+#include <QDebug>
 
+#include "ui_mainwindow.h"
 #include "basetoolclass.h"
 #include "battleOrder.h"
 #include "hitTargets.h"

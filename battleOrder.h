@@ -22,6 +22,7 @@ public:
 
     void fillNavigator();
     void fillChanges();
+    void removeForm(int);
     QWidget *onAdd();
     QWidget *onEdit();
     bool onDelete();

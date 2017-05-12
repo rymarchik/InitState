@@ -1,6 +1,4 @@
 #include "hitTargets.h"
-#include "hitTargetsTabForm.h"
-#include "utility.h"
 
 HitTargets::HitTargets(QSqlDatabase db, QTableWidget *navigatorTable,
                        QTableWidget *navigatorReceiversTable, QTableWidget *changesTable,

@@ -1,6 +1,4 @@
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
-#include <QDebug>
 
 MainWindow::MainWindow(QSqlDatabase DB, QWidget *parent) :
     db(DB),
@@ -31,6 +29,7 @@ MainWindow::MainWindow(QSqlDatabase DB, QWidget *parent) :
 
     connect(ui->toolBox, SIGNAL(currentChanged(int)), this, SLOT(slotChangeCurrentClass(int)));
     connect(ui->m_exit, SIGNAL(triggered()), qApp, SLOT(quit()));
+    connect(currentTabWidget, SIGNAL(currentChanged(int)), this, SLOT(slotOnChangeTab(int)));
 }
 
 //заполнение закладки "Навигатор":
@@ -169,6 +168,8 @@ void MainWindow::slotChangeCurrentClass(int index)
 
         break;
     }
+    disconnect(currentTabWidget, SIGNAL(currentChanged(int)), this, SLOT(slotOnChangeTab(int)));
+    connect(currentTabWidget, SIGNAL(currentChanged(int)), this, SLOT(slotOnChangeTab(int)));
     slotNavigator();
 }
 
@@ -196,22 +197,8 @@ void MainWindow::slotOnChangeTab(int index)
 
 void MainWindow::slotOnCloseTab(int index)
 {
-    switch (ui->toolBox->currentIndex())
-    {
-     case 0: //страница "Свои войска"
-
-        break;
-     case 1: //страница "Поражаемые цели"
-        c_hitTargets->removeForm(index);
-        currentTabWidget->removeTab(index);
-        break;
-     case 2: //страница "Команды и сигналы, документы"
-
-        break;
-     case 3: //страница "Районы и позиции"
-
-        break;
-    }
+    currentContent->removeForm(index);
+    currentTabWidget->removeTab(index);
 }
 
 void MainWindow::slotOnItemSelected()

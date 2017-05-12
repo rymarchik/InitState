@@ -67,3 +67,37 @@ QString Utility::convertCoordToDegreeFormat(double coord) {
     qDebug() << degrees << "° " << minutes << "' " << seconds.toDouble() << "\"";
     return QString::number(degrees) + " " + QString::number(minutes) + " " + seconds;
 }
+
+QString Utility::convertCodeToReferenceName(QSqlDatabase db, QString code)
+{
+    QSqlQuery query = QSqlQuery( db );
+    QString s = "";
+    QString referenceName;
+    s = "SELECT reference_data.terms.termname FROM reference_data.terms WHERE reference_data.terms.termhierarchy ='"+code+"';";
+    if (!query.exec(s)) {
+        return "";
+    }
+    else {
+            while ( query.next() ) {
+                referenceName = query.value( 0 ).toString();
+            }
+    }
+    return referenceName;
+}
+
+QString Utility::convertReferenceNameTOCode(QSqlDatabase db, QString referenceName)
+{
+    QSqlQuery query = QSqlQuery( db );
+    QString s = "";
+    QString code;
+    s = "SELECT reference_data.terms.termhierarchy FROM reference_data.terms WHERE reference_data.terms.termname ='"+referenceName+"';";
+    if (!query.exec(s)) {
+        return "";
+    }
+    else {
+            while ( query.next() ) {
+                code = query.value( 0 ).toString();
+            }
+    }
+    return code;
+}

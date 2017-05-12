@@ -5,6 +5,7 @@
 #include <QtSql>
 #include "basetoolclass.h"
 #include "hittargetstabform.h"
+#include "utility.h"
 
 class HitTargets : public BaseToolClass
 {

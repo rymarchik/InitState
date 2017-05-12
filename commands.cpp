@@ -35,16 +35,20 @@ void Commands::fillNavigator() {
     in->setText(0, "Входящие");
     QTreeWidgetItem* root = out;
     QSqlQuery query = QSqlQuery(db);
-    QString selectPattern = "SELECT t1.termname, inf.date_add, atr.execution_time, inf.order_id "
+    //подумать что делать с пунктом время исполнения
+    /*QString selectPattern = "SELECT t1.termname, inf.date_add, atr.execution_time, inf.order_id "
             "FROM orders_alerts.orders_alerts_info  inf "
             "JOIN orders_alerts.orders_alerts_attrib atr ON inf.order_id = atr.order_id "
-            "JOIN reference_data.terms t1 ON inf.order_tid = t1.termhierarchy;";
+            "JOIN reference_data.terms t1 ON inf.order_tid = t1.termhierarchy;";*/
+    QString selectPattern = "SELECT t1.termname, inf.date_add, inf.order_id "
+                "FROM orders_alerts.orders_alerts_info  inf "
+                "JOIN reference_data.terms t1 ON inf.order_tid = t1.termhierarchy;";
     if (!query.exec(selectPattern)) {
         qDebug() << "Unable to make select operation!" << query.lastError();
     }
     while (query.next()) {
         addCommand(root, query.value(0).toString(), query.value(1).toDateTime(),
-                         query.value(2).toDateTime(),query.value(3).toString());
+                         query.value(1).toDateTime(),query.value(2).toString());
     }
     root->setExpanded(true);
     out = new QTreeWidgetItem(documents);
@@ -97,7 +101,7 @@ void Commands::fillChanges() {
 
 QWidget *Commands::onAdd() {
     //реализация кнопки добавить
-    CommandsAddForm *addWidget = new CommandsAddForm(OWN_NAME);
+    CommandsAddForm *addWidget = new CommandsAddForm(OWN_NAME, db);
     addWidgetList << addWidget;
     return addWidget;
 }
@@ -131,17 +135,23 @@ bool Commands::onSave(int number) {
     //реализация кнопки сохранить
     number-=2;
     bool commandOrDoc = addWidgetList.at(number)->getCommandOrDoc();
-    QString command = addWidgetList.at(number)->getCommandName();
+    /*QString command = addWidgetList.at(number)->getCommandName();
     QString timeAdd = addWidgetList.at(number)->getTimeAdd();
     QString timeExec = addWidgetList.at(number)->getTimeExec();
     QString AttributeExec = addWidgetList.at(number)->getAttributeExec();
     QStringList parametrs = addWidgetList.at(number)->getParametrList();
     QStringList receivers = addWidgetList.at(number)->getReceiversList();
+    bool mark = addWidgetList.at(number)->isExec();*/
     if(!commandOrDoc) {
-        return saveCommand(OWN_NAME, command, timeAdd);
+        return saveCommand(OWN_NAME, addWidgetList.at(number)->getInformationBox());
     }
     //else saveDoc();
     return false;
+}
+
+void Commands::removeForm(int index)
+{
+    addWidgetList.removeAt(index - 2);
 }
 
 void Commands::addCommand(QTreeWidgetItem *parent,
@@ -167,40 +177,6 @@ void Commands::addDocument(QTreeWidgetItem *parent,
     treeItem->setText(5, code);
 
     parent->addChild(treeItem);
-}
-
-QString Commands::convertCodeToReferenceName(QString code)
-{
-    QSqlQuery query = QSqlQuery( db );
-    QString s = "";
-    QString referenceName;
-    s = "SELECT reference_data.terms.termname FROM reference_data.terms WHERE reference_data.terms.termhierarchy ='"+code+"';";
-    if (!query.exec(s)) {
-        return "";
-    }
-    else {
-            while ( query.next() ) {
-                referenceName = query.value( 0 ).toString();
-            }
-    }
-    return referenceName;
-}
-
-QString Commands::convertReferenceNameTOCode(QString referenceName)
-{
-    QSqlQuery query = QSqlQuery( db );
-    QString s = "";
-    QString code;
-    s = "SELECT reference_data.terms.termhierarchy FROM reference_data.terms WHERE reference_data.terms.termname ='"+referenceName+"';";
-    if (!query.exec(s)) {
-        return "";
-    }
-    else {
-            while ( query.next() ) {
-                code = query.value( 0 ).toString();
-            }
-    }
-    return code;
 }
 
 void Commands::showRecivers()
@@ -237,10 +213,11 @@ void Commands::showRecivers()
     }
 }
 
-bool Commands::saveCommand(QString object, QString command, QString time)
+bool Commands::saveCommand(QString object, CommandsMessageBox box)
 {
-    object=convertReferenceNameTOCode(object);
-    command=convertReferenceNameTOCode(command);
+    object=Utility::convertReferenceNameTOCode(db,object);
+    QString command = box.getCommandName();
+    command=Utility::convertReferenceNameTOCode(db,command);
     QSqlQuery query = QSqlQuery( db );
     if (!query.exec("SELECT order_id FROM orders_alerts.orders_alerts_info ORDER BY order_id DESC LIMIT 1;")) {
         return false;
@@ -259,11 +236,24 @@ bool Commands::saveCommand(QString object, QString command, QString time)
         query.addBindValue( id );
         query.addBindValue( "true" );
         query.addBindValue( command );
-        query.addBindValue(time);
-        query.addBindValue(time);
-        query.addBindValue(time/*"null"*/);
+        query.addBindValue(box.getTimeAdd());
+        query.addBindValue(box.getTimeAdd());
+        query.addBindValue(box.getTimeAdd()/*"NULL"*/);
         query.addBindValue("1");
         query.exec();
+        /*if (mark) {
+            //исполнить
+        }*/
+        for (int i=0; i<box.getParametrs().size(); i++) {
+            query.prepare( "INSERT INTO orders_alerts.orders_alerts_param( "
+                           "order_id, param_tid, param_value) "
+                           "VALUES (?, ?, ?);");
+            query.addBindValue( id );
+            query.addBindValue(box.getParametrs().at(i));
+            query.addBindValue(box.getParametrsValue().at(i));
+            query.exec();
+        }
+        // 2) добавить получателей
         return db.commit();
     }
     return false;
