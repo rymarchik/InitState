@@ -8,13 +8,16 @@ CommandsAddForm::CommandsAddForm(QString ownName, QSqlDatabase db, QWidget *pare
 {
     ui->setupUi(this);
     ui->dataSourceLine->setText(ownName);
+    ui->docSourceLine->setText(ownName);
     ui->timeCreateDTE->setDateTime(QDateTime::currentDateTime());
     ui->timeExecDTE->setDateTime(QDateTime::currentDateTime());
-    ui->timeDocRegister->setDateTime(QDateTime::currentDateTime());
+    ui->docDateRegisterTimeEdit->setDateTime(QDateTime::currentDateTime());
     ui->stackedWidget->setCurrentIndex(0);
     ui->tableWidget_4->setRowCount(0);
     setCommandsSignals();
     setAttributeExecution();
+    setDocumentsTheme();
+    setDocumentsType();
 
     addParamForm= new AddParamForm();
     addReciversForm = new AddReciversForm();
@@ -25,7 +28,6 @@ CommandsAddForm::CommandsAddForm(QString ownName, QSqlDatabase db, QWidget *pare
     connect(addParamForm, SIGNAL(sendData(QString, QString)), this, SLOT(receiveDataParametrs(QString, QString)));
     connect(ui->addReceiverBut, SIGNAL(clicked()), addReciversForm, SLOT(show()));
     connect(addReciversForm, SIGNAL(sendData(QStringList, QString)), this, SLOT(receiveDataReceivers(QStringList, QString)));
-    //80.10.05
 }
 
 CommandsAddForm::~CommandsAddForm()
@@ -83,11 +85,6 @@ void CommandsAddForm::changeContent()
     }
 }
 
-void CommandsAddForm::addRecivers()
-{
-
-}
-
 void CommandsAddForm::receiveDataParametrs(QString parametr, QString value)
 {
     int n = ui->tableWidget_4->rowCount();
@@ -132,6 +129,36 @@ void CommandsAddForm::setCommandsSignals()
         list.append(query.value(0).toString());
     }
     ui->commandsSignalsBox->addItems(list);
+}
+
+void CommandsAddForm::setDocumentsType()
+{
+    QSqlQuery query;
+    QString selectQuery = "SELECT termname FROM reference_data.terms WHERE termhierarchy ~ '10.02.*{1,}';";
+    if (!query.exec(selectQuery)) {
+        qDebug() << "Unable to make select operation!" << query.lastError();
+    }
+
+    QStringList list;
+    while (query.next()) {
+        list.append(query.value(0).toString());
+    }
+    ui->docTypeBox->addItems(list);
+}
+
+void CommandsAddForm::setDocumentsTheme()
+{
+    QSqlQuery query;
+    QString selectQuery = "SELECT termname FROM reference_data.terms WHERE termhierarchy ~ '10.01.*{1,}';";
+    if (!query.exec(selectQuery)) {
+        qDebug() << "Unable to make select operation!" << query.lastError();
+    }
+
+    QStringList list;
+    while (query.next()) {
+        list.append(query.value(0).toString());
+    }
+    ui->docThemeBox->addItems(list);
 }
 
 void CommandsAddForm::setAttributeExecution()

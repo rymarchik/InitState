@@ -22,6 +22,7 @@ AddReciversForm::AddReciversForm(QWidget *parent) :
         thisLine->setChecked(false);
         thisLine->setText(query.value(1).toString());
         checkBoxList << thisLine;
+        codeList << query.value(0).toString();
         layout->addWidget(thisLine);
     }
 }
@@ -38,8 +39,7 @@ void AddReciversForm::on_okButton_clicked()
     for (int i = 0; i < checkBoxList.size(); i++)
     {
         if (checkBoxList.at(i)->isChecked()) {
-            //скрипт на добавление получателя
-            receiversList << checkBoxList.at(i)->text();
+            receiversList << codeList.at(i);
         }
     }
     emit sendData(receiversList,

@@ -36,10 +36,11 @@ private:
     void setCommandsSignals();
     void setAttributeExecution();
 
+    void setDocumentsTheme();
+    void setDocumentsType();
 private slots:
     void changeEnabledTimerExec();
     void changeContent();
-    void addRecivers();
     void receiveDataParametrs(QString parametr, QString value);
     void receiveDataReceivers(QStringList receiver, QString mark);
 };

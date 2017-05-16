@@ -228,33 +228,49 @@ bool Commands::saveCommand(QString object, CommandsMessageBox box)
             id = query.value( 0 ).toInt();
         }
         id++;
-        db.transaction();
-        query.prepare( "INSERT INTO orders_alerts.orders_alerts_info( "
-                       "combatobjectcode, order_id, training_object, order_tid, date_add, date_edit, date_delete, id_manager) "
-                       "VALUES (?, ?, ?, ?, ?, ?, ?, ?);");
-        query.addBindValue( object );
-        query.addBindValue( id );
-        query.addBindValue( "true" );
-        query.addBindValue( command );
-        query.addBindValue(box.getTimeAdd());
-        query.addBindValue(box.getTimeAdd());
-        query.addBindValue(box.getTimeAdd()/*"NULL"*/);
-        query.addBindValue("1");
-        query.exec();
+        QString insertQuery = "INSERT INTO orders_alerts.orders_alerts_info( "
+                              "combatobjectcode, order_id, training_object, order_tid, date_add, date_edit, date_delete, id_manager) "
+                              "VALUES ('"+object+"', '"
+                                         +QString::number(id)+"', '"
+                                         +"true"+"', '"
+                                         +command+"', '"
+                                         +box.getTimeAdd()+"', '"
+                                         +box.getTimeAdd()+"', NULL, '"
+                                         +QString::number(1)+"');";
+        if (!query.exec(insertQuery)) {
+            return false;
+        }
         /*if (mark) {
             //исполнить
         }*/
-        for (int i=0; i<box.getParametrs().size(); i++) {
-            query.prepare( "INSERT INTO orders_alerts.orders_alerts_param( "
-                           "order_id, param_tid, param_value) "
-                           "VALUES (?, ?, ?);");
-            query.addBindValue( id );
-            query.addBindValue(box.getParametrs().at(i));
-            query.addBindValue(box.getParametrsValue().at(i));
-            query.exec();
+        for (int i = 0; i < box.getParametrs().size(); i++) {
+            insertQuery = "INSERT INTO orders_alerts.orders_alerts_param( "
+                          "order_id, param_tid, param_value) "
+                          "VALUES ('"+QString::number(id)+"', '"
+                                     +Utility::convertReferenceNameTOCode(db,box.getParametrs().at(i))+"', '"
+                                     +box.getParametrsValue().at(i)+"');";
+            qDebug() << insertQuery;
+            if (!query.exec(insertQuery)) {
+                return false;
+            }
         }
-        // 2) добавить получателей
-        return db.commit();
+        for (int i = 0; i < box.getReceivers().size(); i++) {
+            insertQuery = "INSERT INTO orders_alerts.orders_alerts_acceptors( "
+                          "order_id, combatobjectcode, mark_tid, mark_time, tid, date_add, date_edit, date_delete, id_manager) "
+                          "VALUES ('"+QString::number(id)+"', '"
+                                     +box.getReceivers().at(i)+"', '"
+                                     +Utility::convertReferenceNameTOCode(db,box.getReceiversMarks().at(i))+"', '"
+                                     +box.getReceiversTime().at(i)+"', '"
+                                     +"1"+"', '"
+                                     +QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss")+"', '"
+                                     +QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss")+"', NULL, '"
+                                     +"1"+"');";
+            qDebug() << insertQuery;
+            if (!query.exec(insertQuery)) {
+                return false;
+            }
+        }
+        return true;
     }
     return false;
 }
@@ -267,9 +283,15 @@ bool Commands::deleteCommand(QString id)
     if (!query.exec(s)) {
         return false;
     }
-    else {
-        return true;
+    s = "DELETE FROM orders_alerts.orders_alerts_acceptors WHERE order_id ='"+id+"';";
+    if (!query.exec(s)) {
+        return false;
     }
+    s = "DELETE FROM orders_alerts.orders_alerts_param WHERE order_id ='"+id+"';";
+    if (!query.exec(s)) {
+        return false;
+    }
+    return true;
 }
 
 bool Commands::deleteDocument(QString id)

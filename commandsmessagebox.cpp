@@ -94,13 +94,3 @@ void CommandsMessageBox::setReceiversTime(const QStringList &value)
 {
     receiversTime = value;
 }
-
-bool CommandsMessageBox::getMarkExec() const
-{
-    return markExec;
-}
-
-void CommandsMessageBox::setMarkExec(bool value)
-{
-    markExec = value;
-}

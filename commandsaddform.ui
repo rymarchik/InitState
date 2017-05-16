@@ -31,7 +31,7 @@
    <item>
     <widget class="QStackedWidget" name="stackedWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="page1">
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -324,7 +324,7 @@ p, li { white-space: pre-wrap; }
          <item>
           <layout class="QGridLayout" name="gridLayout_4">
            <item row="2" column="0">
-            <widget class="QLabel" name="dataSourceLbl_5">
+            <widget class="QLabel" name="docTypeLbl">
              <property name="font">
               <font>
                <pointsize>9</pointsize>
@@ -335,22 +335,8 @@ p, li { white-space: pre-wrap; }
              </property>
             </widget>
            </item>
-           <item row="2" column="1">
-            <widget class="QLineEdit" name="docSourceLine_2">
-             <property name="readOnly">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="1">
-            <widget class="QLineEdit" name="docSourceLine_3">
-             <property name="readOnly">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
            <item row="0" column="0">
-            <widget class="QLabel" name="dataSourceLbl_2">
+            <widget class="QLabel" name="docSourceLbl">
              <property name="font">
               <font>
                <pointsize>9</pointsize>
@@ -369,7 +355,7 @@ p, li { white-space: pre-wrap; }
             </widget>
            </item>
            <item row="1" column="0">
-            <widget class="QLabel" name="dataSourceLbl_3">
+            <widget class="QLabel" name="docNumberLbl">
              <property name="font">
               <font>
                <pointsize>9</pointsize>
@@ -381,7 +367,7 @@ p, li { white-space: pre-wrap; }
             </widget>
            </item>
            <item row="3" column="0">
-            <widget class="QLabel" name="dataSourceLbl_6">
+            <widget class="QLabel" name="docThemeLbl">
              <property name="font">
               <font>
                <pointsize>9</pointsize>
@@ -393,7 +379,7 @@ p, li { white-space: pre-wrap; }
             </widget>
            </item>
            <item row="4" column="0">
-            <widget class="QLabel" name="dataSourceLbl_7">
+            <widget class="QLabel" name="docAttachmentLbl">
              <property name="font">
               <font>
                <pointsize>9</pointsize>
@@ -405,7 +391,7 @@ p, li { white-space: pre-wrap; }
             </widget>
            </item>
            <item row="4" column="1">
-            <widget class="QLineEdit" name="docSourceLine_4">
+            <widget class="QLineEdit" name="docAttachmentLine">
              <property name="readOnly">
               <bool>true</bool>
              </property>
@@ -414,10 +400,10 @@ p, li { white-space: pre-wrap; }
            <item row="1" column="1">
             <layout class="QHBoxLayout" name="horizontalLayout_3">
              <item>
-              <widget class="QLineEdit" name="lineEdit"/>
+              <widget class="QLineEdit" name="docNumberlineEdit"/>
              </item>
              <item>
-              <widget class="QLabel" name="dataSourceLbl_4">
+              <widget class="QLabel" name="docDateRegisterLbl">
                <property name="font">
                 <font>
                  <pointsize>9</pointsize>
@@ -429,7 +415,7 @@ p, li { white-space: pre-wrap; }
               </widget>
              </item>
              <item>
-              <widget class="QDateTimeEdit" name="timeDocRegister"/>
+              <widget class="QDateTimeEdit" name="docDateRegisterTimeEdit"/>
              </item>
              <item>
               <spacer name="horizontalSpacer_3">
@@ -445,6 +431,12 @@ p, li { white-space: pre-wrap; }
               </spacer>
              </item>
             </layout>
+           </item>
+           <item row="2" column="1">
+            <widget class="QComboBox" name="docTypeBox"/>
+           </item>
+           <item row="3" column="1">
+            <widget class="QComboBox" name="docThemeBox"/>
            </item>
           </layout>
          </item>

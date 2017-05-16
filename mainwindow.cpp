@@ -30,6 +30,7 @@ MainWindow::MainWindow(QSqlDatabase DB, QWidget *parent) :
     connect(ui->toolBox, SIGNAL(currentChanged(int)), this, SLOT(slotChangeCurrentClass(int)));
     connect(ui->m_exit, SIGNAL(triggered()), qApp, SLOT(quit()));
     connect(currentTabWidget, SIGNAL(currentChanged(int)), this, SLOT(slotOnChangeTab(int)));
+    connect(ui->navigatorCommandsTree, SIGNAL(itemClicked(QTreeWidgetItem*,int)), this, SLOT(slotOnItemSelected()));
 }
 
 //заполнение закладки "Навигатор":
@@ -189,7 +190,7 @@ void MainWindow::slotOnChangeTab(int index)
         break;
     default: //остальные вкладки
         ui->m_edit->setEnabled(false);
-        ui->m_delete->setEnabled(true);
+        ui->m_delete->setEnabled(false);
         ui->m_save->setEnabled(true);
         break;
     }

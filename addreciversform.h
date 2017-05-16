@@ -28,6 +28,7 @@ private slots:
     void on_okButton_clicked();
 private:
     QList<QCheckBox*> checkBoxList;
+    QStringList codeList;
     Ui::AddReciversForm *ui;
 };
 
