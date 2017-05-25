@@ -426,8 +426,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1123</width>
-         <height>354</height>
+         <width>145</width>
+         <height>214</height>
         </rect>
        </property>
        <attribute name="icon">
@@ -625,8 +625,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1123</width>
-         <height>354</height>
+         <width>145</width>
+         <height>214</height>
         </rect>
        </property>
        <attribute name="icon">
@@ -699,8 +699,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1123</width>
-         <height>354</height>
+         <width>145</width>
+         <height>211</height>
         </rect>
        </property>
        <attribute name="icon">
@@ -1359,6 +1359,38 @@
     <hint type="sourcelabel">
      <x>570</x>
      <y>312</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>570</x>
+     <y>289</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>battleOrderTabWidget</sender>
+   <signal>currentChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>slotOnChangeTab(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>570</x>
+     <y>282</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>570</x>
+     <y>289</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>navigatorBattleOrderTree</sender>
+   <signal>itemClicked(QTreeWidgetItem*,int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>slotOnItemSelected()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>569</x>
+     <y>219</y>
     </hint>
     <hint type="destinationlabel">
      <x>570</x>

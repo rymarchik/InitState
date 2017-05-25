@@ -89,10 +89,11 @@ void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
 
         QSqlQuery squareQuery;
         QString squarePatternQuery = "SELECT ST_X(target_location), ST_Y(target_location), "
-                                     "ST_Z(target_location), front, depth, deviation FROM "
-                                     "obj_targets.target_params JOIN reference_data.terms ON "
-                                     "termhierarchy = target_name WHERE target_number = %1 AND "
-                                     "termname = '%2'";
+                                     "       ST_Z(target_location), front, depth, deviation "
+                                     "FROM obj_targets.target_params "
+                                     "JOIN reference_data.terms ON termhierarchy = target_name "
+                                     "WHERE target_number = %1 "
+                                     "      AND termname = '%2'";
         QString squareFullQuery = squarePatternQuery.arg(ui->targetNumberLE->text()).arg(ui->targetNameCB->currentText());
 
         if (!squareQuery.exec(squareFullQuery)) {

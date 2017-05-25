@@ -30,7 +30,7 @@ MainWindow::MainWindow(QSqlDatabase DB, QWidget *parent) :
     slotNavigator();
 
     connect(ui->toolBox, SIGNAL(currentChanged(int)), this, SLOT(slotChangeCurrentClass(int)));
-    connect(ui->m_exit, SIGNAL(triggered()), qApp, SLOT(quit()));
+    connect(ui->m_exit,  SIGNAL(triggered()),         qApp, SLOT(quit()));
 }
 
 //заполнение закладки "Навигатор":
@@ -72,7 +72,7 @@ void MainWindow::slotEdit()
     switch (ui->toolBox->currentIndex())
     {
      case 0: //страница "Свои войска"
-        tabName = "Редактирование";
+        tabName = c_battleOrder->getBattleOrderName();
         break;
      case 1: //страница "Поражаемые цели"
         tabName = c_hitTargets->getTargetNumber();
@@ -81,7 +81,6 @@ void MainWindow::slotEdit()
 
         break;
      case 3: //страница "Районы и позиции"
-
         break;
     }
 
@@ -98,13 +97,17 @@ void MainWindow::slotDelete()
 
         break;
      case 1: //страница "Поражаемые цели"
-        if (c_hitTargets->onDelete()) {
-            if (currentTabWidget->currentIndex() > 1) {
+        if (c_hitTargets->onDelete())
+        {
+            if (currentTabWidget->currentIndex() > 1)
+            {
                 slotOnCloseTab(currentTabWidget->currentIndex());
             }
-            else if (currentTabWidget->currentIndex() == 0) {
+            else if (currentTabWidget->currentIndex() == 0)
+            {
                 int index = c_hitTargets->removeFormFromNavigator();
-                switch (index) {
+                switch (index)
+                {
                 case -1:
                     break;
                 default:
@@ -129,18 +132,22 @@ void MainWindow::slotDelete()
 }
 
 //реализация функции "Сохранить"
-void MainWindow::slotSave() {
-    if (currentContent->onSave(currentTabWidget->currentIndex())) {
+void MainWindow::slotSave()
+{
+    if (currentContent->onSave(currentTabWidget->currentIndex()))
+    {
         slotOnCloseTab(currentTabWidget->currentIndex());
         slotNavigator();
     }
 }
 
-void MainWindow::slotMap() {
+void MainWindow::slotMap()
+{
 
 }
 
-void MainWindow::slotSend() {
+void MainWindow::slotSend()
+{
 
 }
 

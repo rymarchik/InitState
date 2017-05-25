@@ -170,6 +170,11 @@ bool BattleOrder::onSave(int)
     return 0;
 }
 
+QString BattleOrder::getBattleOrderName()
+{
+    return navigatorTree->currentItem()->text(0);
+}
+
 void BattleOrder::showAttribute()
 {
     attribute = navigatorTree->currentItem()->text(3).toInt();  //содержимое скрытого столбца "Признак"

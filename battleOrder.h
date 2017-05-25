@@ -27,6 +27,8 @@ public:
     bool onDelete();
     bool onSave(int);
 
+    QString getBattleOrderName();
+
 private:
     QTreeWidget*  navigatorTree;
     QTableWidget* changesTable;
