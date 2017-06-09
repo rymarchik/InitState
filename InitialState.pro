@@ -29,7 +29,9 @@ SOURCES += main.cpp\
     battleOrderChangesTZM.cpp \
     hitTargetsTabForm.cpp \
     addreciversform.cpp \
-    commandsmessagebox.cpp
+    commandsmessagebox.cpp \
+    datatransmissionmodule.cpp \
+    converter.cpp
 
 HEADERS  += mainwindow.h \
     receiversDialog.h \
@@ -47,7 +49,9 @@ HEADERS  += mainwindow.h \
     battleOrderChangesTZM.h \
     hitTargetsTabForm.h \
     addreciversform.h \
-    commandsmessagebox.h
+    commandsmessagebox.h \
+    datatransmissionmodule.h \
+    converter.h
 
 RESOURCES += \
     resources.qrc

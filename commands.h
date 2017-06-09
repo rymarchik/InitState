@@ -8,6 +8,7 @@
 #include "commandsaddform.h"
 #include "utility.h"
 #include "commandsmessagebox.h"
+#include "datatransmissionmodule.h"
 
 
 class Commands : public BaseToolClass
@@ -24,12 +25,14 @@ public:
     QWidget *onEdit();
     bool onDelete();
     bool onSave(int number);
+    bool onSend();
     void removeForm(int index);
 private:
     const QString OWN_NAME="Машина боевого управления";
     QTreeWidget* navigatorTree;
     QTreeWidget* changesTree;
     QList<CommandsAddForm *> addWidgetList;
+    DataTransmissionModule* transmissionModule;
     int saveMode; //0 новый, 1 изменить
 
     void addCommand(QTreeWidgetItem *parent, QString name1, QDateTime date, QDateTime date2, QString code);

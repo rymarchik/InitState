@@ -7,6 +7,7 @@ Commands::Commands(QSqlDatabase db, QTreeWidget *navigatorTree,
     changesTree(changesTree),
     BaseToolClass(db, navigatorReciversTable, changesReciversTable, parent)
 {
+    transmissionModule = new DataTransmissionModule("127.0.0.1", "127.0.0.1", "5284", "5285", db);
     connect(this->navigatorTree, SIGNAL(itemSelectionChanged()), this, SLOT(showRecivers()));
 }
 
@@ -147,6 +148,29 @@ bool Commands::onSave(int number) {
     }
     //else saveDoc();
     return false;
+}
+
+bool Commands::onSend()
+{
+    QStringList exceptions;
+    exceptions << "Команды и сигналы" << "Документы" << "Исходящие" << "Входящие";
+    QString s = navigatorTree->currentItem()->text(0);
+    for (int i=0;i<exceptions.size();i++) {
+        if (s.compare(exceptions.at(i)) == 0) {
+            return false;
+        }
+    }
+    QString code = navigatorTree->currentItem()->text(5);
+    QString type=navigatorTree->currentItem()->parent()->parent()->text(0);
+    if (type.compare("Документы") == 0) {
+        transmissionModule->sendDocument(this->navigatorTree->currentItem()->text(5));
+        return true;
+    }
+    else {
+        transmissionModule->sendCommand(this->navigatorTree->currentItem()->text(5));
+        return true;
+    }
+
 }
 
 void Commands::removeForm(int index)

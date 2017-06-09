@@ -141,6 +141,13 @@ void MainWindow::slotMap() {
 }
 
 void MainWindow::slotSend() {
+    currentContent->onSend();
+
+    if (currentContent->onSend()) {
+            currentContent->fillNavigator();
+            currentTabWidget->setCurrentIndex(0);
+            QMessageBox::information(this, "OK", "Отправка прошла успешно");
+    }
 
 }
 
@@ -150,6 +157,7 @@ void MainWindow::slotChangeCurrentClass(int index)
     ui->m_edit->setEnabled(false);
     ui->m_delete->setEnabled(false);
     ui->m_save->setEnabled(false);
+    ui->m_send->setEnabled(false);
 
     switch (index)
     {
@@ -182,16 +190,19 @@ void MainWindow::slotOnChangeTab(int index)
         ui->m_edit->setEnabled(false);
         ui->m_delete->setEnabled(false);
         ui->m_save->setEnabled(false);
+        ui->m_send->setEnabled(false);
         break;
     case 1: //вкладка Изменения
         ui->m_edit->setEnabled(false);
         ui->m_delete->setEnabled(false);
         ui->m_save->setEnabled(false);
+        ui->m_send->setEnabled(false);
         break;
     default: //остальные вкладки
         ui->m_edit->setEnabled(false);
         ui->m_delete->setEnabled(false);
         ui->m_save->setEnabled(true);
+        ui->m_send->setEnabled(false);
         break;
     }
 }
@@ -206,6 +217,7 @@ void MainWindow::slotOnItemSelected()
 {
     ui->m_edit->setEnabled(true);
     ui->m_delete->setEnabled(true);
+    ui->m_send->setEnabled(true);
 }
 
 MainWindow::~MainWindow()

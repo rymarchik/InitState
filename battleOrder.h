@@ -27,6 +27,7 @@ public:
     QWidget *onEdit();
     bool onDelete();
     bool onSave(int);
+    bool onSend();
 
 private:
     QTreeWidget*  navigatorTree;

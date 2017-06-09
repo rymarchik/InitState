@@ -79,6 +79,11 @@ bool HitTargets::onSave(int index) {
     return form->onSaveSetup();
 }
 
+bool HitTargets::onSend()
+{
+    return true;
+}
+
 bool HitTargets::onDelete() {
     QSqlQuery query;
     QString deleteQuery = "UPDATE obj_targets.target_params SET delete_time = now() WHERE "

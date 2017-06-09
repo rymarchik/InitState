@@ -21,6 +21,7 @@ public:
     QWidget *onEdit();
     bool onDelete();
     bool onSave(int);
+    bool onSend();
 
     void removeForm(int);
     int removeFormFromNavigator();
