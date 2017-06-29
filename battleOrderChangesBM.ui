@@ -21,7 +21,7 @@
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="2" column="1">
-    <widget class="QComboBox" name="comboBoxState">
+    <widget class="QComboBox" name="comboBoxManner">
      <property name="enabled">
       <bool>true</bool>
      </property>
@@ -53,16 +53,32 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEditTime_1"/>
+      <widget class="QLineEdit" name="lineEditTime_1">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEditTime_3"/>
+      <widget class="QLineEdit" name="lineEditTime_3">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEditTime_5"/>
+      <widget class="QLineEdit" name="lineEditTime_5">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEditTime_7"/>
+      <widget class="QLineEdit" name="lineEditTime_7">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -286,16 +302,32 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEditTime_2"/>
+      <widget class="QLineEdit" name="lineEditTime_2">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEditTime_4"/>
+      <widget class="QLineEdit" name="lineEditTime_4">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEditTime_6"/>
+      <widget class="QLineEdit" name="lineEditTime_6">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEditTime_8"/>
+      <widget class="QLineEdit" name="lineEditTime_8">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -353,7 +385,11 @@
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QLineEdit" name="lineEditTimeState"/>
+      <widget class="QLineEdit" name="lineEditTimeState">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
      </item>
      <item row="1" column="0">
       <widget class="QLabel" name="labelTime_2">
@@ -366,7 +402,11 @@
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QLineEdit" name="lineEditTimeCoordinates"/>
+      <widget class="QLineEdit" name="lineEditTimeCoordinates">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -483,12 +523,9 @@
   <zorder>labelDataRockets_2</zorder>
   <zorder>labelData</zorder>
   <zorder>tableWidgetData</zorder>
-  <zorder>comboBoxState</zorder>
+  <zorder>comboBoxManner</zorder>
   <zorder>lineEditAzimuth</zorder>
   <zorder></zorder>
-  <zorder>labelDataState_1</zorder>
-  <zorder>labelDataTime_1</zorder>
-  <zorder>labeDataType_1</zorder>
   <zorder>lineEditCoordinates</zorder>
  </widget>
  <resources/>

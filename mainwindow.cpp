@@ -30,7 +30,9 @@ MainWindow::MainWindow(QSqlDatabase DB, QWidget *parent) :
     slotNavigator();
 
     connect(ui->toolBox, SIGNAL(currentChanged(int)), this, SLOT(slotChangeCurrentClass(int)));
+    //connect(ui->m_save,  SIGNAL(triggered()),         this, SLOT(slotChangeCurrentClass(int)));
     connect(ui->m_exit,  SIGNAL(triggered()),         qApp, SLOT(quit()));
+    //connect(ui->, SIGNAL(tabCloseRequested(int)), this, SLOT(slotCloseTab(int)));
 }
 
 //заполнение закладки "Навигатор":
@@ -67,8 +69,9 @@ void MainWindow::slotAdd()
 void MainWindow::slotEdit()
 {
     QWidget* editTab = currentContent->onEdit();
-    QString tabName;
 
+    //Вставляем название редактируемой записи в название закладки:
+    QString tabName;
     switch (ui->toolBox->currentIndex())
     {
      case 0: //страница "Свои войска"

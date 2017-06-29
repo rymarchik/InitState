@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>battleOrderDialogBM</class>
+ <widget class="QDialog" name="battleOrderDialogBM">
+  <property name="windowModality">
+   <enum>Qt::WindowModal</enum>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>291</width>
+    <height>74</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Выполнить</string>
+  </property>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>371</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string> Выберите один из вариантов действий:</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="ButtonAdd">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>40</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <weight>50</weight>
+     <bold>false</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Добавить</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="ButtonEdit">
+   <property name="geometry">
+    <rect>
+     <x>110</x>
+     <y>40</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Изменить</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="ButtonDelete">
+   <property name="geometry">
+    <rect>
+     <x>210</x>
+     <y>40</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Удалить</string>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -20,13 +20,13 @@ public:
                 QTableWidget *navigatorReciversTable, QTableWidget *changesTable,
                 QTableWidget *changesReciversTable, QWidget* parent = 0);
 
+    battleOrderChangesBM *m_changesBM;
     void fillNavigator();
     void fillChanges();
     QWidget *onAdd();
     QWidget *onEdit();
     bool onDelete();
-    bool onSave(int);
-
+    bool onSave(int);    
     QString getBattleOrderName();
 
 private:
@@ -36,7 +36,7 @@ private:
     int attribute = 0;
     QString ID;
 
-private slots:
+private slots:    
     void showAttribute(); //признак для текущей выбранной записи
 };
 

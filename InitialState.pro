@@ -28,7 +28,9 @@ SOURCES += main.cpp\
     battleOrderChangesMBU.cpp \
     battleOrderChangesTZM.cpp \
     hitTargetsTabForm.cpp \
-    addreciversform.cpp
+    addreciversform.cpp \
+    battleOrderDialogBM.cpp \
+    battleOrderDialog.cpp
 
 HEADERS  += mainwindow.h \
     receiversDialog.h \
@@ -45,7 +47,9 @@ HEADERS  += mainwindow.h \
     battleOrderChangesMBU.h \
     battleOrderChangesTZM.h \
     hitTargetsTabForm.h \
-    addreciversform.h
+    addreciversform.h \
+    battleOrderDialogBM.h \
+    battleOrderDialog.h
 
 RESOURCES += \
     resources.qrc
@@ -58,4 +62,6 @@ FORMS += \
     battleOrderChangesBM.ui \
     battleOrderChangesMBU.ui \
     battleOrderChangesTZM.ui \
-    addreciversform.ui
+    addreciversform.ui \
+    battleOrderDialogBM.ui \
+    battleOrderDialog.ui

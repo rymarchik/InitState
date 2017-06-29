@@ -13,6 +13,17 @@ BattleOrder::BattleOrder(QSqlDatabase db, QTreeWidget *navigatorTree,
     connect(this->navigatorTree, SIGNAL(itemSelectionChanged()), this, SLOT(showAttribute()));
 }
 
+QString BattleOrder::getBattleOrderName()
+{
+    return navigatorTree->currentItem()->text(0);
+}
+
+void BattleOrder::showAttribute()
+{
+    attribute = navigatorTree->currentItem()->text(3).toInt();  //содержимое скрытого столбца "Признак"
+    ID = navigatorTree->currentItem()->text(4);                 //содержимое скрытого столбца "ID"
+}
+
 void BattleOrder::fillNavigator()
 {
     navigatorTree->clear();
@@ -29,7 +40,6 @@ void BattleOrder::fillNavigator()
     rootItem = new QTreeWidgetItem(list);
     classifItem = rootItem;
 
-
     QSqlQuery sql = QSqlQuery(db);
     if (!sql.exec(  "SELECT c.combat_hierarchy, c.object_number||' '||t1.termname, t3.termname, t4.termname, "
                     "       CASE t1.termhierarchy    "
@@ -39,8 +49,8 @@ void BattleOrder::fillNavigator()
                     "            ELSE 0 "
                     "       END as attribute "
                     "FROM own_forces.combatstructure c "
-                    "LEFT JOIN own_forces.currentmode cur ON cur.combat_hierarchy = c.combat_hierarchy "
-                    "LEFT JOIN own_forces.combatobject_manner m ON m.combat_hierarchy = c.combat_hierarchy "
+                    "LEFT JOIN own_forces.currentmode cur ON cur.combat_hierarchy = c.combat_hierarchy AND cur.date_delete IS NULL "
+                    "LEFT JOIN own_forces.combatobject_manner m ON m.combat_hierarchy = c.combat_hierarchy AND m.date_delete IS NULL "
                     "LEFT JOIN reference_data.terms t1 ON c.object_name = t1.termhierarchy "
                     "LEFT JOIN reference_data.terms t2 ON c.type_army   = t2.termhierarchy "
                     "LEFT JOIN reference_data.terms t3 ON m.manner_tid  = t3.termhierarchy "
@@ -151,10 +161,36 @@ QWidget *BattleOrder::onEdit()
         return new battleOrderChangesMBU(db, ID);
         break;
     case 2: //Диалог BM
-        return new battleOrderChangesBM(db, ID);
+    {
+        m_changesBM = new battleOrderChangesBM(db, ID);
+        m_changesBM->slotData();
+        return m_changesBM;//new battleOrderChangesBM(db, ID);
         break;
+    }
     case 3: //Диалог TZM
         return new battleOrderChangesTZM;
+        break;
+    }
+    return 0;
+}
+
+bool BattleOrder::onSave(int)    //Сохранение изменений "Правки"
+{
+    switch (attribute) {
+    case 0:
+        QMessageBox::critical(0,  ("Ошибка"), ("Выберите запись для просмотра/редактирования !"), QMessageBox::Ok);
+        return 0;
+        break;
+    case 1: //Диалог MBU
+        //return new battleOrderChangesMBU(db, ID);
+        break;
+    case 2: //Диалог BM
+    {
+        m_changesBM->slotSave();
+        break;
+    }
+    case 3: //Диалог TZM
+        //return new battleOrderChangesTZM;
         break;
     }
     return 0;
@@ -163,20 +199,4 @@ QWidget *BattleOrder::onEdit()
 bool BattleOrder::onDelete()
 {
     return 0;
-}
-
-bool BattleOrder::onSave(int)
-{
-    return 0;
-}
-
-QString BattleOrder::getBattleOrderName()
-{
-    return navigatorTree->currentItem()->text(0);
-}
-
-void BattleOrder::showAttribute()
-{
-    attribute = navigatorTree->currentItem()->text(3).toInt();  //содержимое скрытого столбца "Признак"
-    ID = navigatorTree->currentItem()->text(4);                 //содержимое скрытого столбца "ID"
 }

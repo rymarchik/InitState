@@ -137,13 +137,13 @@
                <bool>false</bool>
               </property>
               <property name="headerHidden">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="expandsOnDoubleClick">
                <bool>true</bool>
               </property>
               <attribute name="headerVisible">
-               <bool>true</bool>
+               <bool>false</bool>
               </attribute>
               <attribute name="headerCascadingSectionResizes">
                <bool>true</bool>
@@ -426,8 +426,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>145</width>
-         <height>214</height>
+         <width>1123</width>
+         <height>354</height>
         </rect>
        </property>
        <attribute name="icon">
@@ -625,8 +625,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>145</width>
-         <height>214</height>
+         <width>1123</width>
+         <height>354</height>
         </rect>
        </property>
        <attribute name="icon">
@@ -699,8 +699,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>145</width>
-         <height>211</height>
+         <width>1123</width>
+         <height>354</height>
         </rect>
        </property>
        <attribute name="icon">

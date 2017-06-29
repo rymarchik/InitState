@@ -5,6 +5,11 @@
 
 int main(int argc, char *argv[])
 {
+    QStringList paths = QCoreApplication::libraryPaths();
+    paths.append(".");
+    paths.append("sqldrivers");
+    QCoreApplication::setLibraryPaths(paths);
+
     QApplication a(argc, argv);
 
     QSqlDatabase DB = QSqlDatabase::addDatabase("QPSQL");
