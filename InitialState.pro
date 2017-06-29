@@ -31,7 +31,8 @@ SOURCES += main.cpp\
     addreciversform.cpp \
     commandsmessagebox.cpp \
     datatransmissionmodule.cpp \
-    converter.cpp
+    converter.cpp \
+    docmessagebox.cpp
 
 HEADERS  += mainwindow.h \
     receiversDialog.h \
@@ -51,7 +52,8 @@ HEADERS  += mainwindow.h \
     addreciversform.h \
     commandsmessagebox.h \
     datatransmissionmodule.h \
-    converter.h
+    converter.h \
+    docmessagebox.h
 
 RESOURCES += \
     resources.qrc

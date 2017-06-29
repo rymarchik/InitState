@@ -18,6 +18,7 @@ CommandsAddForm::CommandsAddForm(QString ownName, QSqlDatabase db, QWidget *pare
     setAttributeExecution();
     setDocumentsTheme();
     setDocumentsType();
+    setDocNumber();
 
     addParamForm= new AddParamForm();
     addReciversForm = new AddReciversForm();
@@ -174,6 +175,19 @@ void CommandsAddForm::setAttributeExecution()
         list.append(query.value(0).toString());
     }
     ui->attrExecBox->addItems(list);
+}
+
+void CommandsAddForm::setDocNumber() {
+    QSqlQuery query = QSqlQuery(db);
+    QString s;
+    s = "SELECT outgoing_reg_number FROM combatdocs.combatdocs_info ORDER BY outgoing_reg_number DESC LIMIT 1;";
+    int id;
+    query.exec(s);
+    while (query.next()) {
+        id = query.value( 0 ).toInt();
+    }
+    id++;
+    ui->docNumberlineEdit->setText(QString::number(id));
 }
 
 void CommandsAddForm::changeEnabledTimerExec()

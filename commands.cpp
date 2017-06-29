@@ -37,10 +37,6 @@ void Commands::fillNavigator() {
     QTreeWidgetItem* root = out;
     QSqlQuery query = QSqlQuery(db);
     //подумать что делать с пунктом время исполнения
-    /*QString selectPattern = "SELECT t1.termname, inf.date_add, atr.execution_time, inf.order_id "
-            "FROM orders_alerts.orders_alerts_info  inf "
-            "JOIN orders_alerts.orders_alerts_attrib atr ON inf.order_id = atr.order_id "
-            "JOIN reference_data.terms t1 ON inf.order_tid = t1.termhierarchy;";*/
     QString selectPattern = "SELECT t1.termname, inf.date_add, inf.order_id "
                 "FROM orders_alerts.orders_alerts_info  inf "
                 "JOIN reference_data.terms t1 ON inf.order_tid = t1.termhierarchy;";
@@ -123,7 +119,7 @@ bool Commands::onDelete() {
         }
     }
     QString code = navigatorTree->currentItem()->text(5);
-    QString type=navigatorTree->currentItem()->parent()->parent()->text(0);
+    QString type = navigatorTree->currentItem()->parent()->parent()->text(0);
     if (type.compare("Документы") == 0) {
         return deleteDocument(code);
     }
@@ -216,7 +212,7 @@ void Commands::showRecivers()
     QString code = navigatorTree->currentItem()->text(5);
     QString type=navigatorTree->currentItem()->parent()->parent()->text(0);
     QSqlQuery query = QSqlQuery(db);
-    QString selectPattern = "SELECT combatobjectcode, mark_tid, mark_time ";
+    QString selectPattern = "SELECT combat_hierarchy, mark_tid, mark_time ";
     if (type.compare("Документы") == 0) {
         selectPattern = selectPattern+ "FROM combatdocs.combatdocs_acceptors WHERE cmbdid='"+code+"';";
     }
@@ -253,7 +249,7 @@ bool Commands::saveCommand(QString object, CommandsMessageBox box)
         }
         id++;
         QString insertQuery = "INSERT INTO orders_alerts.orders_alerts_info( "
-                              "combatobjectcode, order_id, training_object, order_tid, date_add, date_edit, date_delete, id_manager) "
+                              "combat_hierarchy, order_id, training_object, order_tid, date_add, date_edit, date_delete, id_manager) "
                               "VALUES ('"+object+"', '"
                                          +QString::number(id)+"', '"
                                          +"true"+"', '"
@@ -280,7 +276,7 @@ bool Commands::saveCommand(QString object, CommandsMessageBox box)
         }
         for (int i = 0; i < box.getReceivers().size(); i++) {
             insertQuery = "INSERT INTO orders_alerts.orders_alerts_acceptors( "
-                          "order_id, combatobjectcode, mark_tid, mark_time, tid, date_add, date_edit, date_delete, id_manager) "
+                          "order_id, combat_hierarchy, mark_tid, mark_time, tid, date_add, date_edit, date_delete, id_manager) "
                           "VALUES ('"+QString::number(id)+"', '"
                                      +box.getReceivers().at(i)+"', '"
                                      +Utility::convertReferenceNameTOCode(db,box.getReceiversMarks().at(i))+"', '"
@@ -297,6 +293,11 @@ bool Commands::saveCommand(QString object, CommandsMessageBox box)
         return true;
     }
     return false;
+}
+
+bool Commands::saveDocument(QString object, QString command, QString time)
+{
+//сделать save Doc
 }
 
 bool Commands::deleteCommand(QString id)
@@ -330,22 +331,3 @@ bool Commands::deleteDocument(QString id)
         return true;
     }
 }
-
-
-/*QStringList HitTargetsTabForm::getDataSourceBatteries() {
-    QSqlQuery query;
-    QString selectQuery = "SELECT object_number, termname FROM own_forces.combatstructure JOIN "
-                          "reference_data.terms ON termhierarchy = object_name WHERE "
-                          "combat_hierarchy IN (SELECT combat_hierarchy FROM own_forces.combatstructure "
-                          "WHERE nlevel(combat_hierarchy) = 1 AND type_army = '22.10' AND type_mode = 0 "
-                          "AND date_delete is null) ORDER BY object_number";
-    if (!query.exec(selectQuery)) {
-        qDebug() << "Unable to make select operation!" << query.lastError();
-    }
-
-    QStringList list;
-    while (query.next()) {
-        list.append(tr("%1").arg(query.value(0).toInt()) + " " + query.value(1).toString());
-    }
-    return list;
-}*/

@@ -28,7 +28,6 @@ public:
     CommandsMessageBox getInformationBox();
 
 private:
-
     QSqlDatabase db;
     AddParamForm *addParamForm;
     AddReciversForm *addReciversForm;
@@ -38,7 +37,9 @@ private:
 
     void setDocumentsTheme();
     void setDocumentsType();
+    void setDocNumber();
 private slots:
+
     void changeEnabledTimerExec();
     void changeContent();
     void receiveDataParametrs(QString parametr, QString value);
