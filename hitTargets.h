@@ -5,6 +5,7 @@
 #include <QtSql>
 #include "basetoolclass.h"
 #include "hittargetstabform.h"
+#include "utility.h"
 
 class HitTargets : public BaseToolClass
 {
@@ -20,6 +21,7 @@ public:
     QWidget *onEdit();
     bool onDelete();
     bool onSave(int);
+    bool onSend();
 
     void removeForm(int);
     int removeFormFromNavigator();

@@ -12,7 +12,7 @@ AddReciversForm::AddReciversForm(QWidget *parent) :
                      "FROM own_forces.combatstructure c "
                      "LEFT JOIN reference_data.terms t1 ON object_name = t1.termhierarchy "
                      "LEFT JOIN reference_data.terms t2 ON type_army   = t2.termhierarchy "
-                     "WHERE c.date_delete is NULL ")) {
+                     "WHERE c.date_delete is NULL and t1.termhierarchy ~ '*{2}';")) {
         qDebug() << "Unable to make select operation!" << query.lastError();
     }
     QVBoxLayout* layout = new QVBoxLayout;
@@ -21,6 +21,8 @@ AddReciversForm::AddReciversForm(QWidget *parent) :
         QCheckBox* thisLine = new QCheckBox;
         thisLine->setChecked(false);
         thisLine->setText(query.value(1).toString());
+        checkBoxList << thisLine;
+        codeList << query.value(0).toString();
         layout->addWidget(thisLine);
     }
 }
@@ -33,22 +35,17 @@ void AddReciversForm::on_reverseButton_clicked()
 
 void AddReciversForm::on_okButton_clicked()
 {
-    qDebug() << ui->scrollArea->widget()->layout()->count();
-
-    for (int i = 0; i < ui->scrollArea->widget()->layout()->count(); i++)
+    QStringList receiversList;
+    for (int i = 0; i < checkBoxList.size(); i++)
     {
-        //QCheckBox* box = (QCheckBox*) ui->scrollArea->widget()->layout()->itemAt(i);
-        //if (box->isChecked()) qDebug() << box->text();
+        if (checkBoxList.at(i)->isChecked()) {
+            receiversList << codeList.at(i);
+        }
     }
-    /*if (!ui->valueLine->text().isEmpty()) {
-        emit sendData(ui->paramsBox->itemText(ui->paramsBox->currentIndex()),
-                  ui->valueLine->text());
-        QMessageBox::information(0, "Отмена", "Параметр добавлен успешно");
-        this->close();
-    }
-    else {
-        (new QErrorMessage(this))->showMessage("Ошибка, не заполнено поле");
-    }*/
+    emit sendData(receiversList,
+                  "80.10.05");
+    QMessageBox::information(0, "OK", "Получатели добавлены успешно");
+    this->close();
 }
 
 AddReciversForm::~AddReciversForm()

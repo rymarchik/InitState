@@ -1,6 +1,4 @@
 #include "hitTargets.h"
-#include "hitTargetsTabForm.h"
-#include "utility.h"
 
 HitTargets::HitTargets(QSqlDatabase db, QTableWidget *navigatorTable,
                        QTableWidget *navigatorReceiversTable, QTableWidget *changesTable,
@@ -79,6 +77,11 @@ QWidget* HitTargets::onEdit() {
 bool HitTargets::onSave(int index) {
     HitTargetsTabForm* form = formList.at(index - 2);
     return form->onSaveSetup();
+}
+
+bool HitTargets::onSend()
+{
+    return true;
 }
 
 bool HitTargets::onDelete() {

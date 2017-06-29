@@ -30,7 +30,11 @@ SOURCES += main.cpp\
     hitTargetsTabForm.cpp \
     addreciversform.cpp \
     battleOrderDialogBM.cpp \
-    battleOrderDialog.cpp
+    battleOrderDialog.cpp \
+    commandsmessagebox.cpp \
+    datatransmissionmodule.cpp \
+    converter.cpp \
+    docmessagebox.cpp
 
 HEADERS  += mainwindow.h \
     receiversDialog.h \
@@ -49,7 +53,11 @@ HEADERS  += mainwindow.h \
     hitTargetsTabForm.h \
     addreciversform.h \
     battleOrderDialogBM.h \
-    battleOrderDialog.h
+    battleOrderDialog.h \
+    commandsmessagebox.h \
+    datatransmissionmodule.h \
+    converter.h \
+    docmessagebox.h
 
 RESOURCES += \
     resources.qrc

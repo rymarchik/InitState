@@ -1,19 +1,24 @@
 #include "commandsaddform.h"
 #include "ui_commandsaddform.h"
 
-CommandsAddForm::CommandsAddForm(QString ownName, QWidget *parent) :
+CommandsAddForm::CommandsAddForm(QString ownName, QSqlDatabase db, QWidget *parent) :
+    db(db),
     QWidget(parent),
     ui(new Ui::CommandsAddForm)
 {
     ui->setupUi(this);
     ui->dataSourceLine->setText(ownName);
+    ui->docSourceLine->setText(ownName);
     ui->timeCreateDTE->setDateTime(QDateTime::currentDateTime());
     ui->timeExecDTE->setDateTime(QDateTime::currentDateTime());
-    ui->timeDocRegister->setDateTime(QDateTime::currentDateTime());
+    ui->docDateRegisterTimeEdit->setDateTime(QDateTime::currentDateTime());
     ui->stackedWidget->setCurrentIndex(0);
     ui->tableWidget_4->setRowCount(0);
     setCommandsSignals();
     setAttributeExecution();
+    setDocumentsTheme();
+    setDocumentsType();
+    setDocNumber();
 
     addParamForm= new AddParamForm();
     addReciversForm = new AddReciversForm();
@@ -21,8 +26,9 @@ CommandsAddForm::CommandsAddForm(QString ownName, QWidget *parent) :
     connect(ui->timeExecBox, SIGNAL(clicked(bool)), this, SLOT(changeEnabledTimerExec()));
     connect(ui->menuBox, SIGNAL(currentIndexChanged(int)), this, SLOT(changeContent()));
     connect(ui->addParamBut, SIGNAL(clicked()), addParamForm, SLOT(show()));
-    connect(addParamForm, SIGNAL(sendData(QString, QString)), this, SLOT(recieveData(QString, QString)));
-    connect(ui->addReciverBut, SIGNAL(clicked()), addReciversForm, SLOT(show()));
+    connect(addParamForm, SIGNAL(sendData(QString, QString)), this, SLOT(receiveDataParametrs(QString, QString)));
+    connect(ui->addReceiverBut, SIGNAL(clicked()), addReciversForm, SLOT(show()));
+    connect(addReciversForm, SIGNAL(sendData(QStringList, QString)), this, SLOT(receiveDataReceivers(QStringList, QString)));
 }
 
 CommandsAddForm::~CommandsAddForm()
@@ -36,37 +42,38 @@ bool CommandsAddForm::getCommandOrDoc()
     else return true;
 }
 
-QString CommandsAddForm::getCommandName()
+CommandsMessageBox CommandsAddForm::getInformationBox()
 {
-    return ui->commandsSignalsBox->currentText();
-}
-
-QString CommandsAddForm::getTimeAdd()
-{
-    return ui->timeCreateDTE->text();
-}
-
-QString CommandsAddForm::getTimeExec()
-{
-    if (ui->timeExecBox->isChecked()) return ui->timeExecDTE->text();
-    else return "0";
-}
-
-QString CommandsAddForm::getAttributeExec()
-{
-    return ui->attrExecBox->currentText();
-}
-
-QStringList CommandsAddForm::getParametrList()
-{
+    CommandsMessageBox box;
+    box.setCommandName(ui->commandsSignalsBox->currentText());
+    box.setTimeAdd(ui->timeCreateDTE->text());
+    if (ui->timeExecBox->isChecked()) {
+        box.setTimeExec(ui->timeExecDTE->text());
+    }
+    else {
+        box.setTimeExec("0");
+    }
+    box.setAttributeExec(ui->attrExecBox->currentText());
     QStringList paramList;
-    return paramList;
-}
-
-QStringList CommandsAddForm::getReceiversList()
-{
-    QStringList receiverList;
-    return receiverList;
+    QStringList paramValueList;
+    for (int i=0; i<ui->tableWidget_4->rowCount(); i++) {
+        paramList << ui->tableWidget_4->item(i,0)->text();
+        paramValueList << ui->tableWidget_4->item(i,1)->text();
+    }
+    box.setParametrs(paramList);
+    box.setParametrsValue(paramValueList);
+    QStringList receiversList;
+    QStringList receiversMarkList;
+    QStringList receiversTimeList;
+    for (int i=0; i<ui->tableWidget_5->rowCount(); i++) {
+        receiversList << ui->tableWidget_5->item(i,0)->text();
+        receiversMarkList << ui->tableWidget_5->item(i,1)->text();
+        receiversTimeList << ui->tableWidget_5->item(i,2)->text();
+    }
+    box.setReceivers(receiversList);
+    box.setReceiversMarks(receiversMarkList);
+    box.setReceiversTime(receiversTimeList);
+    return box;
 }
 
 void CommandsAddForm::changeContent()
@@ -79,23 +86,35 @@ void CommandsAddForm::changeContent()
     }
 }
 
-void CommandsAddForm::addRecivers()
-{
-}
-
-void CommandsAddForm::recieveData(QString parametr, QString value)
+void CommandsAddForm::receiveDataParametrs(QString parametr, QString value)
 {
     int n = ui->tableWidget_4->rowCount();
     if (n == 0) {
         ui->tableWidget_4->setRowCount(1);
     }
     else {
-        ui->tableWidget_4->insertRow(1);
+        ui->tableWidget_4->insertRow(n);
     }
     n = ui->tableWidget_4->rowCount();
     ui->tableWidget_4->setItem(n-1, 0, new QTableWidgetItem(parametr));
     ui->tableWidget_4->setItem(n-1, 1, new QTableWidgetItem(value));
+}
 
+void CommandsAddForm::receiveDataReceivers(QStringList receiver, QString mark)
+{
+    for (int i=0; i<receiver.size(); i++) {
+        int n = ui->tableWidget_5->rowCount();
+        if (n == 0) {
+            ui->tableWidget_5->setRowCount(1);
+        }
+        else {
+            ui->tableWidget_5->insertRow(n);
+        }
+        n = ui->tableWidget_5->rowCount();
+        ui->tableWidget_5->setItem(n-1, 0, new QTableWidgetItem(receiver.at(i)));
+        ui->tableWidget_5->setItem(n-1, 1, new QTableWidgetItem(Utility::convertCodeToReferenceName(db,mark)));
+        ui->tableWidget_5->setItem(n-1, 2, new QTableWidgetItem(QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss")));
+    }
 }
 
 void CommandsAddForm::setCommandsSignals()
@@ -113,6 +132,36 @@ void CommandsAddForm::setCommandsSignals()
     ui->commandsSignalsBox->addItems(list);
 }
 
+void CommandsAddForm::setDocumentsType()
+{
+    QSqlQuery query;
+    QString selectQuery = "SELECT termname FROM reference_data.terms WHERE termhierarchy ~ '10.02.*{1,}';";
+    if (!query.exec(selectQuery)) {
+        qDebug() << "Unable to make select operation!" << query.lastError();
+    }
+
+    QStringList list;
+    while (query.next()) {
+        list.append(query.value(0).toString());
+    }
+    ui->docTypeBox->addItems(list);
+}
+
+void CommandsAddForm::setDocumentsTheme()
+{
+    QSqlQuery query;
+    QString selectQuery = "SELECT termname FROM reference_data.terms WHERE termhierarchy ~ '10.01.*{1,}';";
+    if (!query.exec(selectQuery)) {
+        qDebug() << "Unable to make select operation!" << query.lastError();
+    }
+
+    QStringList list;
+    while (query.next()) {
+        list.append(query.value(0).toString());
+    }
+    ui->docThemeBox->addItems(list);
+}
+
 void CommandsAddForm::setAttributeExecution()
 {
     QSqlQuery query;
@@ -126,6 +175,19 @@ void CommandsAddForm::setAttributeExecution()
         list.append(query.value(0).toString());
     }
     ui->attrExecBox->addItems(list);
+}
+
+void CommandsAddForm::setDocNumber() {
+    QSqlQuery query = QSqlQuery(db);
+    QString s;
+    s = "SELECT outgoing_reg_number FROM combatdocs.combatdocs_info ORDER BY outgoing_reg_number DESC LIMIT 1;";
+    int id;
+    query.exec(s);
+    while (query.next()) {
+        id = query.value( 0 ).toInt();
+    }
+    id++;
+    ui->docNumberlineEdit->setText(QString::number(id));
 }
 
 void CommandsAddForm::changeEnabledTimerExec()

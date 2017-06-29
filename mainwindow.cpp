@@ -1,6 +1,4 @@
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
-#include <QDebug>
 
 MainWindow::MainWindow(QSqlDatabase DB, QWidget *parent) :
     db(DB),
@@ -30,9 +28,9 @@ MainWindow::MainWindow(QSqlDatabase DB, QWidget *parent) :
     slotNavigator();
 
     connect(ui->toolBox, SIGNAL(currentChanged(int)), this, SLOT(slotChangeCurrentClass(int)));
-    //connect(ui->m_save,  SIGNAL(triggered()),         this, SLOT(slotChangeCurrentClass(int)));
-    connect(ui->m_exit,  SIGNAL(triggered()),         qApp, SLOT(quit()));
-    //connect(ui->, SIGNAL(tabCloseRequested(int)), this, SLOT(slotCloseTab(int)));
+    connect(ui->m_exit, SIGNAL(triggered()), qApp, SLOT(quit()));
+    connect(currentTabWidget, SIGNAL(currentChanged(int)), this, SLOT(slotOnChangeTab(int)));
+    connect(ui->navigatorCommandsTree, SIGNAL(itemClicked(QTreeWidgetItem*,int)), this, SLOT(slotOnItemSelected()));
 }
 
 //заполнение закладки "Навигатор":
@@ -149,9 +147,14 @@ void MainWindow::slotMap()
 
 }
 
-void MainWindow::slotSend()
-{
+void MainWindow::slotSend() {
+    currentContent->onSend();
 
+    if (currentContent->onSend()) {
+            currentContent->fillNavigator();
+            currentTabWidget->setCurrentIndex(0);
+            QMessageBox::information(this, "OK", "Отправка прошла успешно");
+    }
 }
 
 //Изменение ссылок на актуальный класс:
@@ -160,6 +163,7 @@ void MainWindow::slotChangeCurrentClass(int index)
     ui->m_edit->setEnabled(false);
     ui->m_delete->setEnabled(false);
     ui->m_save->setEnabled(false);
+    ui->m_send->setEnabled(false);
 
     switch (index)
     {
@@ -179,6 +183,8 @@ void MainWindow::slotChangeCurrentClass(int index)
 
         break;
     }
+    disconnect(currentTabWidget, SIGNAL(currentChanged(int)), this, SLOT(slotOnChangeTab(int)));
+    connect(currentTabWidget, SIGNAL(currentChanged(int)), this, SLOT(slotOnChangeTab(int)));
     slotNavigator();
 }
 
@@ -190,44 +196,34 @@ void MainWindow::slotOnChangeTab(int index)
         ui->m_edit->setEnabled(false);
         ui->m_delete->setEnabled(false);
         ui->m_save->setEnabled(false);
+        ui->m_send->setEnabled(false);
         break;
     case 1: //вкладка Изменения
         ui->m_edit->setEnabled(false);
         ui->m_delete->setEnabled(false);
         ui->m_save->setEnabled(false);
+        ui->m_send->setEnabled(false);
         break;
     default: //остальные вкладки
         ui->m_edit->setEnabled(false);
-        ui->m_delete->setEnabled(true);
+        ui->m_delete->setEnabled(false);
         ui->m_save->setEnabled(true);
+        ui->m_send->setEnabled(false);
         break;
     }
 }
 
 void MainWindow::slotOnCloseTab(int index)
 {
-    switch (ui->toolBox->currentIndex())
-    {
-     case 0: //страница "Свои войска"
-
-        break;
-     case 1: //страница "Поражаемые цели"
-        c_hitTargets->removeForm(index);
-        currentTabWidget->removeTab(index);
-        break;
-     case 2: //страница "Команды и сигналы, документы"
-
-        break;
-     case 3: //страница "Районы и позиции"
-
-        break;
-    }
+    currentContent->removeForm(index);
+    currentTabWidget->removeTab(index);
 }
 
 void MainWindow::slotOnItemSelected()
 {
     ui->m_edit->setEnabled(true);
     ui->m_delete->setEnabled(true);
+    ui->m_send->setEnabled(true);
 }
 
 MainWindow::~MainWindow()

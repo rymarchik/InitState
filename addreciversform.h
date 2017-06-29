@@ -20,11 +20,15 @@ public:
     explicit AddReciversForm(QWidget *parent = 0);
     ~AddReciversForm();
 
+signals:
+    void sendData(QStringList receivers, QString mark);
+
 private slots:
     void on_reverseButton_clicked();
     void on_okButton_clicked();
 private:
-    QList<QCheckBox*>* checkBoxList;
+    QList<QCheckBox*> checkBoxList;
+    QStringList codeList;
     Ui::AddReciversForm *ui;
 };
 

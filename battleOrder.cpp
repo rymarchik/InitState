@@ -145,6 +145,11 @@ void BattleOrder::fillChanges()
     db.commit();
 }
 
+void BattleOrder::removeForm(int)
+{
+
+}
+
 QWidget *BattleOrder::onAdd()
 {
     return 0;
@@ -199,4 +204,15 @@ bool BattleOrder::onSave(int)    //Сохранение изменений "Пр
 bool BattleOrder::onDelete()
 {
     return 0;
+}
+
+bool BattleOrder::onSend()
+{
+    return 0;
+}
+
+void BattleOrder::showAttribute()
+{
+    attribute = navigatorTree->currentItem()->text(3).toInt();  //содержимое скрытого столбца "Признак"
+    ID = navigatorTree->currentItem()->text(4);                 //содержимое скрытого столбца "ID"
 }

@@ -23,11 +23,13 @@ public:
     battleOrderChangesBM *m_changesBM;
     void fillNavigator();
     void fillChanges();
+    void removeForm(int);
     QWidget *onAdd();
     QWidget *onEdit();
     bool onDelete();
     bool onSave(int);    
     QString getBattleOrderName();
+    bool onSend();
 
 private:
     QTreeWidget*  navigatorTree;

@@ -7,6 +7,7 @@ Commands::Commands(QSqlDatabase db, QTreeWidget *navigatorTree,
     changesTree(changesTree),
     BaseToolClass(db, navigatorReciversTable, changesReciversTable, parent)
 {
+    transmissionModule = new DataTransmissionModule("127.0.0.1", "127.0.0.1", "5284", "5285", db);
     connect(this->navigatorTree, SIGNAL(itemSelectionChanged()), this, SLOT(showRecivers()));
 }
 
@@ -35,16 +36,16 @@ void Commands::fillNavigator() {
     in->setText(0, "Входящие");
     QTreeWidgetItem* root = out;
     QSqlQuery query = QSqlQuery(db);
-    QString selectPattern = "SELECT t1.termname, inf.date_add, atr.execution_time, inf.order_id "
-            "FROM orders_alerts.orders_alerts_info  inf "
-            "JOIN orders_alerts.orders_alerts_attrib atr ON inf.order_id = atr.order_id "
-            "JOIN reference_data.terms t1 ON inf.order_tid = t1.termhierarchy;";
+    //подумать что делать с пунктом время исполнения
+    QString selectPattern = "SELECT t1.termname, inf.date_add, inf.order_id "
+                "FROM orders_alerts.orders_alerts_info  inf "
+                "JOIN reference_data.terms t1 ON inf.order_tid = t1.termhierarchy;";
     if (!query.exec(selectPattern)) {
         qDebug() << "Unable to make select operation!" << query.lastError();
     }
     while (query.next()) {
         addCommand(root, query.value(0).toString(), query.value(1).toDateTime(),
-                         query.value(2).toDateTime(),query.value(3).toString());
+                         query.value(1).toDateTime(),query.value(2).toString());
     }
     root->setExpanded(true);
     out = new QTreeWidgetItem(documents);
@@ -97,7 +98,7 @@ void Commands::fillChanges() {
 
 QWidget *Commands::onAdd() {
     //реализация кнопки добавить
-    CommandsAddForm *addWidget = new CommandsAddForm(OWN_NAME);
+    CommandsAddForm *addWidget = new CommandsAddForm(OWN_NAME, db);
     addWidgetList << addWidget;
     return addWidget;
 }
@@ -118,7 +119,7 @@ bool Commands::onDelete() {
         }
     }
     QString code = navigatorTree->currentItem()->text(5);
-    QString type=navigatorTree->currentItem()->parent()->parent()->text(0);
+    QString type = navigatorTree->currentItem()->parent()->parent()->text(0);
     if (type.compare("Документы") == 0) {
         return deleteDocument(code);
     }
@@ -131,17 +132,46 @@ bool Commands::onSave(int number) {
     //реализация кнопки сохранить
     number-=2;
     bool commandOrDoc = addWidgetList.at(number)->getCommandOrDoc();
-    QString command = addWidgetList.at(number)->getCommandName();
+    /*QString command = addWidgetList.at(number)->getCommandName();
     QString timeAdd = addWidgetList.at(number)->getTimeAdd();
     QString timeExec = addWidgetList.at(number)->getTimeExec();
     QString AttributeExec = addWidgetList.at(number)->getAttributeExec();
     QStringList parametrs = addWidgetList.at(number)->getParametrList();
     QStringList receivers = addWidgetList.at(number)->getReceiversList();
+    bool mark = addWidgetList.at(number)->isExec();*/
     if(!commandOrDoc) {
-        return saveCommand(OWN_NAME, command, timeAdd);
+        return saveCommand(OWN_NAME, addWidgetList.at(number)->getInformationBox());
     }
     //else saveDoc();
     return false;
+}
+
+bool Commands::onSend()
+{
+    QStringList exceptions;
+    exceptions << "Команды и сигналы" << "Документы" << "Исходящие" << "Входящие";
+    QString s = navigatorTree->currentItem()->text(0);
+    for (int i=0;i<exceptions.size();i++) {
+        if (s.compare(exceptions.at(i)) == 0) {
+            return false;
+        }
+    }
+    QString code = navigatorTree->currentItem()->text(5);
+    QString type=navigatorTree->currentItem()->parent()->parent()->text(0);
+    if (type.compare("Документы") == 0) {
+        transmissionModule->sendDocument(this->navigatorTree->currentItem()->text(5));
+        return true;
+    }
+    else {
+        transmissionModule->sendCommand(this->navigatorTree->currentItem()->text(5));
+        return true;
+    }
+
+}
+
+void Commands::removeForm(int index)
+{
+    addWidgetList.removeAt(index - 2);
 }
 
 void Commands::addCommand(QTreeWidgetItem *parent,
@@ -169,40 +199,6 @@ void Commands::addDocument(QTreeWidgetItem *parent,
     parent->addChild(treeItem);
 }
 
-QString Commands::convertCodeToReferenceName(QString code)
-{
-    QSqlQuery query = QSqlQuery( db );
-    QString s = "";
-    QString referenceName;
-    s = "SELECT reference_data.terms.termname FROM reference_data.terms WHERE reference_data.terms.termhierarchy ='"+code+"';";
-    if (!query.exec(s)) {
-        return "";
-    }
-    else {
-            while ( query.next() ) {
-                referenceName = query.value( 0 ).toString();
-            }
-    }
-    return referenceName;
-}
-
-QString Commands::convertReferenceNameTOCode(QString referenceName)
-{
-    QSqlQuery query = QSqlQuery( db );
-    QString s = "";
-    QString code;
-    s = "SELECT reference_data.terms.termhierarchy FROM reference_data.terms WHERE reference_data.terms.termname ='"+referenceName+"';";
-    if (!query.exec(s)) {
-        return "";
-    }
-    else {
-            while ( query.next() ) {
-                code = query.value( 0 ).toString();
-            }
-    }
-    return code;
-}
-
 void Commands::showRecivers()
 {
     QStringList exceptions;
@@ -216,7 +212,7 @@ void Commands::showRecivers()
     QString code = navigatorTree->currentItem()->text(5);
     QString type=navigatorTree->currentItem()->parent()->parent()->text(0);
     QSqlQuery query = QSqlQuery(db);
-    QString selectPattern = "SELECT combatobjectcode, mark_tid, mark_time ";
+    QString selectPattern = "SELECT combat_hierarchy, mark_tid, mark_time ";
     if (type.compare("Документы") == 0) {
         selectPattern = selectPattern+ "FROM combatdocs.combatdocs_acceptors WHERE cmbdid='"+code+"';";
     }
@@ -237,10 +233,11 @@ void Commands::showRecivers()
     }
 }
 
-bool Commands::saveCommand(QString object, QString command, QString time)
+bool Commands::saveCommand(QString object, CommandsMessageBox box)
 {
-    object=convertReferenceNameTOCode(object);
-    command=convertReferenceNameTOCode(command);
+    object=Utility::convertReferenceNameTOCode(db,object);
+    QString command = box.getCommandName();
+    command=Utility::convertReferenceNameTOCode(db,command);
     QSqlQuery query = QSqlQuery( db );
     if (!query.exec("SELECT order_id FROM orders_alerts.orders_alerts_info ORDER BY order_id DESC LIMIT 1;")) {
         return false;
@@ -251,22 +248,56 @@ bool Commands::saveCommand(QString object, QString command, QString time)
             id = query.value( 0 ).toInt();
         }
         id++;
-        db.transaction();
-        query.prepare( "INSERT INTO orders_alerts.orders_alerts_info( "
-                       "combatobjectcode, order_id, training_object, order_tid, date_add, date_edit, date_delete, id_manager) "
-                       "VALUES (?, ?, ?, ?, ?, ?, ?, ?);");
-        query.addBindValue( object );
-        query.addBindValue( id );
-        query.addBindValue( "true" );
-        query.addBindValue( command );
-        query.addBindValue(time);
-        query.addBindValue(time);
-        query.addBindValue(time/*"null"*/);
-        query.addBindValue("1");
-        query.exec();
-        return db.commit();
+        QString insertQuery = "INSERT INTO orders_alerts.orders_alerts_info( "
+                              "combat_hierarchy, order_id, training_object, order_tid, date_add, date_edit, date_delete, id_manager) "
+                              "VALUES ('"+object+"', '"
+                                         +QString::number(id)+"', '"
+                                         +"true"+"', '"
+                                         +command+"', '"
+                                         +box.getTimeAdd()+"', '"
+                                         +box.getTimeAdd()+"', NULL, '"
+                                         +QString::number(1)+"');";
+        if (!query.exec(insertQuery)) {
+            return false;
+        }
+        /*if (mark) {
+            //исполнить
+        }*/
+        for (int i = 0; i < box.getParametrs().size(); i++) {
+            insertQuery = "INSERT INTO orders_alerts.orders_alerts_param( "
+                          "order_id, param_tid, param_value) "
+                          "VALUES ('"+QString::number(id)+"', '"
+                                     +Utility::convertReferenceNameTOCode(db,box.getParametrs().at(i))+"', '"
+                                     +box.getParametrsValue().at(i)+"');";
+            qDebug() << insertQuery;
+            if (!query.exec(insertQuery)) {
+                return false;
+            }
+        }
+        for (int i = 0; i < box.getReceivers().size(); i++) {
+            insertQuery = "INSERT INTO orders_alerts.orders_alerts_acceptors( "
+                          "order_id, combat_hierarchy, mark_tid, mark_time, tid, date_add, date_edit, date_delete, id_manager) "
+                          "VALUES ('"+QString::number(id)+"', '"
+                                     +box.getReceivers().at(i)+"', '"
+                                     +Utility::convertReferenceNameTOCode(db,box.getReceiversMarks().at(i))+"', '"
+                                     +box.getReceiversTime().at(i)+"', '"
+                                     +"1"+"', '"
+                                     +QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss")+"', '"
+                                     +QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss")+"', NULL, '"
+                                     +"1"+"');";
+            qDebug() << insertQuery;
+            if (!query.exec(insertQuery)) {
+                return false;
+            }
+        }
+        return true;
     }
     return false;
+}
+
+bool Commands::saveDocument(QString object, QString command, QString time)
+{
+//сделать save Doc
 }
 
 bool Commands::deleteCommand(QString id)
@@ -277,9 +308,15 @@ bool Commands::deleteCommand(QString id)
     if (!query.exec(s)) {
         return false;
     }
-    else {
-        return true;
+    s = "DELETE FROM orders_alerts.orders_alerts_acceptors WHERE order_id ='"+id+"';";
+    if (!query.exec(s)) {
+        return false;
     }
+    s = "DELETE FROM orders_alerts.orders_alerts_param WHERE order_id ='"+id+"';";
+    if (!query.exec(s)) {
+        return false;
+    }
+    return true;
 }
 
 bool Commands::deleteDocument(QString id)
@@ -294,22 +331,3 @@ bool Commands::deleteDocument(QString id)
         return true;
     }
 }
-
-
-/*QStringList HitTargetsTabForm::getDataSourceBatteries() {
-    QSqlQuery query;
-    QString selectQuery = "SELECT object_number, termname FROM own_forces.combatstructure JOIN "
-                          "reference_data.terms ON termhierarchy = object_name WHERE "
-                          "combat_hierarchy IN (SELECT combat_hierarchy FROM own_forces.combatstructure "
-                          "WHERE nlevel(combat_hierarchy) = 1 AND type_army = '22.10' AND type_mode = 0 "
-                          "AND date_delete is null) ORDER BY object_number";
-    if (!query.exec(selectQuery)) {
-        qDebug() << "Unable to make select operation!" << query.lastError();
-    }
-
-    QStringList list;
-    while (query.next()) {
-        list.append(tr("%1").arg(query.value(0).toInt()) + " " + query.value(1).toString());
-    }
-    return list;
-}*/
