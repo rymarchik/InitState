@@ -20,7 +20,7 @@ void Commands::fillNavigator() {
     UpperTableHeaders << "Название команды/сигнала/\nРегистрационный номер" << "Время формирования/\nДата регистрации"
                         << "Время исполнения/\nТип документа" << "Тема документа" << "Источник информации"<<"код";
     navigatorTree->setHeaderLabels(UpperTableHeaders);
-    for (int i=0; i < navigatorTree->columnCount(); i++)
+    for (int i = 0; i < navigatorTree->columnCount(); i++)
     {
         navigatorTree->resizeColumnToContents(i);
     }
@@ -77,23 +77,6 @@ void Commands::fillNavigator() {
 }
 
 void Commands::fillChanges() {
-    /*changesTree->clear();
-    navigatorLowerTable->clear();
-
-    changesTree->setColumnCount(7);
-    QStringList UpperTableHeaders;
-    UpperTableHeaders << "Команда/сигнал/\nРегистрационный номер" << "Время исполнения\nДата регистрации"
-                      << "Источник информации" << "Тип" << "Тема" << "Событие" << "Время события";
-    changesTree->setHeaderLabels(UpperTableHeaders);
-    for (int i=0; i < changesTree->columnCount(); i++)
-    {
-        changesTree->resizeColumnToContents(i);
-    }
-    changesLowerTable->setColumnCount(3);
-    QStringList LowerTableHeaders;
-    LowerTableHeaders << "Получатель2" << "Отметка2" << "Время отметки2";
-    changesLowerTable->setHorizontalHeaderLabels(LowerTableHeaders);
-    changesLowerTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);*/
 }
 
 QWidget *Commands::onAdd() {
@@ -132,13 +115,6 @@ bool Commands::onSave(int number) {
     //реализация кнопки сохранить
     number-=2;
     bool commandOrDoc = addWidgetList.at(number)->getCommandOrDoc();
-    /*QString command = addWidgetList.at(number)->getCommandName();
-    QString timeAdd = addWidgetList.at(number)->getTimeAdd();
-    QString timeExec = addWidgetList.at(number)->getTimeExec();
-    QString AttributeExec = addWidgetList.at(number)->getAttributeExec();
-    QStringList parametrs = addWidgetList.at(number)->getParametrList();
-    QStringList receivers = addWidgetList.at(number)->getReceiversList();
-    bool mark = addWidgetList.at(number)->isExec();*/
     if(!commandOrDoc) {
         return saveCommand(OWN_NAME, addWidgetList.at(number)->getInformationBox());
     }

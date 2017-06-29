@@ -60,7 +60,7 @@ void DataTransmissionModule::sendDocument(QString q)
 QString DataTransmissionModule::makeDatagramDocument( QString q )
 {
     QString answer = "";
-    answer.append( "1" );                        //метод сжатия
+    answer.append( "0" );                        //метод сжатия
     answer.append( converter->dobei( q, 6 ) );      //отправитель добить до 6
     answer.append( converter->dobei( "mbu" , 6) );  //получатель
     answer.append( "0" );                        //категория данных
@@ -170,7 +170,6 @@ QString DataTransmissionModule::getCommandInformation(QString object)
             }
         }
     }
-    //преобразование времени в нужный формат
     answer.append( "\r" );
     return answer;
 }

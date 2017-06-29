@@ -210,9 +210,3 @@ bool BattleOrder::onSend()
 {
     return 0;
 }
-
-void BattleOrder::showAttribute()
-{
-    attribute = navigatorTree->currentItem()->text(3).toInt();  //содержимое скрытого столбца "Признак"
-    ID = navigatorTree->currentItem()->text(4);                 //содержимое скрытого столбца "ID"
-}

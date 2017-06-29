@@ -8,6 +8,7 @@
 #include "commandsaddform.h"
 #include "utility.h"
 #include "commandsmessagebox.h"
+#include "docmessagebox.h"
 #include "datatransmissionmodule.h"
 
 
