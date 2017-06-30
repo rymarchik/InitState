@@ -28,6 +28,7 @@ CommandsAddForm::CommandsAddForm(QString ownName, QSqlDatabase db, QWidget *pare
     connect(ui->addParamBut, SIGNAL(clicked()), addParamForm, SLOT(show()));
     connect(addParamForm, SIGNAL(sendData(QString, QString)), this, SLOT(receiveDataParametrs(QString, QString)));
     connect(ui->addReceiverBut, SIGNAL(clicked()), addReciversForm, SLOT(show()));
+    connect(ui->addDocReceivers, SIGNAL(clicked()), addReciversForm, SLOT(show()));
     connect(addReciversForm, SIGNAL(sendData(QStringList, QString)), this, SLOT(receiveDataReceivers(QStringList, QString)));
 }
 
@@ -42,7 +43,7 @@ bool CommandsAddForm::getCommandOrDoc()
     else return true;
 }
 
-CommandsMessageBox CommandsAddForm::getInformationBox()
+CommandsMessageBox CommandsAddForm::getCommandtInformationBox()
 {
     CommandsMessageBox box;
     box.setCommandName(ui->commandsSignalsBox->currentText());
@@ -76,6 +77,91 @@ CommandsMessageBox CommandsAddForm::getInformationBox()
     return box;
 }
 
+DocMessageBox CommandsAddForm::getDocumentInformationBox()
+{
+    DocMessageBox box;
+    box.setDocNumber(ui->docNumberlineEdit->text());
+    box.setTimeRegister(ui->docDateRegisterTimeEdit->text());
+    box.setDocTheme(ui->docThemeBox->currentText());
+    box.setDocType(ui->docTypeBox->currentText());
+    box.setTimeAdd(ui->docDateRegisterTimeEdit->text());
+    QStringList receiversList;
+    QStringList receiversMarkList;
+    QStringList receiversTimeList;
+    for (int i=0; i<ui->tableWidget_6->rowCount(); i++) {
+        receiversList << ui->tableWidget_6->item(i,0)->text();
+        receiversMarkList << ui->tableWidget_6->item(i,1)->text();
+        receiversTimeList << ui->tableWidget_6->item(i,2)->text();
+    }
+    box.setReceivers(receiversList);
+    box.setReceiversMarks(receiversMarkList);
+    box.setReceiversTime(receiversTimeList);
+    return box;
+}
+
+void CommandsAddForm::setDataCommand(QString code)
+{
+    QSqlQuery query = QSqlQuery(db);
+    QString selectPattern = "SELECT order_id, order_tid, date_add "
+                "FROM orders_alerts.orders_alerts_info WHERE order_id ='"+code+"'; ";
+    if (!query.exec(selectPattern)) {
+        qDebug() << "Unable to make select operation!" << query.lastError();
+    }
+    while (query.next()) {
+        ui->timeCreateDTE->setDateTime(query.value(2).toDateTime());
+        ui->timeExecDTE->setDateTime(query.value(2).toDateTime());
+    }
+    ui->stackedWidget->setCurrentIndex(0);
+    ui->tableWidget_4->setRowCount(0);
+
+    query = QSqlQuery(db);
+    selectPattern = "SELECT param_tid, param_value "
+                "FROM orders_alerts.orders_alerts_param WHERE order_id ='"+code+"';";
+    if (!query.exec(selectPattern)) {
+        qDebug() << "Unable to make select operation!" << query.lastError();
+    }
+    ui->tableWidget_4->setRowCount(0);
+    int n = query.size();
+    int i=0;
+    while (query.next()) {
+        ui->tableWidget_4->insertRow(i);
+        ui->tableWidget_4->setItem(i, 0, new QTableWidgetItem(Utility::convertCodeToReferenceName(db,query.value(0).toString())));
+        ui->tableWidget_4->setItem(i, 1, new QTableWidgetItem(query.value(1).toString()));
+        i++;
+    }
+    query = QSqlQuery(db);
+    selectPattern = "SELECT combat_hierarchy, mark_tid, mark_time "
+                "FROM orders_alerts.orders_alerts_acceptors WHERE order_id ='"+code+"';";
+    if (!query.exec(selectPattern)) {
+        qDebug() << "Unable to make select operation!" << query.lastError();
+    }
+    ui->tableWidget_5->setRowCount(0);
+    n = query.size();
+    for (int i=0; i < n; i++)
+    while (query.next()) {
+        ui->tableWidget_5->insertRow(i);
+        ui->tableWidget_5->setItem(i, 0, new QTableWidgetItem(query.value(0).toString()));
+        ui->tableWidget_5->setItem(i, 1, new QTableWidgetItem(Utility::convertCodeToReferenceName(db,query.value(1).toString())));
+        ui->tableWidget_5->setItem(i, 2, new QTableWidgetItem(query.value(2).toDateTime().toString("dd.MM.yyyy hh:mm:ss")));
+    }
+    query = QSqlQuery(db);
+    selectPattern = "SELECT order_tid FROM orders_alerts.orders_alerts_info "
+                "WHERE order_id ='"+code+"'; ";
+    if (!query.exec(selectPattern)) {
+        qDebug() << "Unable to make select operation!" << query.lastError();
+    }
+    QString commandName;
+    while (query.next()) {
+        commandName = query.value(0).toString();
+    }
+    ui->commandsSignalsBox->setCurrentText(Utility::convertCodeToReferenceName(db,commandName));
+}
+
+void CommandsAddForm::setDataDocument(QString code)
+{
+
+}
+
 void CommandsAddForm::changeContent()
 {
     if ( ui->stackedWidget->currentIndex() == 0 ) {
@@ -102,18 +188,35 @@ void CommandsAddForm::receiveDataParametrs(QString parametr, QString value)
 
 void CommandsAddForm::receiveDataReceivers(QStringList receiver, QString mark)
 {
-    for (int i=0; i<receiver.size(); i++) {
-        int n = ui->tableWidget_5->rowCount();
-        if (n == 0) {
-            ui->tableWidget_5->setRowCount(1);
+    if (!getCommandOrDoc()) {
+        for (int i=0; i<receiver.size(); i++) {
+            int n = ui->tableWidget_5->rowCount();
+            if (n == 0) {
+                ui->tableWidget_5->setRowCount(1);
+            }
+            else {
+                ui->tableWidget_5->insertRow(n);
+            }
+            n = ui->tableWidget_5->rowCount();
+            ui->tableWidget_5->setItem(n-1, 0, new QTableWidgetItem(receiver.at(i)));
+            ui->tableWidget_5->setItem(n-1, 1, new QTableWidgetItem(Utility::convertCodeToReferenceName(db,mark)));
+            ui->tableWidget_5->setItem(n-1, 2, new QTableWidgetItem(QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss")));
         }
-        else {
-            ui->tableWidget_5->insertRow(n);
+    }
+    else {
+        for (int i=0; i<receiver.size(); i++) {
+            int n = ui->tableWidget_6->rowCount();
+            if (n == 0) {
+                ui->tableWidget_6->setRowCount(1);
+            }
+            else {
+                ui->tableWidget_6->insertRow(n);
+            }
+            n = ui->tableWidget_6->rowCount();
+            ui->tableWidget_6->setItem(n-1, 0, new QTableWidgetItem(receiver.at(i)));
+            ui->tableWidget_6->setItem(n-1, 1, new QTableWidgetItem(Utility::convertCodeToReferenceName(db,mark)));
+            ui->tableWidget_6->setItem(n-1, 2, new QTableWidgetItem(QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss")));
         }
-        n = ui->tableWidget_5->rowCount();
-        ui->tableWidget_5->setItem(n-1, 0, new QTableWidgetItem(receiver.at(i)));
-        ui->tableWidget_5->setItem(n-1, 1, new QTableWidgetItem(Utility::convertCodeToReferenceName(db,mark)));
-        ui->tableWidget_5->setItem(n-1, 2, new QTableWidgetItem(QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss")));
     }
 }
 

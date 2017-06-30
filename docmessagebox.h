@@ -26,6 +26,8 @@ public:
     void setReceiversMarks(const QStringList &value);
     QStringList getReceiversTime() const;
     void setReceiversTime(const QStringList &value);
+    QString getTimeAdd() const;
+    void setTimeAdd(const QString &value);
 
 private:
     QString docNumber;
@@ -33,6 +35,7 @@ private:
     QString docType;
     QString docTheme;
     QString text;
+    QString timeAdd;
     QStringList receivers;
     QStringList receiversMarks;
     QStringList receiversTime;

@@ -3,14 +3,18 @@
 
 #include <QString>
 #include <QUdpSocket>
-#include <QtSql>
 #include "converter.h"
+
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlTableModel>
+#include <QSqlError>
 
 
 class DataTransmissionModule
 {
 public:
-    DataTransmissionModule(QString myIp, QString targetIp, QString myPort, QString targetPort, QSqlDatabase db);
+    DataTransmissionModule(QSqlDatabase db);
     void sendCommand(QString q);
     void sendDocument(QString q);
 private:

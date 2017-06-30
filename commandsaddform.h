@@ -10,6 +10,7 @@
 #include "addreciversform.h"
 #include "utility.h"
 #include "commandsmessagebox.h"
+#include "docmessagebox.h"
 
 namespace Ui {
 class CommandsAddForm;
@@ -25,7 +26,10 @@ public:
     Ui::CommandsAddForm *ui;
 
     bool getCommandOrDoc();
-    CommandsMessageBox getInformationBox();
+    CommandsMessageBox getCommandtInformationBox();
+    DocMessageBox getDocumentInformationBox();
+    void setDataCommand(QString code);
+    void setDataDocument(QString code);
 
 private:
     QSqlDatabase db;

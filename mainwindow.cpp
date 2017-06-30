@@ -79,7 +79,7 @@ void MainWindow::slotEdit()
         tabName = c_hitTargets->getTargetNumber();
         break;
      case 2: //страница "Команды и сигналы, документы"
-
+        tabName = c_commands->getCommandName();
         break;
      case 3: //страница "Районы и позиции"
         break;
@@ -148,8 +148,6 @@ void MainWindow::slotMap()
 }
 
 void MainWindow::slotSend() {
-    currentContent->onSend();
-
     if (currentContent->onSend()) {
             currentContent->fillNavigator();
             currentTabWidget->setCurrentIndex(0);

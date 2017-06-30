@@ -1255,22 +1255,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>m_send</sender>
-   <signal>triggered()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>slotSend()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>570</x>
-     <y>289</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>positionsTabWidget</sender>
    <signal>tabCloseRequested(int)</signal>
    <receiver>MainWindow</receiver>
@@ -1391,6 +1375,22 @@
     <hint type="sourcelabel">
      <x>569</x>
      <y>219</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>570</x>
+     <y>289</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_send</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>slotSend()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>570</x>
+     <y>289</y>
     </hint>
     <hint type="destinationlabel">
      <x>570</x>

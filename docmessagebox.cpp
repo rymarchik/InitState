@@ -84,3 +84,13 @@ void DocMessageBox::setReceiversTime(const QStringList &value)
 {
     receiversTime = value;
 }
+
+QString DocMessageBox::getTimeAdd() const
+{
+    return timeAdd;
+}
+
+void DocMessageBox::setTimeAdd(const QString &value)
+{
+    timeAdd = value;
+}

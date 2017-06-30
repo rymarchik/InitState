@@ -1,12 +1,13 @@
 #include "datatransmissionmodule.h"
 
-DataTransmissionModule::DataTransmissionModule(QString myIp, QString targetIp, QString myPort, QString targetPort, QSqlDatabase db)
+DataTransmissionModule::DataTransmissionModule(QSqlDatabase db)
 {
-    this->myIp.setAddress(myIp);
-    this->targetIp.setAddress(targetIp);
-    this->myPort = myPort;
-    this->targetPort = targetPort;
+    this->myPort = "5824";
+    this->targetPort = "5825";
+    this->targetIp.setAddress("192.168.1.87");
+    this->myIp.setAddress("192.168.1.87");
     this->db=db;
+    udpSocket.bind(5824);
 
 }
 
@@ -30,7 +31,7 @@ void DataTransmissionModule::sendCommand(QString q)
          << data;
     unicumMessageId++;
     QByteArray datagram = converter->encodeDatagram(list);
-    udpSocket.writeDatagram( datagram, targetIp, targetPort.toLong( Q_NULLPTR, 10) );
+    udpSocket.writeDatagram(datagram, targetIp, targetPort.toLong(Q_NULLPTR, 10));
 }
 
 void DataTransmissionModule::sendDocument(QString q)
@@ -56,6 +57,130 @@ void DataTransmissionModule::sendDocument(QString q)
     QByteArray datagram = converter->encodeDatagram(list);
     udpSocket.writeDatagram( datagram, targetIp, targetPort.toLong( Q_NULLPTR, 10) );
 }
+
+/*void DataTransmissionModule::sendCoord()
+{
+    QString trash;
+    DelDialog dia;
+    if ( dia.exec() ) {
+        trash = dia.value();
+    }
+    QString data = makeDatagramCoord( trash );
+    if ( data == "error" ) {
+        makeLogNote( "ошибка создания датаграммы" );
+        QMessageBox::information(this, "ОШИБКА", "такой записи не существует!");
+        return;
+    }
+    QStringList list;
+    list << myIp.toString()
+         << targetIp.toString()
+         << "17"
+         << QString::number( data.length() + 224 )
+         << myPort
+         << targetPort
+         << QString::number( data.length() )
+         << ""
+         << "0001"
+         << QString::number( unicumMessageId )
+         << "1"
+         << "1"
+         << data;
+    unicumMessageId++;
+    QByteArray datagram = converter->encodeDatagram( list );
+    qDebug() << targetPort.toLong( Q_NULLPTR, 10 );
+    udpSocket.writeDatagram( datagram, targetIp, targetPort.toLong( Q_NULLPTR, 10) );
+    makeLogNote( "отправлен пакет" );
+    QMessageBox::information(this, "УСПЕХ", "Пакет отправлен успешно");
+    bool x = dbConnect.makeNote( 1, getCurrentDateAndTime(), 1, data, 2);
+    if ( x ) {
+        makeLogNote( "запись действия добавлена в БД" );
+    }
+        else {
+        makeLogNote( "ошиба записи действия в БД" );
+    }
+}
+
+void MainWindow::sendRocket()
+{
+    QString trash;
+    DelDialog dia;
+    if ( dia.exec() ) {
+        trash = dia.value();
+    }
+    QString data = makeDatagramRocket( trash );
+    if ( data == "error" ) {
+        makeLogNote( "ошибка создания датаграммы" );
+        QMessageBox::information(this, "ОШИБКА", "такой записи не существует!");
+        return;
+    }
+    QStringList list;
+    list << myIp.toString()
+         << targetIp.toString()
+         << "17"
+         << QString::number( data.length() + 224 )
+         << myPort
+         << targetPort
+         << QString::number( data.length() )
+         << ""
+         << "0001"
+         << QString::number( unicumMessageId )
+         << "1"
+         << "1"
+         << data;
+    unicumMessageId++;
+    QByteArray datagram = converter->encodeDatagram( list );
+    qDebug() << targetPort.toLong( Q_NULLPTR, 10 );
+    udpSocket.writeDatagram( datagram, targetIp, targetPort.toLong( Q_NULLPTR, 10) );
+    makeLogNote( "отправлен пакет" );
+    QMessageBox::information(this, "УСПЕХ", "Пакет отправлен успешно");
+    bool x = dbConnect.makeNote( 1, getCurrentDateAndTime(), 1, data, 2);
+    if ( x ) {
+        makeLogNote( "запись действия добавлена в БД" );
+    }
+        else {
+        makeLogNote( "ошиба записи действия в БД" );
+    }
+}
+
+QString MainWindow::makeDatagramCoord( QString q )
+{
+    QString answer = "";
+    answer.append( "0" );                        //метод сжатия
+    answer.append( converter->dobei( q, 6 ) );      //отправитель добить до 6
+    answer.append( converter->dobei( "mbu" , 6) );  //получатель
+    answer.append( "0" );                        //категория данных
+    answer.append( "C" );                        //данные о сообщении
+    answer.append( "C1" );                       //Идентификатор приложения, которое  должно обрабатывать переданные данные.
+    answer.append( "=" );                        //Признак начала передаваемых данных
+    QString request = dbConnect.getCoordInformation(q);
+    if (request.compare("error") == 0) {
+        return "error";
+    }
+    else {
+        answer.append(request);
+    }
+    return answer;
+}
+
+QString MainWindow::makeDatagramRocket( QString q )
+{
+    QString answer = "";
+    answer.append( "0" );                        //метод сжатия
+    answer.append( converter->dobei( q , 6 ) );      //отправитель добить до 6
+    answer.append( converter->dobei( "mbu" , 6) );  //получатель
+    answer.append( "0" );                        //категория данных
+    answer.append( "C" );                        //данные о сообщении
+    answer.append( "T1" );                       //Идентификатор приложения, которое  должно обрабатывать переданные данные.
+    answer.append( "=" );                        //Признак начала передаваемых данных
+    QString request = dbConnect.getRocketInformation(q);
+    if (request.compare("error") == 0) {
+        return "error";
+    }
+    else {
+        answer.append(request);
+    }
+    return answer;
+}*/
 
 QString DataTransmissionModule::makeDatagramDocument( QString q )
 {
