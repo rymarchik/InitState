@@ -20,13 +20,14 @@ void HitTargets::fillNavigator() {
 
     QSqlQuery query = QSqlQuery(db);
     QString selectPattern = "SELECT tp.target_number, t.termname, cs1.object_number, t1.termname, "
-                            "cs2.object_number, t2.termname FROM obj_targets.target_params tp JOIN "
-                            "reference_data.terms t ON tp.target_name = t.termhierarchy JOIN "
-                            "own_forces.combatstructure cs1 ON tp.weaponry = cs1.combat_hierarchy JOIN "
-                            "own_forces.combatstructure cs2 ON tp.platoon = cs2.combat_hierarchy JOIN "
-                            "reference_data.terms t1 ON cs1.object_name = t1.termhierarchy JOIN "
-                            "reference_data.terms t2 ON cs2.object_name = t2.termhierarchy WHERE "
-                            "delete_time is null";
+                            "       cs2.object_number, t2.termname "
+                            "FROM obj_targets.target_params tp "
+                            "JOIN reference_data.terms t ON tp.target_name = t.termhierarchy "
+                            "JOIN own_forces.combatstructure cs1 ON tp.weaponry = cs1.combat_hierarchy "
+                            "JOIN own_forces.combatstructure cs2 ON tp.platoon = cs2.combat_hierarchy "
+                            "JOIN reference_data.terms t1 ON cs1.object_name = t1.termhierarchy "
+                            "JOIN reference_data.terms t2 ON cs2.object_name = t2.termhierarchy "
+                            "WHERE delete_time is null";
     if (!query.exec(selectPattern)) {
         qDebug() << "Unable to make select operation!" << query.lastError();
     }
@@ -86,9 +87,13 @@ bool HitTargets::onSend()
 
 bool HitTargets::onDelete() {
     QSqlQuery query;
-    QString deleteQuery = "UPDATE obj_targets.target_params SET delete_time = now() WHERE "
-                          "target_number = ? AND target_name = (SELECT termhierarchy FROM "
-                          "reference_data.terms WHERE termname = ?)";
+    QString deleteQuery = "UPDATE obj_targets.target_params "
+                          "SET delete_time = now() "
+                          "WHERE target_number = ? "
+                          "         AND target_name = "
+                          "             (SELECT termhierarchy "
+                          "             FROM reference_data.terms "
+                          "             WHERE termname = ?)";
     query.prepare(deleteQuery);
     QString targetNumber = navigatorTable->item(navigatorTable->currentRow(), 0)->text();
     QString targetName = navigatorTable->item(navigatorTable->currentRow(), 1)->text();
