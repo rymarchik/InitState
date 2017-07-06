@@ -112,6 +112,8 @@ void CommandsAddForm::setDataCommand(QString code)
         ui->timeExecDTE->setDateTime(query.value(2).toDateTime());
     }
     ui->stackedWidget->setCurrentIndex(0);
+    ui->menuBox->setCurrentIndex(0);
+    ui->menuBox->setEnabled(false);
     ui->tableWidget_4->setRowCount(0);
 
     query = QSqlQuery(db);
@@ -159,7 +161,55 @@ void CommandsAddForm::setDataCommand(QString code)
 
 void CommandsAddForm::setDataDocument(QString code)
 {
-
+    QSqlQuery query = QSqlQuery(db);
+    QString selectPattern = "SELECT cmbdid, outgoing_reg_datetime "
+                "FROM combatdocs.combatdocs_info WHERE cmbdid ='"+code+"'; ";
+    if (!query.exec(selectPattern)) {
+        qDebug() << "Unable to make select operation!" << query.lastError();
+    }
+    while (query.next()) {
+        ui->docDateRegisterTimeEdit->setDateTime(query.value(1).toDateTime());
+        ui->docNumberlineEdit->setText(query.value(0).toString());
+    }
+    ui->menuBox->setCurrentIndex(1);
+    ui->stackedWidget->setCurrentIndex(1);
+    ui->menuBox->setEnabled(false);
+    query = QSqlQuery(db);
+    selectPattern = "SELECT combat_hierarchy, mark_tid, mark_time "
+                "FROM combatdocs.combatdocs_acceptors WHERE cmbdid ='"+code+"';";
+    if (!query.exec(selectPattern)) {
+        qDebug() << "Unable to make select operation!" << query.lastError();
+    }
+    ui->tableWidget_6->setRowCount(0);
+    int n = query.size();
+    for (int i=0; i < n; i++)
+    while (query.next()) {
+        ui->tableWidget_6->insertRow(i);
+        ui->tableWidget_6->setItem(i, 0, new QTableWidgetItem(query.value(0).toString()));
+        ui->tableWidget_6->setItem(i, 1, new QTableWidgetItem(Utility::convertCodeToReferenceName(db,query.value(1).toString())));
+        ui->tableWidget_6->setItem(i, 2, new QTableWidgetItem(query.value(2).toDateTime().toString("dd.MM.yyyy hh:mm:ss")));
+    }
+    query = QSqlQuery(db);
+    selectPattern = "SELECT doctheme_tid FROM combatdocs.combatdocs_theme "
+                "WHERE cmbdid ='"+code+"';";
+    if (!query.exec(selectPattern)) {
+        qDebug() << "Unable to make select operation!" << query.lastError();
+    }
+    QString commandName;
+    while (query.next()) {
+        commandName = query.value(0).toString();
+    }
+    ui->docThemeBox->setCurrentText(Utility::convertCodeToReferenceName(db,commandName));
+    query = QSqlQuery(db);
+    selectPattern = "SELECT doctype_tid FROM combatdocs.combatdocs_type "
+                "WHERE cmbdid ='"+code+"';";
+    if (!query.exec(selectPattern)) {
+        qDebug() << "Unable to make select operation!" << query.lastError();
+    }
+    while (query.next()) {
+        commandName = query.value(0).toString();
+    }
+    ui->docTypeBox->setCurrentText(Utility::convertCodeToReferenceName(db,commandName));
 }
 
 void CommandsAddForm::changeContent()
