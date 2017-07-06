@@ -185,6 +185,11 @@ QString Commands::getCommandName()
     QSqlQuery query = QSqlQuery(db);
     QString selectPattern = "SELECT order_tid FROM orders_alerts.orders_alerts_info "
                 "WHERE order_id ='"+code+"'; ";
+    QString type=navigatorTree->currentItem()->parent()->parent()->text(0);
+    if (type.compare("Документы") == 0) {
+        selectPattern = "SELECT doctheme_tid FROM combatdocs.combatdocs_theme "
+                        "WHERE cmbdid ='"+code+"'; ";
+    }
     if (!query.exec(selectPattern)) {
         qDebug() << "Unable to make select operation!" << query.lastError();
     }
