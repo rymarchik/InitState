@@ -20,7 +20,6 @@ SOURCES += main.cpp\
     battleOrder.cpp \
     commands.cpp \
     positions.cpp \
-    server.cpp \
     addparamform.cpp \
     commandsaddform.cpp \
     basetoolclass.cpp \
@@ -43,7 +42,6 @@ HEADERS  += mainwindow.h \
     battleOrder.h \
     commands.h \
     positions.h \
-    server.h \
     addparamform.h \
     commandsaddform.h \
     basetoolclass.h \
