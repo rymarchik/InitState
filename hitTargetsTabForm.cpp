@@ -54,11 +54,12 @@ void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
     ui->targetNameCB->setEnabled(false);
 
     QSqlQuery query;
-    QString selectPattern = "SELECT importance, target_time, target_geometry, t2.termname FROM "
-                            "obj_targets.target_params JOIN reference_data.terms t1 ON "
-                            "t1.termhierarchy = target_name JOIN reference_data.terms t2 ON "
-                            "t2.termhierarchy = cover_degree WHERE target_number = %1 AND "
-                            "t1.termname = '%2' ";
+    QString selectPattern = "SELECT importance, target_time, target_geometry, t2.termname "
+                            "FROM obj_targets.target_params "
+                            "JOIN reference_data.terms t1 ON t1.termhierarchy = target_name "
+                            "JOIN reference_data.terms t2 ON t2.termhierarchy = cover_degree "
+                            "WHERE target_number = %1 "
+                            "       AND t1.termname = '%2' ";
     QString selectQuery = selectPattern.arg(ui->targetNumberLE->text()).arg(ui->targetNameCB->currentText());
 
     if (!query.exec(selectQuery)) {
@@ -89,7 +90,7 @@ void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
 
         QSqlQuery squareQuery;
         QString squarePatternQuery = "SELECT ST_X(target_location), ST_Y(target_location), "
-                                     "       ST_Z(target_location), front, depth, deviation "
+                                     "      ST_Z(target_location), front, depth, deviation "
                                      "FROM obj_targets.target_params "
                                      "JOIN reference_data.terms ON termhierarchy = target_name "
                                      "WHERE target_number = %1 "
@@ -119,9 +120,11 @@ void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
 
         QSqlQuery roundQuery;
         QString roundPatternQuery = "SELECT ST_X(target_location), ST_Y(target_location), "
-                                    "ST_Z(target_location), radius FROM obj_targets.target_params "
+                                    "       ST_Z(target_location), radius "
+                                    "FROM obj_targets.target_params "
                                     "JOIN reference_data.terms ON termhierarchy = target_name "
-                                    "WHERE target_number = %1 AND termname = '%2'";
+                                    "WHERE target_number = %1 "
+                                    "       AND termname = '%2'";
         QString roundFullQuery = roundPatternQuery.arg(ui->targetNumberLE->text()).arg(ui->targetNameCB->currentText());
 
         if (!roundQuery.exec(roundFullQuery)) {
@@ -167,14 +170,22 @@ bool HitTargetsTabForm::onSaveSetup() {
         QString insertPattern;
         QString insertQuery;
 
-        QString batteryPattern = "SELECT combat_hierarchy FROM own_forces.combatstructure JOIN "
-                                 "reference_data.terms ON termhierarchy = object_name WHERE "
-                                 "object_number = %1 AND termname = '%2' AND type_army = '22.10' "
-                                 "AND type_mode = 0 AND date_delete is null";
-        QString weaponryPattern = "SELECT combat_hierarchy FROM own_forces.combatstructure JOIN "
-                                  "reference_data.terms ON termhierarchy = object_name WHERE "
-                                  "object_number = %1 AND termname = '%2' AND type_mode = 0 "
-                                  "AND date_delete is null AND subltree(combat_hierarchy, 0, 1) = (%3)";
+        QString batteryPattern = "SELECT combat_hierarchy "
+                                 "FROM own_forces.combatstructure "
+                                 "JOIN reference_data.terms ON termhierarchy = object_name "
+                                 "WHERE object_number = %1 "
+                                 "      AND termname = '%2' "
+                                 "      AND type_army = '22.10' "
+                                 "      AND type_mode = 0 "
+                                 "      AND date_delete is null";
+        QString weaponryPattern = "SELECT combat_hierarchy "
+                                  "FROM own_forces.combatstructure "
+                                  "JOIN reference_data.terms ON termhierarchy = object_name "
+                                  "WHERE object_number = %1 "
+                                  "     AND termname = '%2' "
+                                  "     AND type_mode = 0 "
+                                  "     AND date_delete is null "
+                                  "     AND subltree(combat_hierarchy, 0, 1) = (%3)";
         QString batteryTargetNumber = ui->dataSourceBatteryCB->currentText().split(' ').first();
         QString batteryTargetName = ui->dataSourceBatteryCB->currentText().remove(0, batteryTargetNumber.size() + 1);
         QString weaponryTargetNumber = ui->dataSourceWeaponryCB->currentText().split(' ').first();
@@ -194,8 +205,9 @@ bool HitTargetsTabForm::onSaveSetup() {
                 }
             }
             insertPattern = "INSERT INTO obj_targets.target_params (target_number, target_name, "
-                            "importance, target_time, target_geometry, target_location, cover_degree, "
-                            "platoon, weaponry) VALUES (?, (SELECT termhierarchy FROM reference_data.terms "
+                            "       importance, target_time, target_geometry, target_location, "
+                            "       cover_degree, platoon, weaponry) "
+                            "VALUES (?, (SELECT termhierarchy FROM reference_data.terms "
                             "WHERE termname = ?), ?, ?, 0, %1, (SELECT termhierarchy FROM "
                             "reference_data.terms WHERE termname = ?), (%2), (%3))";
             insertQuery = insertPattern.arg(makePolygonString)
@@ -214,9 +226,9 @@ bool HitTargetsTabForm::onSaveSetup() {
                 return false;
             }
             insertPattern = "INSERT INTO obj_targets.target_params (target_number, target_name, "
-                            "importance, target_time, target_geometry, target_location, front, "
-                            "depth, deviation, cover_degree, platoon, weaponry) VALUES "
-                            "(?, (SELECT termhierarchy FROM reference_data.terms WHERE "
+                            "       importance, target_time, target_geometry, target_location, "
+                            "       front, depth, deviation, cover_degree, platoon, weaponry) "
+                            "VALUES (?, (SELECT termhierarchy FROM reference_data.terms WHERE "
                             "termname = ?), ?, ?, 1, %1, ?, ?, ?, (SELECT termhierarchy FROM "
                             "reference_data.terms WHERE termname = ?), (%2), (%3))";
             insertQuery = insertPattern.arg(makePointString)
@@ -238,9 +250,9 @@ bool HitTargetsTabForm::onSaveSetup() {
                 return false;
             }
             insertPattern = "INSERT INTO obj_targets.target_params (target_number, target_name, "
-                            "importance, target_time, target_geometry, target_location, "
-                            "radius, cover_degree, platoon, weaponry) VALUES "
-                            "(?, (SELECT termhierarchy FROM reference_data.terms WHERE "
+                            "       importance, target_time, target_geometry, target_location, "
+                            "       radius, cover_degree, platoon, weaponry) "
+                            "VALUES (?, (SELECT termhierarchy FROM reference_data.terms WHERE "
                             "termname = ?), ?, ?, 2, %1, ?, (SELECT termhierarchy FROM "
                             "reference_data.terms WHERE termname = ?), (%2), (%3))";
             insertQuery = insertPattern.arg(makePointString)
@@ -275,12 +287,19 @@ bool HitTargetsTabForm::onSaveSetup() {
                     return false;
                 }
             }
-            updatePattern = "UPDATE obj_targets.target_params SET importance = ?, target_time = ?, "
-                            "target_geometry = 0, target_location = %1, front = null, depth = null, "
-                            "deviation = null, radius = null, cover_degree = "
-                            "(SELECT termhierarchy FROM reference_data.terms WHERE termname = ?), "
-                            "update_time = now() WHERE target_number = ? AND target_name = "
-                            "(SELECT termhierarchy FROM reference_data.terms WHERE termname = ?)";
+            updatePattern = "UPDATE obj_targets.target_params "
+                            "SET importance = ?, target_time = ?, target_geometry = 0, "
+                            "       target_location = %1, front = null, depth = null, "
+                            "       deviation = null, radius = null, cover_degree = "
+                            "           (SELECT termhierarchy "
+                            "           FROM reference_data.terms "
+                            "           WHERE termname = ?), "
+                            "       update_time = now() "
+                            "WHERE target_number = ? "
+                            "       AND target_name = "
+                            "           (SELECT termhierarchy "
+                            "           FROM reference_data.terms "
+                            "           WHERE termname = ?)";
             updateQuery = updatePattern.arg(makePolygonString);
 
             query.prepare(updateQuery);
@@ -295,12 +314,19 @@ bool HitTargetsTabForm::onSaveSetup() {
                 QMessageBox::warning(this, "Ошибка", "Заполнены не все поля!");
                 return false;
             }
-            updatePattern = "UPDATE obj_targets.target_params SET importance = ?, target_time = ?, "
-                            "target_geometry = 1, target_location = %1, front = ?, depth = ?, "
-                            "deviation = ?, radius = null, cover_degree = "
-                            "(SELECT termhierarchy FROM reference_data.terms WHERE termname = ?), "
-                            "update_time = now() WHERE target_number = ? AND target_name = "
-                            "(SELECT termhierarchy FROM reference_data.terms WHERE termname = ?)";
+            updatePattern = "UPDATE obj_targets.target_params "
+                            "SET importance = ?, target_time = ?, target_geometry = 1, "
+                            "       target_location = %1, front = ?, depth = ?, "
+                            "       deviation = ?, radius = null, cover_degree = "
+                            "           (SELECT termhierarchy "
+                            "           FROM reference_data.terms "
+                            "           WHERE termname = ?), "
+                            "       update_time = now() "
+                            "WHERE target_number = ? "
+                            "       AND target_name = "
+                            "           (SELECT termhierarchy "
+                            "           FROM reference_data.terms "
+                            "           WHERE termname = ?)";
             updateQuery = updatePattern.arg(makePointString);
 
             query.prepare(updateQuery);
@@ -318,12 +344,19 @@ bool HitTargetsTabForm::onSaveSetup() {
                 QMessageBox::warning(this, "Ошибка", "Заполнены не все поля!");
                 return false;
             }
-            updatePattern = "UPDATE obj_targets.target_params SET importance = ?, target_time = ?, "
-                            "target_geometry = 2, target_location = %1, front = null, depth = null, "
-                            "deviation = null, radius = ?, cover_degree = "
-                            "(SELECT termhierarchy FROM reference_data.terms WHERE termname = ?), "
-                            "update_time = now() WHERE target_number = ? AND target_name = "
-                            "(SELECT termhierarchy FROM reference_data.terms WHERE termname = ?)";
+            updatePattern = "UPDATE obj_targets.target_params "
+                            "SET importance = ?, target_time = ?, target_geometry = 2, "
+                            "       target_location = %1, front = null, depth = null, "
+                            "       deviation = null, radius = ?, cover_degree = "
+                            "           (SELECT termhierarchy "
+                            "           FROM reference_data.terms "
+                            "           WHERE termname = ?), "
+                            "       update_time = now() "
+                            "WHERE target_number = ? "
+                            "       AND target_name = "
+                            "           (SELECT termhierarchy "
+                            "           FROM reference_data.terms "
+                            "           WHERE termname = ?)";
             updateQuery = updatePattern.arg(makePointString);
 
             query.prepare(updateQuery);
@@ -381,10 +414,12 @@ void HitTargetsTabForm::slotRemovePoint() {
 
 void HitTargetsTabForm::addFilledPoints() {
     QSqlQuery query;
-    QString selectPattern = "SELECT ST_X(geom), ST_Y(geom), ST_Z(geom) FROM (SELECT "
-                            "(ST_dumppoints(target_location)).geom FROM obj_targets.target_params "
-                            "JOIN reference_data.terms ON termhierarchy = target_name "
-                            "WHERE target_number = %1 AND termname = '%2') AS foo";
+    QString selectPattern = "SELECT ST_X(geom), ST_Y(geom), ST_Z(geom) "
+                            "FROM (SELECT (ST_dumppoints(target_location)).geom "
+                            "       FROM obj_targets.target_params "
+                            "       JOIN reference_data.terms ON termhierarchy = target_name "
+                            "       WHERE target_number = %1 "
+                            "           AND termname = '%2') AS foo";
     QString selectQuery = selectPattern.arg(ui->targetNumberLE->text()).arg(ui->targetNameCB->currentText());
 
     if (!query.exec(selectQuery)) {
@@ -555,11 +590,16 @@ void HitTargetsTabForm::reinitializeFormData() {
 
 QStringList HitTargetsTabForm::getDataSourceBatteries() {
     QSqlQuery query;
-    QString selectQuery = "SELECT object_number, termname FROM own_forces.combatstructure JOIN "
-                          "reference_data.terms ON termhierarchy = object_name WHERE "
-                          "combat_hierarchy IN (SELECT combat_hierarchy FROM own_forces.combatstructure "
-                          "WHERE nlevel(combat_hierarchy) = 1 AND type_army = '22.10' AND type_mode = 0 "
-                          "AND date_delete is null) ORDER BY object_number";
+    QString selectQuery = "SELECT object_number, termname "
+                          "FROM own_forces.combatstructure "
+                          "JOIN reference_data.terms ON termhierarchy = object_name "
+                          "WHERE combat_hierarchy IN (SELECT combat_hierarchy "
+                          "                             FROM own_forces.combatstructure "
+                          "                             WHERE nlevel(combat_hierarchy) = 1 "
+                          "                                 AND type_army = '22.10' "
+                          "                                 AND type_mode = 0 "
+                          "                                 AND date_delete is null) "
+                          "ORDER BY object_number";
     if (!query.exec(selectQuery)) {
         qDebug() << "Unable to make select operation!" << query.lastError();
     }
@@ -576,12 +616,19 @@ QStringList HitTargetsTabForm::getDataSourceWeaponry() {
     QString targetName = ui->dataSourceBatteryCB->currentText().remove(0, targetNumber.size() + 1);
 
     QSqlQuery query;
-    QString selectPattern = "SELECT object_number, termname FROM own_forces.combatstructure JOIN "
-                            "reference_data.terms ON termhierarchy = object_name WHERE "
-                            "subltree(combat_hierarchy, 0, 1) = (SELECT combat_hierarchy FROM "
-                            "own_forces.combatstructure JOIN reference_data.terms ON termhierarchy = object_name "
-                            "WHERE termname = '%2' AND object_number = %1 AND type_army = '22.10' AND "
-                            "type_mode = 0 AND date_delete is null) AND nlevel(combat_hierarchy) = 2 "
+    QString selectPattern = "SELECT object_number, termname "
+                            "FROM own_forces.combatstructure "
+                            "JOIN reference_data.terms ON termhierarchy = object_name "
+                            "WHERE subltree(combat_hierarchy, 0, 1) = (SELECT combat_hierarchy "
+                            "                                           FROM own_forces.combatstructure "
+                            "                                           JOIN reference_data.terms "
+                            "                                           ON termhierarchy = object_name "
+                            "                                           WHERE termname = '%2' "
+                            "                                               AND object_number = %1 "
+                            "                                               AND type_army = '22.10' "
+                            "                                               AND type_mode = 0 "
+                            "                                               AND date_delete is null) "
+                            "   AND nlevel(combat_hierarchy) = 2 "
                             "ORDER BY object_number";
     QString selectQuery = selectPattern.arg(targetNumber).arg(targetName);
     if (!query.exec(selectQuery)) {
@@ -597,8 +644,10 @@ QStringList HitTargetsTabForm::getDataSourceWeaponry() {
 
 QStringList HitTargetsTabForm::getHitTargets() {
     QSqlQuery query;
-    QString selectQuery = "SELECT termname FROM reference_data.terms WHERE termhierarchy ~ '90.*' AND "
-                          "nlevel(termhierarchy) = 3";
+    QString selectQuery = "SELECT termname "
+                          "FROM reference_data.terms "
+                          "WHERE termhierarchy ~ '90.*' "
+                          "     AND nlevel(termhierarchy) = 3";
     if (!query.exec(selectQuery)) {
         qDebug() << "Unable to make select operation!" << query.lastError();
     }
@@ -612,8 +661,10 @@ QStringList HitTargetsTabForm::getHitTargets() {
 
 QStringList HitTargetsTabForm::getCoverDegrees() {
     QSqlQuery query;
-    QString selectQuery = "SELECT termname FROM reference_data.terms WHERE termhierarchy ~ '95.20.*' AND "
-                          "nlevel(termhierarchy) = 3";
+    QString selectQuery = "SELECT termname "
+                          "FROM reference_data.terms "
+                          "WHERE termhierarchy ~ '95.20.*' "
+                          "     AND nlevel(termhierarchy) = 3";
     if (!query.exec(selectQuery)) {
         qDebug() << "Unable to make select operation!" << query.lastError();
     }
@@ -627,8 +678,10 @@ QStringList HitTargetsTabForm::getCoverDegrees() {
 
 QStringList HitTargetsTabForm::getDamageDegrees() {
     QSqlQuery query;
-    QString selectQuery = "SELECT termname FROM reference_data.terms WHERE termhierarchy ~ '95.10.*' AND "
-                          "nlevel(termhierarchy) = 3";
+    QString selectQuery = "SELECT termname "
+                          "FROM reference_data.terms "
+                          "WHERE termhierarchy ~ '95.10.*' "
+                          "     AND nlevel(termhierarchy) = 3";
     if (!query.exec(selectQuery)) {
         qDebug() << "Unable to make select operation!" << query.lastError();
     }
@@ -642,8 +695,11 @@ QStringList HitTargetsTabForm::getDamageDegrees() {
 
 QStringList HitTargetsTabForm::getRocketTypes() {
     QSqlQuery query;
-    QString selectQuery = "SELECT termname FROM reference_data.terms WHERE termhierarchy ~ '51.50.*' AND "
-                          "termhierarchy != '51.50.30' AND nlevel(termhierarchy) = 3";
+    QString selectQuery = "SELECT termname "
+                          "FROM reference_data.terms "
+                          "WHERE termhierarchy ~ '51.50.*' "
+                          "     AND termhierarchy != '51.50.30' "
+                          "     AND nlevel(termhierarchy) = 3";
     if (!query.exec(selectQuery)) {
         qDebug() << "Unable to make select operation!" << query.lastError();
     }

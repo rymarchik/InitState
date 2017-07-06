@@ -14,8 +14,8 @@ int main(int argc, char *argv[])
 
     QSqlDatabase DB = QSqlDatabase::addDatabase("QPSQL");
     DB.setDatabaseName("A200");
-    DB.setUserName("postgres");
-    DB.setPassword("qwerty");
+    DB.setUserName("asrymarchik");
+    DB.setPassword("123456");
     DB.setHostName("localhost");
 //    DB.setHostName("192.168.1.42");
 

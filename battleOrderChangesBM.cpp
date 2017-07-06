@@ -190,19 +190,18 @@ void battleOrderChangesBM::slotDataOnRockets()
 {
     QSqlQuery query = QSqlQuery(db);
     db.transaction();
-    query.prepare( "SELECT t4.termname, to_char(r.date_add, 'DD.MM.YYYY HH24:MI:SS'), t5.termname "
-                   "FROM own_forces.combatstructure c "
-                   "LEFT JOIN own_forces.rocket    r   ON r.combat_hierarchy   = c.combat_hierarchy "
-                   "LEFT JOIN reference_data.terms t4  ON r.type_tid    = t4.termhierarchy "
-                   "LEFT JOIN reference_data.terms t5  ON r.state_tid   = t5.termhierarchy "
-                   "WHERE c.date_delete IS NULL "
-                   "      AND c.combat_hierarchy = ? "
-                   "order by r.number");
+    query.prepare( "SELECT t1.termname, to_char(r.date_add, 'DD.MM.YYYY HH24:MI:SS'), t2.termname, r.number "
+                   "FROM own_forces.rocket r "
+                   "LEFT JOIN reference_data.terms t1  ON r.type_tid    = t1.termhierarchy "
+                   "LEFT JOIN reference_data.terms t2  ON r.state_tid   = t2.termhierarchy "
+                   "WHERE r.date_delete IS NULL "
+                   "      AND r.combat_hierarchy = ? ");
     query.addBindValue( combatHierarchy );
     query.exec();
 
-    for(int i=1; query.next(); i++)
+    while(query.next())
     {
+        int i = query.value(3).toInt();
         switch (i) {
         case 1:
             comboBoxTypeRockets( i, query.value(0).toString() );
