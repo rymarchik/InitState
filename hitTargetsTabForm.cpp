@@ -7,6 +7,7 @@ HitTargetsTabForm::HitTargetsTabForm(QWidget *parent) :
     ui(new Ui::HitTargets)
 {
     ui->setupUi(this);
+    ui->coordinateLE->setInputMask("99°99'99.99\''A 999°99'99.99\''A 9999.9;_");
 }
 
 QString HitTargetsTabForm::getTargetNumberString() {
@@ -18,10 +19,10 @@ QString HitTargetsTabForm::getTargetNameString() {
 }
 
 void HitTargetsTabForm::onAddSetup() {
-    reinitializeFormData();
+    addCommonFormData();
 
     ui->dataSourceBatteryCB->addItems(getDataSourceBatteries());
-    ui->targetNameCB->addItems(getHitTargets());
+    getHitTargets();
     ui->detectionTimeDTE->setDateTime(QDateTime::currentDateTime());
 
     ui->dataSourceBatteryCB->setEnabled(true);
@@ -40,7 +41,7 @@ void HitTargetsTabForm::onAddSetup() {
 }
 
 void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
-    reinitializeFormData();
+    addCommonFormData();
 //    this->addTab(contentWidget, "Цель № " + navigatorUpperTable->
 //                 item(navigatorUpperTable->currentRow(), 0)->text());
     ui->dataSourceBatteryCB->addItem(table->item(table->currentRow(), 2)->text().split('/').last());
@@ -89,8 +90,8 @@ void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
             ui->squareRB->setChecked(true);
 
         QSqlQuery squareQuery;
-        QString squarePatternQuery = "SELECT ST_X(target_location), ST_Y(target_location), "
-                                     "      ST_Z(target_location), front, depth, deviation "
+        QString squarePatternQuery = "SELECT own_forces.coordinates_output(target_location), "
+                                     "      front, depth, deviation "
                                      "FROM obj_targets.target_params "
                                      "JOIN reference_data.terms ON termhierarchy = target_name "
                                      "WHERE target_number = %1 "
@@ -102,12 +103,10 @@ void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
         }
         squareQuery.next();
 
-        ui->coordinateLE->setText(Utility::convertCoordToDegreeFormat(squareQuery.value(0).toDouble()) +
-                              Utility::convertCoordToDegreeFormat(squareQuery.value(1).toDouble()));
-        ui->heightLE->setText(QString::number(squareQuery.value(2).toDouble()));
-        ui->frontLE->setText(QString::number(squareQuery.value(3).toInt()));
-        ui->depthLE->setText(QString::number(squareQuery.value(4).toInt()));
-        ui->deviationLE->setText(QString::number(squareQuery.value(5).toInt()));
+        ui->coordinateLE->setText(squareQuery.value(0).toString());
+        ui->frontLE->setText(QString::number(squareQuery.value(1).toInt()));
+        ui->depthLE->setText(QString::number(squareQuery.value(2).toInt()));
+        ui->deviationLE->setText(QString::number(squareQuery.value(3).toInt()));
         break;
     }
     case 2: {
@@ -119,8 +118,7 @@ void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
             ui->roundRB->setChecked(true);
 
         QSqlQuery roundQuery;
-        QString roundPatternQuery = "SELECT ST_X(target_location), ST_Y(target_location), "
-                                    "       ST_Z(target_location), radius "
+        QString roundPatternQuery = "SELECT own_forces.coordinates_output(target_location), radius "
                                     "FROM obj_targets.target_params "
                                     "JOIN reference_data.terms ON termhierarchy = target_name "
                                     "WHERE target_number = %1 "
@@ -132,10 +130,8 @@ void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
         }
         roundQuery.next();
 
-        ui->coordinateLE->setText(Utility::convertCoordToDegreeFormat(roundQuery.value(0).toDouble()) +
-                              Utility::convertCoordToDegreeFormat(roundQuery.value(1).toDouble()));
-        ui->heightLE->setText(QString::number(roundQuery.value(2).toDouble()));
-        ui->radiusLE->setText(QString::number(roundQuery.value(3).toInt()));
+        ui->coordinateLE->setText(roundQuery.value(0).toString());
+        ui->radiusLE->setText(QString::number(roundQuery.value(1).toInt()));
         break;
     }
     }
@@ -144,25 +140,55 @@ void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
 
 bool HitTargetsTabForm::onSaveSetup() {
     if (ui->targetNumberLE->text().isEmpty() || ui->importanceLE->text().isEmpty() ||
-            !ui->coordinateLE->text().contains(QRegExp("\\d+")) || ui->heightLE->text().isEmpty()) {
+            !ui->coordinateLE->text().contains(QRegExp("\\d+"))) {
         QMessageBox::warning(this, "Ошибка", "Заполнены не все поля!");
         return false;
     }
 
     QSqlQuery query;
+
+//    QString polygonString = "SELECT ";
+//    QString pointString = "own_forces.coordinates_input(?)";
+//    for (int i = 0; i < ui->extraCoordinatesLayout->count() + 1; i++) {
+//        polygonString.append(pointString).append(", ");
+//    }
+//    polygonString.append(pointString);
+//    qDebug() << "polygonString: " << polygonString << endl;
+
+//    QSqlQuery q;
+//    q.prepare(polygonString);
+//    q.addBindValue(ui->coordinateLE->text());
+//    for (int i = 0; i < ui->extraCoordinatesLayout->count(); i++) {
+//        QLineEdit* coord = (QLineEdit*)ui->extraCoordinatesLayout->itemAt(i)->layout()->itemAt(1)->widget();
+//        q.addBindValue(coord->text());
+//    }
+//    q.addBindValue(ui->coordinateLE->text());
+//    q.exec();
+
+//    q.next();
+//    QStringList strList;
+//    for (int i = 0; i < q.record().count(); i++) {
+//        strList << q.value(i).toString();
+//    }
+//    qDebug() << "strList: " << strList << endl;
+
+//    QString makePolygonString = "ST_MakePolygon(ST_MakeLine(ARRAY[";
+//    makePolygonString.append("'").append(strList.first()).append("'").append(", ");
+//    for (int i = 0; i < ui->extraCoordinatesLayout->count(); i++) {
+//        makePolygonString.append("'").append(strList.at(i+1)).append("'").append(", ");
+//    }
+//    makePolygonString.append("'").append(strList.last()).append("'").append("]))");
+//    qDebug() << "makePolygonString: " << makePolygonString;
+
+
     QString makePolygonString = "ST_MakePolygon(ST_MakeLine(ARRAY[";
-    QString makePointPattern = "ST_MakePoint(%1, %2, %3)";
-    QString makePointString = makePointPattern.arg(Utility::convertCoordToDecimalFormat(ui->coordinateLE->text()).at(0))
-            .arg(Utility::convertCoordToDecimalFormat(ui->coordinateLE->text()).at(1)).arg(ui->heightLE->text());
-    QString makePoint4Polygon = makePointPattern.append(", ");
+    QString makePointPattern = "own_forces.coordinates_input('%1')";
+    QString makePointString = makePointPattern.arg(ui->coordinateLE->text());
 
     makePolygonString.append(makePointString).append(", ");
     for (int i = 0; i < ui->extraCoordinatesLayout->count(); i++) {
         QLineEdit* coord = (QLineEdit*)ui->extraCoordinatesLayout->itemAt(i)->layout()->itemAt(1)->widget();
-        QLineEdit* height = (QLineEdit*)ui->extraCoordinatesLayout->itemAt(i)->layout()->itemAt(3)->widget();
-        QList<double> coordinates = Utility::convertCoordToDecimalFormat(coord->text());
-        makePolygonString.append(makePoint4Polygon.arg(coordinates.at(0))
-                                 .arg(coordinates.at(1)).arg(height->text()));
+        makePolygonString.append(makePointPattern.arg(coord->text())).append(", ");
     }
     makePolygonString.append(makePointString).append("]))");
 
@@ -198,8 +224,7 @@ bool HitTargetsTabForm::onSaveSetup() {
         if (ui->randomRB->isChecked()) {
             for (int i = 0; i < ui->extraCoordinatesLayout->count(); i++) {
                 QLineEdit* coord = (QLineEdit*)ui->extraCoordinatesLayout->itemAt(i)->layout()->itemAt(1)->widget();
-                QLineEdit* height = (QLineEdit*)ui->extraCoordinatesLayout->itemAt(i)->layout()->itemAt(3)->widget();
-                if (!coord->text().contains(QRegExp("\\d+")) || height->text().isEmpty()) {
+                if (!coord->text().contains(QRegExp("\\d+"))) {
                     QMessageBox::warning(this, "Ошибка", "Заполнены не все поля!");
                     return false;
                 }
@@ -207,18 +232,17 @@ bool HitTargetsTabForm::onSaveSetup() {
             insertPattern = "INSERT INTO obj_targets.target_params (target_number, target_name, "
                             "       importance, target_time, target_geometry, target_location, "
                             "       cover_degree, platoon, weaponry) "
-                            "VALUES (?, (SELECT termhierarchy FROM reference_data.terms "
-                            "WHERE termname = ?), ?, ?, 0, %1, (SELECT termhierarchy FROM "
-                            "reference_data.terms WHERE termname = ?), (%2), (%3))";
+                            "VALUES (?, ?, ?, ?, 0, %1, ?, (%2), (%3))";
             insertQuery = insertPattern.arg(makePolygonString)
                     .arg(dataSourceBatteryString).arg(dataSourceWeaponryString);
 
             query.prepare(insertQuery);
             query.addBindValue(ui->targetNumberLE->text());
-            query.addBindValue(ui->targetNameCB->currentText());
+            query.addBindValue(ui->targetNameCB->currentData());
             query.addBindValue(ui->importanceLE->text());
             query.addBindValue(ui->detectionTimeDTE->text());
-            query.addBindValue(ui->coverDegreeCB->currentText());
+            query.addBindValue(ui->coverDegreeCB->currentData());
+//            qDebug() << "Сам запрос: " << insertQuery << endl;
         }
         else if (ui->squareRB->isChecked()) {
             if (ui->frontLE->text().isEmpty() || ui->depthLE->text().isEmpty() || ui->deviationLE->text().isEmpty()) {
@@ -228,21 +252,32 @@ bool HitTargetsTabForm::onSaveSetup() {
             insertPattern = "INSERT INTO obj_targets.target_params (target_number, target_name, "
                             "       importance, target_time, target_geometry, target_location, "
                             "       front, depth, deviation, cover_degree, platoon, weaponry) "
-                            "VALUES (?, (SELECT termhierarchy FROM reference_data.terms WHERE "
-                            "termname = ?), ?, ?, 1, %1, ?, ?, ?, (SELECT termhierarchy FROM "
-                            "reference_data.terms WHERE termname = ?), (%2), (%3))";
-            insertQuery = insertPattern.arg(makePointString)
-                    .arg(dataSourceBatteryString).arg(dataSourceWeaponryString);
+                            "VALUES (?, ?, ?, ?, 1, own_forces.coordinates_input(?), ?, ?, ?, ?, (%1), (%2)) ";
+            insertQuery = insertPattern.arg(dataSourceBatteryString).arg(dataSourceWeaponryString);
 
             query.prepare(insertQuery);
             query.addBindValue(ui->targetNumberLE->text());
-            query.addBindValue(ui->targetNameCB->currentText());
+            query.addBindValue(ui->targetNameCB->currentData());
             query.addBindValue(ui->importanceLE->text());
             query.addBindValue(ui->detectionTimeDTE->text());
+            query.addBindValue(ui->coordinateLE->text());
             query.addBindValue(ui->frontLE->text());
             query.addBindValue(ui->depthLE->text());
             query.addBindValue(ui->deviationLE->text());
-            query.addBindValue(ui->coverDegreeCB->currentText());
+            query.addBindValue(ui->coverDegreeCB->currentData());
+
+//            qDebug() << "targetNumberLE: " << ui->targetNumberLE->text()<< endl;
+//            qDebug() << "targetNameCB: " << ui->targetNameCB->currentData()<< endl;
+//            qDebug() << "importanceLE: " << ui->importanceLE->text()<< endl;
+//            qDebug() << "detectionTimeDTE: " << ui->detectionTimeDTE->text()<< endl;
+//            qDebug() << "coordinateLE: " << ui->coordinateLE->text()<< endl;
+//            qDebug() << "frontLE: " << ui->frontLE->text()<< endl;
+//            qDebug() << "depthLE: " << ui->depthLE->text()<< endl;
+//            qDebug() << "deviationLE: " << ui->deviationLE->text()<< endl;
+//            qDebug() << "coverDegreeCB: " << ui->coverDegreeCB->currentData()<< endl;
+//            qDebug() << "dataSourceBatteryString: " << dataSourceBatteryString<< endl;
+//            qDebug() << "dataSourceWeaponryString: " << dataSourceWeaponryString<< endl;
+//            qDebug() << "Сам запрос: " << insertQuery;
         }
         else if (ui->roundRB->isChecked()) {
             if (ui->radiusLE->text().isEmpty()) {
@@ -252,19 +287,17 @@ bool HitTargetsTabForm::onSaveSetup() {
             insertPattern = "INSERT INTO obj_targets.target_params (target_number, target_name, "
                             "       importance, target_time, target_geometry, target_location, "
                             "       radius, cover_degree, platoon, weaponry) "
-                            "VALUES (?, (SELECT termhierarchy FROM reference_data.terms WHERE "
-                            "termname = ?), ?, ?, 2, %1, ?, (SELECT termhierarchy FROM "
-                            "reference_data.terms WHERE termname = ?), (%2), (%3))";
-            insertQuery = insertPattern.arg(makePointString)
-                    .arg(dataSourceBatteryString).arg(dataSourceWeaponryString);
+                            "VALUES (?, ?, ?, ?, 2, own_forces.coordinates_input(?), ?, ?, (%1), (%2))";
+            insertQuery = insertPattern.arg(dataSourceBatteryString).arg(dataSourceWeaponryString);
 
             query.prepare(insertQuery);
             query.addBindValue(ui->targetNumberLE->text());
-            query.addBindValue(ui->targetNameCB->currentText());
+            query.addBindValue(ui->targetNameCB->currentData());
             query.addBindValue(ui->importanceLE->text());
             query.addBindValue(ui->detectionTimeDTE->text());
+            query.addBindValue(ui->coordinateLE->text());
             query.addBindValue(ui->radiusLE->text());
-            query.addBindValue(ui->coverDegreeCB->currentText());
+            query.addBindValue(ui->coverDegreeCB->currentData());
         }
         if (!query.exec()) {
             qDebug() << "Unable to make insert operation\n" << query.lastError();
@@ -281,8 +314,7 @@ bool HitTargetsTabForm::onSaveSetup() {
         if (ui->randomRB->isChecked()) {
             for (int i = 0; i < ui->extraCoordinatesLayout->count(); i++) {
                 QLineEdit* coord = (QLineEdit*)ui->extraCoordinatesLayout->itemAt(i)->layout()->itemAt(1)->widget();
-                QLineEdit* height = (QLineEdit*)ui->extraCoordinatesLayout->itemAt(i)->layout()->itemAt(3)->widget();
-                if (!coord->text().contains(QRegExp("\\d+")) || height->text().isEmpty()) {
+                if (!coord->text().contains(QRegExp("\\d+"))) {
                     QMessageBox::warning(this, "Ошибка", "Заполнены не все поля!");
                     return false;
                 }
@@ -290,82 +322,65 @@ bool HitTargetsTabForm::onSaveSetup() {
             updatePattern = "UPDATE obj_targets.target_params "
                             "SET importance = ?, target_time = ?, target_geometry = 0, "
                             "       target_location = %1, front = null, depth = null, "
-                            "       deviation = null, radius = null, cover_degree = "
-                            "           (SELECT termhierarchy "
-                            "           FROM reference_data.terms "
-                            "           WHERE termname = ?), "
+                            "       deviation = null, radius = null, cover_degree = ?, "
                             "       update_time = now() "
                             "WHERE target_number = ? "
-                            "       AND target_name = "
-                            "           (SELECT termhierarchy "
-                            "           FROM reference_data.terms "
-                            "           WHERE termname = ?)";
+                            "       AND target_name = ?";
             updateQuery = updatePattern.arg(makePolygonString);
 
             query.prepare(updateQuery);
             query.addBindValue(ui->importanceLE->text());
             query.addBindValue(ui->detectionTimeDTE->text());
-            query.addBindValue(ui->coverDegreeCB->currentText());
+            query.addBindValue(ui->coverDegreeCB->currentData());
             query.addBindValue(ui->targetNumberLE->text());
-            query.addBindValue(ui->targetNameCB->currentText());
+            query.addBindValue(ui->targetNameCB->currentData());
         }
         else if (ui->squareRB->isChecked()) {
             if (ui->frontLE->text().isEmpty() || ui->depthLE->text().isEmpty() || ui->deviationLE->text().isEmpty()) {
                 QMessageBox::warning(this, "Ошибка", "Заполнены не все поля!");
                 return false;
             }
-            updatePattern = "UPDATE obj_targets.target_params "
-                            "SET importance = ?, target_time = ?, target_geometry = 1, "
-                            "       target_location = %1, front = ?, depth = ?, "
-                            "       deviation = ?, radius = null, cover_degree = "
-                            "           (SELECT termhierarchy "
-                            "           FROM reference_data.terms "
-                            "           WHERE termname = ?), "
-                            "       update_time = now() "
-                            "WHERE target_number = ? "
-                            "       AND target_name = "
-                            "           (SELECT termhierarchy "
-                            "           FROM reference_data.terms "
-                            "           WHERE termname = ?)";
-            updateQuery = updatePattern.arg(makePointString);
-
+            updateQuery = "UPDATE obj_targets.target_params "
+                          "SET importance = ?, target_time = ?, target_geometry = 1, "
+                          "     target_location = own_forces.coordinates_input(?), "
+                          "     front = ?, depth = ?, deviation = ?, radius = null, "
+                          "     cover_degree = ?, update_time = now() "
+                          "WHERE target_number = ? "
+                          "     AND target_name = ?";
             query.prepare(updateQuery);
             query.addBindValue(ui->importanceLE->text());
             query.addBindValue(ui->detectionTimeDTE->text());
+            query.addBindValue(ui->coordinateLE->text());
             query.addBindValue(ui->frontLE->text());
             query.addBindValue(ui->depthLE->text());
             query.addBindValue(ui->deviationLE->text());
-            query.addBindValue(ui->coverDegreeCB->currentText());
+            query.addBindValue(ui->coverDegreeCB->currentData());
             query.addBindValue(ui->targetNumberLE->text());
-            query.addBindValue(ui->targetNameCB->currentText());
+            query.addBindValue(ui->targetNameCB->currentData());
+
+            qDebug() << "Coord: " << ui->coordinateLE->text();
+            qDebug() << "Query: " << updateQuery;
         }
         else if (ui->roundRB->isChecked()) {
             if (ui->radiusLE->text().isEmpty()) {
                 QMessageBox::warning(this, "Ошибка", "Заполнены не все поля!");
                 return false;
             }
-            updatePattern = "UPDATE obj_targets.target_params "
-                            "SET importance = ?, target_time = ?, target_geometry = 2, "
-                            "       target_location = %1, front = null, depth = null, "
-                            "       deviation = null, radius = ?, cover_degree = "
-                            "           (SELECT termhierarchy "
-                            "           FROM reference_data.terms "
-                            "           WHERE termname = ?), "
-                            "       update_time = now() "
-                            "WHERE target_number = ? "
-                            "       AND target_name = "
-                            "           (SELECT termhierarchy "
-                            "           FROM reference_data.terms "
-                            "           WHERE termname = ?)";
-            updateQuery = updatePattern.arg(makePointString);
-
+            updateQuery = "UPDATE obj_targets.target_params "
+                          "SET importance = ?, target_time = ?, target_geometry = 2, "
+                          "     target_location = own_forces.coordinates_input(?), "
+                          "     front = null, depth = null, deviation = null, "
+                          "     radius = ?, cover_degree = ?, update_time = now() "
+                          "WHERE target_number = ? "
+                          "     AND target_name = ?";
             query.prepare(updateQuery);
             query.addBindValue(ui->importanceLE->text());
             query.addBindValue(ui->detectionTimeDTE->text());
+            query.addBindValue(ui->coordinateLE->text());
             query.addBindValue(ui->radiusLE->text());
-            query.addBindValue(ui->coverDegreeCB->currentText());
+            query.addBindValue(ui->coverDegreeCB->currentData());
             query.addBindValue(ui->targetNumberLE->text());
-            query.addBindValue(ui->targetNameCB->currentText());
+            query.addBindValue(ui->targetNameCB->currentData());
         }
         if (!query.exec()) {
             qDebug() << "Unable to make update operation\n" << query.lastError();
@@ -381,19 +396,14 @@ bool HitTargetsTabForm::onSaveSetup() {
 
 void HitTargetsTabForm::slotAddPoint() {
     QLabel* newCoordLbl = new QLabel("Координата");
-    QLabel* newHeightLbl = new QLabel("Высота, м");
     QLineEdit* newCoordLE = new QLineEdit;
-    QLineEdit* newHeightLE = new QLineEdit;
 
     newCoordLbl->setFont(font);
-    newHeightLbl->setFont(font);
-    newCoordLE->setInputMask("B99° 99' 99.99\" \\N     B99° 99' 99.99\" E;_");
+    newCoordLE->setInputMask("99°99'99.99\''A 999°99'99.99\''A 9999.9;_");
 
     QHBoxLayout* coordStringLayout = new QHBoxLayout;
     coordStringLayout->addWidget(newCoordLbl);
     coordStringLayout->addWidget(newCoordLE);
-    coordStringLayout->addWidget(newHeightLbl);
-    coordStringLayout->addWidget(newHeightLE);
     ui->extraCoordinatesLayout->addLayout(coordStringLayout);
 
     if (ui->extraCoordinatesLayout->count() > 2)
@@ -402,7 +412,7 @@ void HitTargetsTabForm::slotAddPoint() {
 
 void HitTargetsTabForm::slotRemovePoint() {
     QLayout* layout = ui->extraCoordinatesLayout->itemAt(ui->extraCoordinatesLayout->count() - 1)->layout();
-    for (int i = 3; i >= 0; i--) {
+    for (int i = 1; i >= 0; i--) {
         delete layout->takeAt(i)->widget();
         delete layout->takeAt(i);
     }
@@ -414,12 +424,11 @@ void HitTargetsTabForm::slotRemovePoint() {
 
 void HitTargetsTabForm::addFilledPoints() {
     QSqlQuery query;
-    QString selectPattern = "SELECT ST_X(geom), ST_Y(geom), ST_Z(geom) "
-                            "FROM (SELECT (ST_dumppoints(target_location)).geom "
-                            "       FROM obj_targets.target_params "
-                            "       JOIN reference_data.terms ON termhierarchy = target_name "
-                            "       WHERE target_number = %1 "
-                            "           AND termname = '%2') AS foo";
+    QString selectPattern = "SELECT own_forces.coordinates_output(target_location) "
+                            "FROM obj_targets.target_params "
+                            "JOIN reference_data.terms ON termhierarchy = target_name "
+                            "WHERE target_number = %1 "
+                            "       AND termname = '%2') AS foo";
     QString selectQuery = selectPattern.arg(ui->targetNumberLE->text()).arg(ui->targetNameCB->currentText());
 
     if (!query.exec(selectQuery)) {
@@ -427,35 +436,24 @@ void HitTargetsTabForm::addFilledPoints() {
     }
 
     query.next();
-    ui->coordinateLE->setText(Utility::convertCoordToDegreeFormat(query.value(0).toDouble()) +
-                          Utility::convertCoordToDegreeFormat(query.value(1).toDouble()));
-    ui->heightLE->setText(QString::number(query.value(2).toDouble()));
-
+    ui->coordinateLE->setText(query.value(0).toString());
 
     QHBoxLayout* coordStringLayout;
     QLabel* newCoordLbl;
-    QLabel* newHeightLbl;
     QLineEdit* newCoordLE;
-    QLineEdit* newHeightLE;
 
     for (int i = 0; i < query.size() - 2; i++) {
         query.next();
 
         newCoordLbl = new QLabel("Координата");
-        newHeightLbl = new QLabel("Высота, м");
         newCoordLbl->setFont(font);
-        newHeightLbl->setFont(font);
 
-        newCoordLE = new QLineEdit(Utility::convertCoordToDegreeFormat(query.value(0).toDouble()) +
-                                   Utility::convertCoordToDegreeFormat(query.value(1).toDouble()));
-        newCoordLE->setInputMask("B99° 99' 99.99\" \\N     B99° 99' 99.99\" E;_");
-        newHeightLE = new QLineEdit(QString::number(query.value(2).toDouble()));
+        newCoordLE = new QLineEdit(query.value(0).toString());
+        newCoordLE->setInputMask("99°99'99.99\''A 999°99'99.99\''A 9999.9;_");
 
         coordStringLayout = new QHBoxLayout;
         coordStringLayout->addWidget(newCoordLbl);
         coordStringLayout->addWidget(newCoordLE);
-        coordStringLayout->addWidget(newHeightLbl);
-        coordStringLayout->addWidget(newHeightLE);
         ui->extraCoordinatesLayout->addLayout(coordStringLayout);
     }
     if (ui->extraCoordinatesLayout->count() > 2)
@@ -474,7 +472,7 @@ void HitTargetsTabForm::slotToggleRandomRB() {
     ui->removePointBtn->setHidden(false);
 
     for (int i = 0; i < ui->extraCoordinatesLayout->count(); i++) {
-        for (int j = 0; j < 4; j++) {
+        for (int j = 0; j < 2; j++) {
             ui->extraCoordinatesLayout->itemAt(i)->layout()->itemAt(j)->widget()->show();
         }
     }
@@ -495,7 +493,7 @@ void HitTargetsTabForm::slotToggleSquareRB() {
     ui->removePointBtn->setHidden(true);
 
     for (int i = 0; i < ui->extraCoordinatesLayout->count(); i++) {
-        for (int j = 0; j < 4; j++) {
+        for (int j = 0; j < 2; j++) {
             ui->extraCoordinatesLayout->itemAt(i)->layout()->itemAt(j)->widget()->hide();
         }
     }
@@ -516,7 +514,7 @@ void HitTargetsTabForm::slotToggleRoundRB() {
     ui->removePointBtn->setHidden(true);
 
     for (int i = 0; i < ui->extraCoordinatesLayout->count(); i++) {
-        for (int j = 0; j < 4; j++) {
+        for (int j = 0; j < 2; j++) {
             ui->extraCoordinatesLayout->itemAt(i)->layout()->itemAt(j)->widget()->hide();
         }
     }
@@ -556,35 +554,11 @@ void HitTargetsTabForm::slotToggleExplosionCB() {
     }
 }
 
-void HitTargetsTabForm::reinitializeFormData() {
-//    Utility::closeNewEditTab(this);
-
-//    ui->dataSourceBatteryCB->clear();
-//    ui->dataSourceWeaponryCB->clear();
-//    ui->targetNumberLE->clear();
-//    ui->targetNameCB->clear();
-//    ui->importanceLE->clear();
-
-//    Utility::clearLayout(ui->extraCoordinatesLayout);
-//    ui->coordinateLE->clear();
-//    ui->heightLE->clear();
-//    ui->removePointBtn->setEnabled(false);
-//    ui->frontLE->clear();
-//    ui->depthLE->clear();
-//    ui->deviationLE->clear();
-//    ui->radiusLE->clear();
-//    ui->coverDegreeCB->clear();
-    ui->coverDegreeCB->addItems(getCoverDegrees());
-
-//    ui->launchChB->setChecked(false);
-//    ui->explosionChB->setChecked(false);
-//    ui->launchTimeDTE->setEnabled(false);
-//    ui->damageDegreeCB->clear();
-//    ui->rocketTypeCB->clear();
-//    ui->quantityLE->clear();
+void HitTargetsTabForm::addCommonFormData() {
+    getCoverDegrees();
     ui->launchTimeDTE->setDateTime(QDateTime::currentDateTime());
-    ui->damageDegreeCB->addItems(getDamageDegrees());
-    ui->rocketTypeCB->addItems(getRocketTypes());
+    getDamageDegrees();
+    getRocketTypes();
 }
 
 
@@ -642,9 +616,9 @@ QStringList HitTargetsTabForm::getDataSourceWeaponry() {
     return list;
 }
 
-QStringList HitTargetsTabForm::getHitTargets() {
+void HitTargetsTabForm::getHitTargets() {
     QSqlQuery query;
-    QString selectQuery = "SELECT termname "
+    QString selectQuery = "SELECT termhierarchy, termname "
                           "FROM reference_data.terms "
                           "WHERE termhierarchy ~ '90.*' "
                           "     AND nlevel(termhierarchy) = 3";
@@ -652,16 +626,14 @@ QStringList HitTargetsTabForm::getHitTargets() {
         qDebug() << "Unable to make select operation!" << query.lastError();
     }
 
-    QStringList list;
     while (query.next()) {
-        list.append(query.value(0).toString());
+        ui->targetNameCB->addItem(query.value(1).toString(), query.value(0).toString());
     }
-    return list;
 }
 
-QStringList HitTargetsTabForm::getCoverDegrees() {
+void HitTargetsTabForm::getCoverDegrees() {
     QSqlQuery query;
-    QString selectQuery = "SELECT termname "
+    QString selectQuery = "SELECT termhierarchy, termname "
                           "FROM reference_data.terms "
                           "WHERE termhierarchy ~ '95.20.*' "
                           "     AND nlevel(termhierarchy) = 3";
@@ -669,16 +641,14 @@ QStringList HitTargetsTabForm::getCoverDegrees() {
         qDebug() << "Unable to make select operation!" << query.lastError();
     }
 
-    QStringList list;
     while (query.next()) {
-        list.append(query.value(0).toString());
+        ui->coverDegreeCB->addItem(query.value(1).toString(), query.value(0).toString());
     }
-    return list;
 }
 
-QStringList HitTargetsTabForm::getDamageDegrees() {
+void HitTargetsTabForm::getDamageDegrees() {
     QSqlQuery query;
-    QString selectQuery = "SELECT termname "
+    QString selectQuery = "SELECT termhierarchy, termname "
                           "FROM reference_data.terms "
                           "WHERE termhierarchy ~ '95.10.*' "
                           "     AND nlevel(termhierarchy) = 3";
@@ -686,16 +656,14 @@ QStringList HitTargetsTabForm::getDamageDegrees() {
         qDebug() << "Unable to make select operation!" << query.lastError();
     }
 
-    QStringList list;
     while (query.next()) {
-        list.append(query.value(0).toString());
+        ui->damageDegreeCB->addItem(query.value(1).toString(), query.value(0).toString());
     }
-    return list;
 }
 
-QStringList HitTargetsTabForm::getRocketTypes() {
+void HitTargetsTabForm::getRocketTypes() {
     QSqlQuery query;
-    QString selectQuery = "SELECT termname "
+    QString selectQuery = "SELECT termhierarchy, termname "
                           "FROM reference_data.terms "
                           "WHERE termhierarchy ~ '51.50.*' "
                           "     AND termhierarchy != '51.50.30' "
@@ -704,11 +672,9 @@ QStringList HitTargetsTabForm::getRocketTypes() {
         qDebug() << "Unable to make select operation!" << query.lastError();
     }
 
-    QStringList list;
     while (query.next()) {
-        list.append(query.value(0).toString());
+        ui->rocketTypeCB->addItem(query.value(1).toString(), query.value(0).toString());
     }
-    return list;
 }
 
 

@@ -21,14 +21,14 @@ public:
     void onEditSetup(QTableWidget*);
     bool onSaveSetup();
 
-    void reinitializeFormData();
+    void addCommonFormData();
     void addFilledPoints();
     QStringList getDataSourceBatteries();
     QStringList getDataSourceWeaponry();
-    QStringList getHitTargets();
-    QStringList getCoverDegrees();
-    QStringList getDamageDegrees();
-    QStringList getRocketTypes();
+    void getHitTargets();
+    void getCoverDegrees();
+    void getDamageDegrees();
+    void getRocketTypes();
 
     QString getTargetNumberString();
     QString getTargetNameString();

@@ -16,6 +16,7 @@ public:
     static QString convertCoordToDegreeFormat(double);
     static QString convertCodeToReferenceName(QSqlDatabase  db, QString code);
     static QString convertReferenceNameTOCode(QSqlDatabase  db, QString referenceName);
+    static QString getParsedLocation(QString);
 };
 
 #endif // UTILITY_H
