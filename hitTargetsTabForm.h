@@ -30,6 +30,7 @@ public:
     void getDamageDegrees();
     void getRocketTypes();
 
+    QString getPolygonString();
     QString getTargetNumberString();
     QString getTargetNameString();
 

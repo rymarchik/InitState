@@ -20,7 +20,6 @@ QString HitTargetsTabForm::getTargetNameString() {
 
 void HitTargetsTabForm::onAddSetup() {
     addCommonFormData();
-
     ui->dataSourceBatteryCB->addItems(getDataSourceBatteries());
     getHitTargets();
     ui->detectionTimeDTE->setDateTime(QDateTime::currentDateTime());
@@ -42,12 +41,12 @@ void HitTargetsTabForm::onAddSetup() {
 
 void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
     addCommonFormData();
-//    this->addTab(contentWidget, "Цель № " + navigatorUpperTable->
-//                 item(navigatorUpperTable->currentRow(), 0)->text());
     ui->dataSourceBatteryCB->addItem(table->item(table->currentRow(), 2)->text().split('/').last());
     ui->dataSourceWeaponryCB->addItem(table->item(table->currentRow(), 2)->text().split('/').first());
     ui->targetNumberLE->setText(table->item(table->currentRow(), 0)->text());
-    ui->targetNameCB->addItem(table->item(table->currentRow(), 1)->text());
+    getHitTargets();
+    ui->targetNameCB->setCurrentText(table->item(table->currentRow(), 1)->text());
+//    ui->targetNameCB->addItem(table->item(table->currentRow(), 1)->text());
 
     ui->dataSourceBatteryCB->setEnabled(false);
     ui->dataSourceWeaponryCB->setEnabled(false);
@@ -141,56 +140,11 @@ void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
 bool HitTargetsTabForm::onSaveSetup() {
     if (ui->targetNumberLE->text().isEmpty() || ui->importanceLE->text().isEmpty() ||
             !ui->coordinateLE->text().contains(QRegExp("\\d+"))) {
-        QMessageBox::warning(this, "Ошибка", "Заполнены не все поля!");
+        QMessageBox::warning(this, "Ошибка", "Не заполнено поле с координатами!");
         return false;
     }
 
     QSqlQuery query;
-
-//    QString polygonString = "SELECT ";
-//    QString pointString = "own_forces.coordinates_input(?)";
-//    for (int i = 0; i < ui->extraCoordinatesLayout->count() + 1; i++) {
-//        polygonString.append(pointString).append(", ");
-//    }
-//    polygonString.append(pointString);
-//    qDebug() << "polygonString: " << polygonString << endl;
-
-//    QSqlQuery q;
-//    q.prepare(polygonString);
-//    q.addBindValue(ui->coordinateLE->text());
-//    for (int i = 0; i < ui->extraCoordinatesLayout->count(); i++) {
-//        QLineEdit* coord = (QLineEdit*)ui->extraCoordinatesLayout->itemAt(i)->layout()->itemAt(1)->widget();
-//        q.addBindValue(coord->text());
-//    }
-//    q.addBindValue(ui->coordinateLE->text());
-//    q.exec();
-
-//    q.next();
-//    QStringList strList;
-//    for (int i = 0; i < q.record().count(); i++) {
-//        strList << q.value(i).toString();
-//    }
-//    qDebug() << "strList: " << strList << endl;
-
-//    QString makePolygonString = "ST_MakePolygon(ST_MakeLine(ARRAY[";
-//    makePolygonString.append("'").append(strList.first()).append("'").append(", ");
-//    for (int i = 0; i < ui->extraCoordinatesLayout->count(); i++) {
-//        makePolygonString.append("'").append(strList.at(i+1)).append("'").append(", ");
-//    }
-//    makePolygonString.append("'").append(strList.last()).append("'").append("]))");
-//    qDebug() << "makePolygonString: " << makePolygonString;
-
-
-    QString makePolygonString = "ST_MakePolygon(ST_MakeLine(ARRAY[";
-    QString makePointPattern = "own_forces.coordinates_input('%1')";
-    QString makePointString = makePointPattern.arg(ui->coordinateLE->text());
-
-    makePolygonString.append(makePointString).append(", ");
-    for (int i = 0; i < ui->extraCoordinatesLayout->count(); i++) {
-        QLineEdit* coord = (QLineEdit*)ui->extraCoordinatesLayout->itemAt(i)->layout()->itemAt(1)->widget();
-        makePolygonString.append(makePointPattern.arg(coord->text())).append(", ");
-    }
-    makePolygonString.append(makePointString).append("]))");
 
     if (ui->dataSourceBatteryCB->isEnabled()) { //i.e. add tab
         QString insertPattern;
@@ -202,14 +156,12 @@ bool HitTargetsTabForm::onSaveSetup() {
                                  "WHERE object_number = %1 "
                                  "      AND termname = '%2' "
                                  "      AND type_army = '22.10' "
-                                 "      AND type_mode = 0 "
                                  "      AND date_delete is null";
         QString weaponryPattern = "SELECT combat_hierarchy "
                                   "FROM own_forces.combatstructure "
                                   "JOIN reference_data.terms ON termhierarchy = object_name "
                                   "WHERE object_number = %1 "
                                   "     AND termname = '%2' "
-                                  "     AND type_mode = 0 "
                                   "     AND date_delete is null "
                                   "     AND subltree(combat_hierarchy, 0, 1) = (%3)";
         QString batteryTargetNumber = ui->dataSourceBatteryCB->currentText().split(' ').first();
@@ -225,15 +177,15 @@ bool HitTargetsTabForm::onSaveSetup() {
             for (int i = 0; i < ui->extraCoordinatesLayout->count(); i++) {
                 QLineEdit* coord = (QLineEdit*)ui->extraCoordinatesLayout->itemAt(i)->layout()->itemAt(1)->widget();
                 if (!coord->text().contains(QRegExp("\\d+"))) {
-                    QMessageBox::warning(this, "Ошибка", "Заполнены не все поля!");
+                    QMessageBox::warning(this, "Ошибка", "Не заполнены все поля с координатами!");
                     return false;
                 }
             }
             insertPattern = "INSERT INTO obj_targets.target_params (target_number, target_name, "
                             "       importance, target_time, target_geometry, target_location, "
                             "       cover_degree, platoon, weaponry) "
-                            "VALUES (?, ?, ?, ?, 0, %1, ?, (%2), (%3))";
-            insertQuery = insertPattern.arg(makePolygonString)
+                            "VALUES (?, ?, ?, ?, ?, %1, ?, (%2), (%3))";
+            insertQuery = insertPattern.arg(getPolygonString())
                     .arg(dataSourceBatteryString).arg(dataSourceWeaponryString);
 
             query.prepare(insertQuery);
@@ -241,8 +193,8 @@ bool HitTargetsTabForm::onSaveSetup() {
             query.addBindValue(ui->targetNameCB->currentData());
             query.addBindValue(ui->importanceLE->text());
             query.addBindValue(ui->detectionTimeDTE->text());
+            query.addBindValue(0);
             query.addBindValue(ui->coverDegreeCB->currentData());
-//            qDebug() << "Сам запрос: " << insertQuery << endl;
         }
         else if (ui->squareRB->isChecked()) {
             if (ui->frontLE->text().isEmpty() || ui->depthLE->text().isEmpty() || ui->deviationLE->text().isEmpty()) {
@@ -252,7 +204,7 @@ bool HitTargetsTabForm::onSaveSetup() {
             insertPattern = "INSERT INTO obj_targets.target_params (target_number, target_name, "
                             "       importance, target_time, target_geometry, target_location, "
                             "       front, depth, deviation, cover_degree, platoon, weaponry) "
-                            "VALUES (?, ?, ?, ?, 1, own_forces.coordinates_input(?), ?, ?, ?, ?, (%1), (%2)) ";
+                            "VALUES (?, ?, ?, ?, ?, own_forces.coordinates_input(?), ?, ?, ?, ?, (%1), (%2)) ";
             insertQuery = insertPattern.arg(dataSourceBatteryString).arg(dataSourceWeaponryString);
 
             query.prepare(insertQuery);
@@ -260,34 +212,22 @@ bool HitTargetsTabForm::onSaveSetup() {
             query.addBindValue(ui->targetNameCB->currentData());
             query.addBindValue(ui->importanceLE->text());
             query.addBindValue(ui->detectionTimeDTE->text());
+            query.addBindValue(1);
             query.addBindValue(ui->coordinateLE->text());
             query.addBindValue(ui->frontLE->text());
             query.addBindValue(ui->depthLE->text());
             query.addBindValue(ui->deviationLE->text());
             query.addBindValue(ui->coverDegreeCB->currentData());
-
-//            qDebug() << "targetNumberLE: " << ui->targetNumberLE->text()<< endl;
-//            qDebug() << "targetNameCB: " << ui->targetNameCB->currentData()<< endl;
-//            qDebug() << "importanceLE: " << ui->importanceLE->text()<< endl;
-//            qDebug() << "detectionTimeDTE: " << ui->detectionTimeDTE->text()<< endl;
-//            qDebug() << "coordinateLE: " << ui->coordinateLE->text()<< endl;
-//            qDebug() << "frontLE: " << ui->frontLE->text()<< endl;
-//            qDebug() << "depthLE: " << ui->depthLE->text()<< endl;
-//            qDebug() << "deviationLE: " << ui->deviationLE->text()<< endl;
-//            qDebug() << "coverDegreeCB: " << ui->coverDegreeCB->currentData()<< endl;
-//            qDebug() << "dataSourceBatteryString: " << dataSourceBatteryString<< endl;
-//            qDebug() << "dataSourceWeaponryString: " << dataSourceWeaponryString<< endl;
-//            qDebug() << "Сам запрос: " << insertQuery;
         }
         else if (ui->roundRB->isChecked()) {
             if (ui->radiusLE->text().isEmpty()) {
-                QMessageBox::warning(this, "Ошибка", "Заполнены не все поля!");
+                QMessageBox::warning(this, "Ошибка", "Не заполнено поле с радиусом!");
                 return false;
             }
             insertPattern = "INSERT INTO obj_targets.target_params (target_number, target_name, "
                             "       importance, target_time, target_geometry, target_location, "
                             "       radius, cover_degree, platoon, weaponry) "
-                            "VALUES (?, ?, ?, ?, 2, own_forces.coordinates_input(?), ?, ?, (%1), (%2))";
+                            "VALUES (?, ?, ?, ?, ?, own_forces.coordinates_input(?), ?, ?, (%1), (%2))";
             insertQuery = insertPattern.arg(dataSourceBatteryString).arg(dataSourceWeaponryString);
 
             query.prepare(insertQuery);
@@ -295,6 +235,7 @@ bool HitTargetsTabForm::onSaveSetup() {
             query.addBindValue(ui->targetNameCB->currentData());
             query.addBindValue(ui->importanceLE->text());
             query.addBindValue(ui->detectionTimeDTE->text());
+            query.addBindValue(2);
             query.addBindValue(ui->coordinateLE->text());
             query.addBindValue(ui->radiusLE->text());
             query.addBindValue(ui->coverDegreeCB->currentData());
@@ -315,22 +256,23 @@ bool HitTargetsTabForm::onSaveSetup() {
             for (int i = 0; i < ui->extraCoordinatesLayout->count(); i++) {
                 QLineEdit* coord = (QLineEdit*)ui->extraCoordinatesLayout->itemAt(i)->layout()->itemAt(1)->widget();
                 if (!coord->text().contains(QRegExp("\\d+"))) {
-                    QMessageBox::warning(this, "Ошибка", "Заполнены не все поля!");
+                    QMessageBox::warning(this, "Ошибка", "Не заполнены все поля с координатами!");
                     return false;
                 }
             }
             updatePattern = "UPDATE obj_targets.target_params "
-                            "SET importance = ?, target_time = ?, target_geometry = 0, "
+                            "SET importance = ?, target_time = ?, target_geometry = ?, "
                             "       target_location = %1, front = null, depth = null, "
                             "       deviation = null, radius = null, cover_degree = ?, "
                             "       update_time = now() "
                             "WHERE target_number = ? "
                             "       AND target_name = ?";
-            updateQuery = updatePattern.arg(makePolygonString);
+            updateQuery = updatePattern.arg(getPolygonString());
 
             query.prepare(updateQuery);
             query.addBindValue(ui->importanceLE->text());
             query.addBindValue(ui->detectionTimeDTE->text());
+            query.addBindValue(0);
             query.addBindValue(ui->coverDegreeCB->currentData());
             query.addBindValue(ui->targetNumberLE->text());
             query.addBindValue(ui->targetNameCB->currentData());
@@ -341,7 +283,7 @@ bool HitTargetsTabForm::onSaveSetup() {
                 return false;
             }
             updateQuery = "UPDATE obj_targets.target_params "
-                          "SET importance = ?, target_time = ?, target_geometry = 1, "
+                          "SET importance = ?, target_time = ?, target_geometry = ?, "
                           "     target_location = own_forces.coordinates_input(?), "
                           "     front = ?, depth = ?, deviation = ?, radius = null, "
                           "     cover_degree = ?, update_time = now() "
@@ -350,6 +292,7 @@ bool HitTargetsTabForm::onSaveSetup() {
             query.prepare(updateQuery);
             query.addBindValue(ui->importanceLE->text());
             query.addBindValue(ui->detectionTimeDTE->text());
+            query.addBindValue(1);
             query.addBindValue(ui->coordinateLE->text());
             query.addBindValue(ui->frontLE->text());
             query.addBindValue(ui->depthLE->text());
@@ -357,13 +300,10 @@ bool HitTargetsTabForm::onSaveSetup() {
             query.addBindValue(ui->coverDegreeCB->currentData());
             query.addBindValue(ui->targetNumberLE->text());
             query.addBindValue(ui->targetNameCB->currentData());
-
-            qDebug() << "Coord: " << ui->coordinateLE->text();
-            qDebug() << "Query: " << updateQuery;
         }
         else if (ui->roundRB->isChecked()) {
             if (ui->radiusLE->text().isEmpty()) {
-                QMessageBox::warning(this, "Ошибка", "Заполнены не все поля!");
+                QMessageBox::warning(this, "Ошибка", "Не заполнено поле с радиусом!");
                 return false;
             }
             updateQuery = "UPDATE obj_targets.target_params "
@@ -376,6 +316,7 @@ bool HitTargetsTabForm::onSaveSetup() {
             query.prepare(updateQuery);
             query.addBindValue(ui->importanceLE->text());
             query.addBindValue(ui->detectionTimeDTE->text());
+            query.addBindValue(2);
             query.addBindValue(ui->coordinateLE->text());
             query.addBindValue(ui->radiusLE->text());
             query.addBindValue(ui->coverDegreeCB->currentData());
@@ -424,31 +365,51 @@ void HitTargetsTabForm::slotRemovePoint() {
 
 void HitTargetsTabForm::addFilledPoints() {
     QSqlQuery query;
-    QString selectPattern = "SELECT own_forces.coordinates_output(target_location) "
-                            "FROM obj_targets.target_params "
-                            "JOIN reference_data.terms ON termhierarchy = target_name "
-                            "WHERE target_number = %1 "
-                            "       AND termname = '%2') AS foo";
-    QString selectQuery = selectPattern.arg(ui->targetNumberLE->text()).arg(ui->targetNameCB->currentText());
 
-    if (!query.exec(selectQuery)) {
-        qDebug() << "Unable to make select operation!" << query.lastError();
+    QString selectHexCoordsPattern = "SELECT (ST_dumppoints(target_location)).geom "
+                                     "FROM obj_targets.target_params "
+                                     "JOIN reference_data.terms ON termhierarchy = target_name "
+                                     "WHERE target_number = %1 "
+                                     "      AND termname = '%2'";
+    QString selectHexCoordsQuery = selectHexCoordsPattern.arg(ui->targetNumberLE->text())
+            .arg(ui->targetNameCB->currentText());
+
+    if (!query.exec(selectHexCoordsQuery)) {
+        qDebug() << "Unable to select hex coordinates!" << query.lastError();
+    }
+    QStringList hexCoords;
+    while (query.next()) {
+        hexCoords << query.value(0).toString();
     }
 
-    query.next();
-    ui->coordinateLE->setText(query.value(0).toString());
 
+    QString selectParsedCoordsQuery = "SELECT ";
+    QString funcString = "own_forces.coordinates_output(?)";
+    for (int i = 0; i < hexCoords.size() - 2; i++) {
+        selectParsedCoordsQuery.append(funcString).append(", ");
+    }
+    selectParsedCoordsQuery.append(funcString);
+//    qDebug() << "selectParsedCoordsQuery: " << selectParsedCoordsQuery << endl;
+
+    query.prepare(selectParsedCoordsQuery);
+    for (int i = 0; i < hexCoords.size() - 1; i++) {
+        query.addBindValue(hexCoords.at(i));
+    }
+    if (!query.exec()) {
+        qDebug() << "Unable to select parsed coordinates!" << query.lastError();
+    }
+    query.next();
+
+    ui->coordinateLE->setText(query.value(0).toString());
     QHBoxLayout* coordStringLayout;
     QLabel* newCoordLbl;
     QLineEdit* newCoordLE;
 
-    for (int i = 0; i < query.size() - 2; i++) {
-        query.next();
-
+    for (int i = 1; i < query.record().count(); i++) {
         newCoordLbl = new QLabel("Координата");
         newCoordLbl->setFont(font);
 
-        newCoordLE = new QLineEdit(query.value(0).toString());
+        newCoordLE = new QLineEdit(query.value(i).toString());
         newCoordLE->setInputMask("99°99'99.99\''A 999°99'99.99\''A 9999.9;_");
 
         coordStringLayout = new QHBoxLayout;
@@ -561,6 +522,41 @@ void HitTargetsTabForm::addCommonFormData() {
     getRocketTypes();
 }
 
+QString HitTargetsTabForm::getPolygonString() {
+    QString selectHexCoordsQuery = "SELECT ";
+    QString funcString = "own_forces.coordinates_input(?)";
+    for (int i = 0; i < ui->extraCoordinatesLayout->count() + 1; i++) {
+        selectHexCoordsQuery.append(funcString).append(", ");
+    }
+    selectHexCoordsQuery.append(funcString);
+//    qDebug() << "selectHexCoordsQuery: " << selectHexCoordsQuery << endl;
+
+    QSqlQuery query;
+    query.prepare(selectHexCoordsQuery);
+    query.addBindValue(ui->coordinateLE->text());
+    for (int i = 0; i < ui->extraCoordinatesLayout->count(); i++) {
+        QLineEdit* coord = (QLineEdit*)ui->extraCoordinatesLayout->itemAt(i)->layout()->itemAt(1)->widget();
+        query.addBindValue(coord->text());
+    }
+    query.addBindValue(ui->coordinateLE->text());
+    query.exec();
+
+    query.next();
+    QStringList strList;
+    for (int i = 0; i < query.record().count(); i++) {
+        strList << query.value(i).toString();
+    }
+//    qDebug() << "strList: " << strList << endl;
+
+    QString makePolygonString = "ST_MakePolygon(ST_MakeLine(ARRAY[";
+    makePolygonString.append("'").append(strList.first()).append("'").append(", ");
+    for (int i = 0; i < ui->extraCoordinatesLayout->count(); i++) {
+        makePolygonString.append("'").append(strList.at(i+1)).append("'").append(", ");
+    }
+    makePolygonString.append("'").append(strList.last()).append("'").append("]))");
+//    qDebug() << "makePolygonString: " << makePolygonString;
+    return makePolygonString;
+}
 
 QStringList HitTargetsTabForm::getDataSourceBatteries() {
     QSqlQuery query;
@@ -571,7 +567,6 @@ QStringList HitTargetsTabForm::getDataSourceBatteries() {
                           "                             FROM own_forces.combatstructure "
                           "                             WHERE nlevel(combat_hierarchy) = 1 "
                           "                                 AND type_army = '22.10' "
-                          "                                 AND type_mode = 0 "
                           "                                 AND date_delete is null) "
                           "ORDER BY object_number";
     if (!query.exec(selectQuery)) {
@@ -600,7 +595,6 @@ QStringList HitTargetsTabForm::getDataSourceWeaponry() {
                             "                                           WHERE termname = '%2' "
                             "                                               AND object_number = %1 "
                             "                                               AND type_army = '22.10' "
-                            "                                               AND type_mode = 0 "
                             "                                               AND date_delete is null) "
                             "   AND nlevel(combat_hierarchy) = 2 "
                             "ORDER BY object_number";

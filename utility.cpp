@@ -101,15 +101,3 @@ QString Utility::convertReferenceNameTOCode(QSqlDatabase db, QString referenceNa
     }
     return code;
 }
-
-QString Utility::getParsedLocation(QString str) {
-//    QSqlQuery query;
-//    QString selectPattern = "SELECT own_forces.coordinates_input('%1')";
-//    QString selectQuery = selectPattern.arg(str);
-//    qDebug() << selectQuery;
-//    if (!query.exec(selectQuery)) {
-//        qDebug() << "Unable to make select operation!" << query.lastError();
-//    }
-//    query.next();
-//    return query.value(0).toString();
-}
