@@ -36,7 +36,6 @@ void HitTargetsTabForm::onAddSetup() {
         ui->randomRB->setChecked(true);
     }
     slotAddPoint();
-    slotAddPoint();
 }
 
 void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
@@ -82,7 +81,6 @@ void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
     }
     case 1: {
         slotAddPoint();
-        slotAddPoint();
         if (ui->squareRB->isChecked() == true)
             slotToggleSquareRB();
         else
@@ -109,7 +107,6 @@ void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
         break;
     }
     case 2: {
-        slotAddPoint();
         slotAddPoint();
         if (ui->roundRB->isChecked() == true)
             slotToggleRoundRB();
@@ -184,9 +181,15 @@ bool HitTargetsTabForm::onSaveSetup() {
             insertPattern = "INSERT INTO obj_targets.target_params (target_number, target_name, "
                             "       importance, target_time, target_geometry, target_location, "
                             "       cover_degree, platoon, weaponry) "
-                            "VALUES (?, ?, ?, ?, ?, %1, ?, (%2), (%3))";
-            insertQuery = insertPattern.arg(getPolygonString())
-                    .arg(dataSourceBatteryString).arg(dataSourceWeaponryString);
+                            "VALUES (?, ?, ?, ?, ?, %1, ?, (%2), (%3))";            
+            if (ui->extraCoordinatesLayout->count() >= 2) {
+                insertQuery = insertPattern.arg(getMakePolygonString())
+                        .arg(dataSourceBatteryString).arg(dataSourceWeaponryString);
+            }
+            else {
+                insertQuery = insertPattern.arg(getMakeLineString())
+                        .arg(dataSourceBatteryString).arg(dataSourceWeaponryString);
+            }
 
             query.prepare(insertQuery);
             query.addBindValue(ui->targetNumberLE->text());
@@ -267,7 +270,12 @@ bool HitTargetsTabForm::onSaveSetup() {
                             "       update_time = now() "
                             "WHERE target_number = ? "
                             "       AND target_name = ?";
-            updateQuery = updatePattern.arg(getPolygonString());
+            if (ui->extraCoordinatesLayout->count() >= 2) {
+                updateQuery = updatePattern.arg(getMakePolygonString());
+            }
+            else {
+                updateQuery = updatePattern.arg(getMakeLineString());
+            }
 
             query.prepare(updateQuery);
             query.addBindValue(ui->importanceLE->text());
@@ -347,7 +355,7 @@ void HitTargetsTabForm::slotAddPoint() {
     coordStringLayout->addWidget(newCoordLE);
     ui->extraCoordinatesLayout->addLayout(coordStringLayout);
 
-    if (ui->extraCoordinatesLayout->count() > 2)
+    if (ui->extraCoordinatesLayout->count() > 1)
         ui->removePointBtn->setEnabled(true);
 }
 
@@ -359,7 +367,7 @@ void HitTargetsTabForm::slotRemovePoint() {
     }
     ui->extraCoordinatesLayout->removeItem(layout);
 
-    if (ui->extraCoordinatesLayout->count() < 3)
+    if (ui->extraCoordinatesLayout->count() < 2)
         ui->removePointBtn->setEnabled(false);
 }
 
@@ -385,14 +393,14 @@ void HitTargetsTabForm::addFilledPoints() {
 
     QString selectParsedCoordsQuery = "SELECT ";
     QString funcString = "own_forces.coordinates_output(?)";
-    for (int i = 0; i < hexCoords.size() - 2; i++) {
+    for (int i = 0; i < hexCoords.size() - 1; i++) {
         selectParsedCoordsQuery.append(funcString).append(", ");
     }
     selectParsedCoordsQuery.append(funcString);
 //    qDebug() << "selectParsedCoordsQuery: " << selectParsedCoordsQuery << endl;
 
     query.prepare(selectParsedCoordsQuery);
-    for (int i = 0; i < hexCoords.size() - 1; i++) {
+    for (int i = 0; i < hexCoords.size(); i++) {
         query.addBindValue(hexCoords.at(i));
     }
     if (!query.exec()) {
@@ -405,7 +413,8 @@ void HitTargetsTabForm::addFilledPoints() {
     QLabel* newCoordLbl;
     QLineEdit* newCoordLE;
 
-    for (int i = 1; i < query.record().count(); i++) {
+    int i = 1;
+    do {
         newCoordLbl = new QLabel("Координата");
         newCoordLbl->setFont(font);
 
@@ -416,9 +425,14 @@ void HitTargetsTabForm::addFilledPoints() {
         coordStringLayout->addWidget(newCoordLbl);
         coordStringLayout->addWidget(newCoordLE);
         ui->extraCoordinatesLayout->addLayout(coordStringLayout);
-    }
-    if (ui->extraCoordinatesLayout->count() > 2)
+
+        i++;
+    } while (i < query.record().count() - 1);
+
+    if (ui->extraCoordinatesLayout->count() > 1)
         ui->removePointBtn->setEnabled(true);
+    else
+        ui->removePointBtn->setEnabled(false);
 }
 
 void HitTargetsTabForm::slotChangeDataSourceBattery(int n) {
@@ -522,7 +536,29 @@ void HitTargetsTabForm::addCommonFormData() {
     getRocketTypes();
 }
 
-QString HitTargetsTabForm::getPolygonString() {
+QString HitTargetsTabForm::getMakeLineString() {
+    QString selectHexCoordsQuery = "SELECT own_forces.coordinates_input(?), own_forces.coordinates_input(?)";
+
+    QSqlQuery query;
+    query.prepare(selectHexCoordsQuery);
+    query.addBindValue(ui->coordinateLE->text());
+    QLineEdit* coord = (QLineEdit*)ui->extraCoordinatesLayout->itemAt(0)->layout()->itemAt(1)->widget();
+    query.addBindValue(coord->text());
+    query.exec();
+
+    query.next();
+    QStringList strList;
+    for (int i = 0; i < query.record().count(); i++) {
+        strList << query.value(i).toString();
+    }
+
+    QString makeLineString = "ST_MakeLine(";
+    makeLineString.append("'").append(strList.first()).append("', ");
+    makeLineString.append("'").append(strList.last()).append("')");
+    return makeLineString;
+}
+
+QString HitTargetsTabForm::getMakePolygonString() {
     QString selectHexCoordsQuery = "SELECT ";
     QString funcString = "own_forces.coordinates_input(?)";
     for (int i = 0; i < ui->extraCoordinatesLayout->count() + 1; i++) {
@@ -549,11 +585,11 @@ QString HitTargetsTabForm::getPolygonString() {
 //    qDebug() << "strList: " << strList << endl;
 
     QString makePolygonString = "ST_MakePolygon(ST_MakeLine(ARRAY[";
-    makePolygonString.append("'").append(strList.first()).append("'").append(", ");
+    makePolygonString.append("'").append(strList.first()).append("', ");
     for (int i = 0; i < ui->extraCoordinatesLayout->count(); i++) {
         makePolygonString.append("'").append(strList.at(i+1)).append("'").append(", ");
     }
-    makePolygonString.append("'").append(strList.last()).append("'").append("]))");
+    makePolygonString.append("'").append(strList.last()).append("']))");
 //    qDebug() << "makePolygonString: " << makePolygonString;
     return makePolygonString;
 }
