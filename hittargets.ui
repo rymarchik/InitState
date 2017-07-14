@@ -866,6 +866,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>pickCoordinatesBtn</sender>
+   <signal>clicked()</signal>
+   <receiver>HitTargets</receiver>
+   <slot>slotPickCoordinates()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>714</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>417</x>
+     <y>339</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>slotChangeDataSourceBattery(int)</slot>
@@ -876,5 +892,6 @@
   <slot>slotRemovePoint()</slot>
   <slot>slotToggleLaunchCB()</slot>
   <slot>slotToggleExplosionCB()</slot>
+  <slot>slotPickCoordinates()</slot>
  </slots>
 </ui>

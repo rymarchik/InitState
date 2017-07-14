@@ -12,6 +12,10 @@
 #include "hitTargets.h"
 #include "commands.h"
 
+#include <QProcess>
+#include <QTcpSocket>
+#include "mapsrc/NetworkObjectManager.h"
+
 namespace Ui {
 class MainWindow;
 }
@@ -35,6 +39,9 @@ private:
     HitTargets    *c_hitTargets;
     Commands      *c_commands;
 
+    QProcess* mapProcess;
+    NetworkObjectManager manager;
+    QString mapPath = "D:/Volat/Qt/KARTA/sample/BIN";
 
 private slots:
     void slotChangeCurrentClass(int);
@@ -50,6 +57,18 @@ private slots:
     void slotOnChangeTab(int);
     void slotOnCloseTab(int);
     void slotOnItemSelected();
+
+    void finished(int);
+    void serverError(QString);
+    void sendNetworkUserMap(QTcpSocket* pSocket);
+    void receiveInsertObjectNetwork(QByteArray&);
+    /**
+    \fn   receiveDeleteObjectNetwork
+    Слот для обработки сигнала о приеме пакета данных, в котором хранятся идентификаторы удаленных объектов
+    \param[in] QByteArray & mas - ссылка пакет данных, в который был упакован список идентификаторов удаленных объектов
+    \return не возвращает
+    */
+    void receiveDeleteObjectNetwork(QByteArray&);
 };
 
 #endif // MAINWINDOW_H

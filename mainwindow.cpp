@@ -1,5 +1,8 @@
 #include "mainwindow.h"
 
+#include "mapsrc/networkmodule.h"
+#include "mapsrc/PropertyObj.h"
+
 MainWindow::MainWindow(QSqlDatabase DB, QWidget *parent) :
     db(DB),
     QMainWindow(parent),
@@ -31,6 +34,16 @@ MainWindow::MainWindow(QSqlDatabase DB, QWidget *parent) :
     connect(ui->m_exit, SIGNAL(triggered()), qApp, SLOT(quit()));
     connect(currentTabWidget, SIGNAL(currentChanged(int)), this, SLOT(slotOnChangeTab(int)));
     connect(ui->navigatorCommandsTree, SIGNAL(itemClicked(QTreeWidgetItem*,int)), this, SLOT(slotOnItemSelected()));
+
+    mapProcess = new QProcess(this);
+    if (!NetworkModule::Instance().serverFunc()) {
+        QMessageBox::critical(this, "Ошибка", "Server error!");
+    }
+    connect(mapProcess, SIGNAL(finished(int)), SLOT(finished(int)));
+    connect(&NetworkModule::Instance(), SIGNAL(serverError(QString)), SLOT(serverError(QString)));
+    connect(&NetworkModule::Instance(), SIGNAL(sendNetworkUserMap(QTcpSocket*)), SLOT(sendNetworkUserMap(QTcpSocket*)));
+    connect(&NetworkModule::Instance(), SIGNAL(receiveInsertObjectNetwork(QByteArray&)), SLOT(receiveInsertObjectNetwork(QByteArray&)));
+    connect(&NetworkModule::Instance(), SIGNAL(receiveDeleteObjectNetwork(QByteArray&)), SLOT(receiveDeleteObjectNetwork(QByteArray&)));
 }
 
 //заполнение закладки "Навигатор":
@@ -144,7 +157,15 @@ void MainWindow::slotSave()
 
 void MainWindow::slotMap()
 {
+    if (mapProcess->state() != QProcess::Running ) {
+        mapProcess->setWorkingDirectory(mapPath);
+        mapProcess->start(mapPath + QString("/Karta.exe"));
+    }
 
+    QString title1 = "КАРТА-2017 - [Окно КартыD:/Volat/Qt/KARTA/sample/maps/100000.rag]";
+    LPCWSTR title = (const wchar_t*) title1.utf16();
+    HWND hwnd = FindWindow(0,title);
+    SetForegroundWindow(hwnd);
 }
 
 void MainWindow::slotSend() {
@@ -222,6 +243,150 @@ void MainWindow::slotOnItemSelected()
     ui->m_edit->setEnabled(true);
     ui->m_delete->setEnabled(true);
     ui->m_send->setEnabled(true);
+    ui->m_map->setEnabled(true);
+}
+
+void MainWindow::finished(int) {
+    ui->m_map->setEnabled(false);
+}
+
+void MainWindow::serverError(QString str) {
+        QMessageBox::critical(0, "Server Error", "Unable to start the server:" + str);
+}
+
+void MainWindow::sendNetworkUserMap(QTcpSocket* pSocket) {
+    QSqlQuery query = QSqlQuery(db);
+    QString selectMapObjects = "SELECT id, code, object_name, geometry_type, enemy, visible, "
+                               "        access_level, object_location, mas_object "
+                               "FROM map_objects.object_params";
+    if (!query.exec(selectMapObjects)) {
+        qDebug() << query.lastError();
+        QMessageBox::critical(this, "Ошибка", "Загрузить объекты с БД не удалось!");
+    }
+    while (query.next()) {
+        NetworkObject obj;
+        obj.data.m_OBJECT_ID = query.value(0).toInt();
+        obj.data.m_CODE = query.value(1).toInt();
+        obj.data.m_NAME = query.value(2).toString();
+        obj.data.m_TYPE_ID = query.value(3).toInt();
+        obj.data.m_ENEMY = query.value(4).toInt();
+        obj.data.m_VISIBLE = query.value(5).toBool();
+        obj.data.m_ACCESS_LVL = query.value(6).toInt();
+        QString rawCoords = query.value(7).toString();
+        obj.masObject = query.value(8).toByteArray();
+
+        QSqlQuery coordQuery = QSqlQuery(db);
+        QString getParsedCoordinates = "SELECT ST_X(geom), ST_Y(geom), ST_Z(geom) "
+                                       "FROM (SELECT (ST_dumppoints(?)).geom "
+                                       "      FROM map_objects.object_params) AS foo";
+        coordQuery.prepare(getParsedCoordinates);
+        coordQuery.addBindValue(rawCoords);
+        coordQuery.exec();
+        coordQuery.next();
+
+        tagDataPoint metrics;
+        metrics.m_LATITUDE = coordQuery.value(0).toDouble();
+        metrics.m_LONGITUDE = coordQuery.value(1).toDouble();
+        metrics.m_HEIGHT = coordQuery.value(2).toDouble();
+        obj.metrics.append(metrics);
+
+        manager.listObject.push_back(obj);
+    }
+    QByteArray mas = NetworkModule::Instance().maskData(NETWORK_SEND_MAP, manager.serialize());
+    NetworkModule::Instance().SendToClient(pSocket, mas);
+}
+
+void MainWindow::receiveInsertObjectNetwork(QByteArray& data) {
+    unsigned char * lp=(unsigned char *)(data.data());
+    lp+=2*sizeof(quint32);
+    NetworkObject obj;
+    obj.deserialize(lp,data.size()-8);
+
+    QString makePointPattern = "ST_MakePoint(%1, %2, %3)";
+    QString makePointString = makePointPattern.arg(obj.metrics[0].m_LATITUDE).arg(obj.metrics[0].m_LONGITUDE)
+            .arg(obj.metrics[0].m_HEIGHT);
+
+    QString insertPattern = "INSERT INTO map_objects.object_params (code, object_name, geometry_type, "
+                            "       enemy, visible, access_level, object_location, mas_object) "
+                            "VALUES (?, ?, ?, ?, ?, ?, %1, ?)";
+    QString insertObjectFromMap = insertPattern.arg(makePointString);
+
+    QString selectId = "SELECT id "
+                       "FROM map_objects.object_params "
+                       "WHERE mas_object = ?";
+
+    QSqlQuery query = QSqlQuery(db);
+    db.transaction();
+
+    query.prepare(insertObjectFromMap);
+    query.addBindValue(obj.data.m_CODE);
+    query.addBindValue(obj.data.m_NAME);
+    query.addBindValue(obj.data.m_TYPE_ID);
+    query.addBindValue(obj.data.m_ENEMY);
+    query.addBindValue(obj.data.m_VISIBLE);
+    query.addBindValue(obj.data.m_ACCESS_LVL);
+    query.addBindValue(obj.masObject);
+    if (!query.exec()) {
+        qDebug() << query.lastError();
+        QMessageBox::critical(this, "Ошибка", "Добавить объект не удалось!");
+    }
+
+    query.prepare(selectId);
+    query.addBindValue(obj.masObject);
+    if (!query.exec()) {
+        qDebug() << query.lastError();
+        QMessageBox::critical(this, "Ошибка", "Получить ID объекта не удалось!");
+    }
+    query.next();
+    obj.data.m_OBJECT_ID = query.value(0).toInt();
+    qDebug() << "ID" << obj.data.m_OBJECT_ID;
+    manager.listObject.push_back(obj);
+
+    db.commit();
+
+    QByteArray mas = NetworkModule::Instance().maskData(NETWORK_OBJECT_SET_ID, obj.serialize());
+    NetworkModule::Instance().sendDataFromMap(mas);
+}
+
+void MainWindow::receiveDeleteObjectNetwork(QByteArray& mas)
+{
+    QVector<int> masId;
+
+    unsigned char * lp=(unsigned char *)(mas.data());
+    lp+=2*sizeof(quint32);
+
+    quint32 count;
+    memcpy(&count,lp,sizeof(quint32));
+    lp+=sizeof(quint32);
+
+    for(quint32 i=0;i<count;i++)
+    {
+        quint32 index;
+        memcpy(&index,lp,sizeof(quint32));
+        lp+=sizeof(quint32);
+        masId.push_back(index);
+    }
+
+    for(int i=0;i<masId.size();i++)
+    {
+        for(int j=0;j<manager.listObject.size();j++)
+        {
+            if(masId[i]==manager.listObject[j].data.m_OBJECT_ID)
+            {
+                QSqlQuery query;
+                QString deleteObject = "DELETE FROM map_objects.object_params WHERE id = ?";
+                QString deleteObject2 = "UPDATE map_objects.object_params SET visible = false WHERE id = ?";
+                query.prepare(deleteObject2);
+                query.addBindValue(manager.listObject[j].data.m_OBJECT_ID);
+                if (!query.exec()) {
+                    qDebug() << query.lastError();
+                    QMessageBox::critical(this, "Ошибка", "Удалить объект не удалось!");
+                }
+                manager.listObject.remove(j);
+                break;
+            }
+        }
+    }
 }
 
 MainWindow::~MainWindow()

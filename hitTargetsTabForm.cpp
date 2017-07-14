@@ -2,12 +2,17 @@
 #include "ui_hittargets.h"
 #include "utility.h"
 
+#include "mapsrc/networkmodule.h"
+#include "mapsrc/NetworkObject.h"
+
 HitTargetsTabForm::HitTargetsTabForm(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::HitTargets)
 {
     ui->setupUi(this);
-    ui->coordinateLE->setInputMask("99°99'99.99\''A 999°99'99.99\''A 9999.9;_");
+    ui->coordinateLE->setInputMask("99°99'99.99\''A 999°99'99.99\''A 9999.9;_");    
+    mapProc = new QProcess(this);
+    connect(&NetworkModule::Instance(),SIGNAL(receiveMetricsNetwork(QByteArray&)),this,SLOT(receiveMetricsNetwork(QByteArray&)));
 }
 
 QString HitTargetsTabForm::getTargetNumberString() {
@@ -16,6 +21,99 @@ QString HitTargetsTabForm::getTargetNumberString() {
 
 QString HitTargetsTabForm::getTargetNameString() {
     return ui->targetNameCB->currentText();
+}
+
+void HitTargetsTabForm::slotPickCoordinates() {
+    QString mapPath = "D:/Volat/Qt/KARTA/sample/BIN";
+    if (mapProc->state() != QProcess::Running ) {
+        mapProc->setWorkingDirectory(mapPath);
+        mapProc->start(mapPath + QString("/Karta.exe"));
+        mapProc->waitForStarted();
+    }
+
+    QString title1 = "КАРТА-2017 - [Окно КартыD:/Volat/Qt/KARTA/sample/maps/100000.rag]";
+    LPCWSTR title = (const wchar_t*) title1.utf16();
+    HWND hwnd = FindWindow(0,title);
+    SetForegroundWindow(hwnd);
+
+    if (ui->randomRB->isChecked()) {
+        NetworkModule::Instance().sendMetricsReq(TYPE_METRIC_LINE);
+    }
+    else if (ui->squareRB->isChecked()) {
+        NetworkModule::Instance().sendMetricsReq(TYPE_METRIC_RECT);
+    }
+    else if (ui->roundRB->isChecked()) {
+        NetworkModule::Instance().sendMetricsReq(TYPE_METRIC_CIRCLE);
+    }
+//    NetworkModule::Instance().sendMetricsReq(TYPE_METRIC_POINT);
+}
+
+QString HitTargetsTabForm::getParsedCoordinates(double lat, double lon, double alt) {
+    QSqlQuery query;
+    QString makePointString = "SELECT ST_MakePoint(?, ?, ?)";
+    query.prepare(makePointString);
+    query.addBindValue(lat);
+    query.addBindValue(lon);
+    query.addBindValue(alt);
+    query.exec();
+    query.next();
+    QString coordinatesInHex = query.value(0).toString();
+    qDebug() << "coordinatesInHex: " << coordinatesInHex;
+
+    QString parsedString = "SELECT own_forces.coordinates_output(?)";
+    query.prepare(parsedString);
+    query.addBindValue(coordinatesInHex);
+    query.exec();
+    query.next();
+
+    qDebug() << "parsedCoordinates: " << query.value(0).toString();
+    return query.value(0).toString();
+}
+
+void HitTargetsTabForm::receiveMetricsNetwork(QByteArray& data)
+{
+    unsigned char * lp=(unsigned char *)(data.data());
+    lp+=2*sizeof(quint32);
+    NetworkObject obj;
+    obj.deserialize(lp,data.size()-8);
+
+    ui->coordinateLE->setText(getParsedCoordinates(obj.metrics[0].m_LATITUDE,
+                              obj.metrics[0].m_LONGITUDE, obj.metrics[0].m_HEIGHT));
+
+    switch(obj.data.m_TYPE_ID)
+    {
+    case TYPE_METRIC_LINE:
+        Utility::clearLayout(ui->extraCoordinatesLayout);
+        QHBoxLayout* coordStringLayout;
+        QLabel* newCoordLbl;
+        QLineEdit* newCoordLE;
+        for (int i = 1; i < obj.metrics.size(); i++) {
+            newCoordLbl = new QLabel("Координата");
+            newCoordLbl->setFont(font);
+
+            newCoordLE = new QLineEdit(getParsedCoordinates(obj.metrics[i].m_LATITUDE,
+                                       obj.metrics[i].m_LONGITUDE, obj.metrics[i].m_HEIGHT));
+            newCoordLE->setInputMask("99°99'99.99\''A 999°99'99.99\''A 9999.9;_");
+
+            coordStringLayout = new QHBoxLayout;
+            coordStringLayout->addWidget(newCoordLbl);
+            coordStringLayout->addWidget(newCoordLE);
+            ui->extraCoordinatesLayout->addLayout(coordStringLayout);
+        }
+        if (ui->extraCoordinatesLayout->count() > 1)
+            ui->removePointBtn->setEnabled(true);
+        else
+            ui->removePointBtn->setEnabled(false);
+        break;
+    case TYPE_METRIC_RECT:
+        ui->frontLE->setText(QString::number(obj.metrics[1].m_LATITUDE));
+        ui->depthLE->setText(QString::number(obj.metrics[1].m_LONGITUDE));
+        ui->deviationLE->setText(QString::number(obj.metrics[1].m_HEIGHT));
+        break;
+    case TYPE_METRIC_CIRCLE:
+        ui->radiusLE->setText(QString::number(obj.metrics[1].m_LATITUDE));
+        break;
+    }
 }
 
 void HitTargetsTabForm::onAddSetup() {
@@ -181,7 +279,8 @@ bool HitTargetsTabForm::onSaveSetup() {
             insertPattern = "INSERT INTO obj_targets.target_params (target_number, target_name, "
                             "       importance, target_time, target_geometry, target_location, "
                             "       cover_degree, platoon, weaponry) "
-                            "VALUES (?, ?, ?, ?, ?, %1, ?, (%2), (%3))";            
+                            "VALUES (?, ?, ?, ?, ?, %1, ?, (%2), (%3))";
+            qDebug() << "extraCoordinatesLayout: " << ui->extraCoordinatesLayout->count();
             if (ui->extraCoordinatesLayout->count() >= 2) {
                 insertQuery = insertPattern.arg(getMakePolygonString())
                         .arg(dataSourceBatteryString).arg(dataSourceWeaponryString);
@@ -270,6 +369,7 @@ bool HitTargetsTabForm::onSaveSetup() {
                             "       update_time = now() "
                             "WHERE target_number = ? "
                             "       AND target_name = ?";
+            qDebug() << "extraCoordinatesLayout: " << ui->extraCoordinatesLayout->count();
             if (ui->extraCoordinatesLayout->count() >= 2) {
                 updateQuery = updatePattern.arg(getMakePolygonString());
             }
@@ -389,6 +489,7 @@ void HitTargetsTabForm::addFilledPoints() {
     while (query.next()) {
         hexCoords << query.value(0).toString();
     }
+    qDebug() << hexCoords;
 
 
     QString selectParsedCoordsQuery = "SELECT ";
@@ -407,6 +508,10 @@ void HitTargetsTabForm::addFilledPoints() {
         qDebug() << "Unable to select parsed coordinates!" << query.lastError();
     }
     query.next();
+
+    for (int i = 0; i < query.record().count(); i++) {
+        qDebug() << query.value(i).toString();
+    }
 
     ui->coordinateLE->setText(query.value(0).toString());
     QHBoxLayout* coordStringLayout;

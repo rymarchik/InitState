@@ -33,7 +33,10 @@ SOURCES += main.cpp\
     commandsmessagebox.cpp \
     datatransmissionmodule.cpp \
     converter.cpp \
-    docmessagebox.cpp
+    docmessagebox.cpp \
+    mapsrc/networkmodule.cpp \
+    mapsrc/NetworkObject.cpp \
+    mapsrc/NetworkObjectManager.cpp
 
 HEADERS  += mainwindow.h \
     receiversDialog.h \
@@ -55,7 +58,11 @@ HEADERS  += mainwindow.h \
     commandsmessagebox.h \
     datatransmissionmodule.h \
     converter.h \
-    docmessagebox.h
+    docmessagebox.h \
+    mapsrc/networkmodule.h \
+    mapsrc/NetworkObject.h \
+    mapsrc/NetworkObjectManager.h \
+    mapsrc/PropertyObj.h
 
 RESOURCES += \
     resources.qrc
