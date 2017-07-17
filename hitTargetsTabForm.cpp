@@ -45,7 +45,6 @@ void HitTargetsTabForm::slotPickCoordinates() {
     else if (ui->roundRB->isChecked()) {
         NetworkModule::Instance().sendMetricsReq(TYPE_METRIC_CIRCLE);
     }
-//    NetworkModule::Instance().sendMetricsReq(TYPE_METRIC_POINT);
 }
 
 QString HitTargetsTabForm::getParsedCoordinates(double lat, double lon, double alt) {
@@ -106,12 +105,12 @@ void HitTargetsTabForm::receiveMetricsNetwork(QByteArray& data)
             ui->removePointBtn->setEnabled(false);
         break;
     case TYPE_METRIC_RECT:
-        ui->frontLE->setText(QString::number(obj.metrics[1].m_LATITUDE));
-        ui->depthLE->setText(QString::number(obj.metrics[1].m_LONGITUDE));
-        ui->deviationLE->setText(QString::number(obj.metrics[1].m_HEIGHT));
+        ui->frontLE->setText(QString::number(qRound(obj.metrics[1].m_LATITUDE)));
+        ui->depthLE->setText(QString::number(qRound(obj.metrics[1].m_LONGITUDE)));
+        ui->deviationLE->setText(QString::number(qRound(obj.metrics[1].m_HEIGHT)));
         break;
     case TYPE_METRIC_CIRCLE:
-        ui->radiusLE->setText(QString::number(obj.metrics[1].m_LATITUDE));
+        ui->radiusLE->setText(QString::number(qRound(obj.metrics[1].m_LATITUDE)));
         break;
     }
 }
@@ -156,7 +155,8 @@ void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
                             "JOIN reference_data.terms t1 ON t1.termhierarchy = target_name "
                             "JOIN reference_data.terms t2 ON t2.termhierarchy = cover_degree "
                             "WHERE target_number = %1 "
-                            "       AND t1.termname = '%2' ";
+                            "       AND t1.termname = '%2' "
+                            "       AND delete_time is null";
     QString selectQuery = selectPattern.arg(ui->targetNumberLE->text()).arg(ui->targetNameCB->currentText());
 
     if (!query.exec(selectQuery)) {
@@ -190,7 +190,8 @@ void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
                                      "FROM obj_targets.target_params "
                                      "JOIN reference_data.terms ON termhierarchy = target_name "
                                      "WHERE target_number = %1 "
-                                     "      AND termname = '%2'";
+                                     "      AND termname = '%2'"
+                                     "      AND delete_time is null";
         QString squareFullQuery = squarePatternQuery.arg(ui->targetNumberLE->text()).arg(ui->targetNameCB->currentText());
 
         if (!squareQuery.exec(squareFullQuery)) {
@@ -216,7 +217,8 @@ void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
                                     "FROM obj_targets.target_params "
                                     "JOIN reference_data.terms ON termhierarchy = target_name "
                                     "WHERE target_number = %1 "
-                                    "       AND termname = '%2'";
+                                    "       AND termname = '%2' "
+                                    "       AND delete_time is null";
         QString roundFullQuery = roundPatternQuery.arg(ui->targetNumberLE->text()).arg(ui->targetNameCB->currentText());
 
         if (!roundQuery.exec(roundFullQuery)) {
@@ -478,7 +480,8 @@ void HitTargetsTabForm::addFilledPoints() {
                                      "FROM obj_targets.target_params "
                                      "JOIN reference_data.terms ON termhierarchy = target_name "
                                      "WHERE target_number = %1 "
-                                     "      AND termname = '%2'";
+                                     "      AND termname = '%2'"
+                                     "      AND delete_time is null";
     QString selectHexCoordsQuery = selectHexCoordsPattern.arg(ui->targetNumberLE->text())
             .arg(ui->targetNameCB->currentText());
 
