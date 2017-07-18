@@ -45,6 +45,7 @@ QStringList Converter::decodeDatagram(QByteArray datagram, QByteArray *package, 
     for (int i=4; i<8; i++) {
         QByteArray q;
         q[0]=datagram[i];
+        confirm->append(q);
         source.append(convertByteToDec(q));
         if (i != 7) source.append(".");
     }
@@ -54,6 +55,7 @@ QStringList Converter::decodeDatagram(QByteArray datagram, QByteArray *package, 
     for (int i=0; i<4; i++) {
         QByteArray q;
         q[0]=datagram[i];
+        confirm->append(q);
         source.append(convertByteToDec(q));
         if (i != 3) source.append(".");
     }
@@ -63,6 +65,7 @@ QStringList Converter::decodeDatagram(QByteArray datagram, QByteArray *package, 
     for (int i=8; i<9; i++) {
         QByteArray q;
         q[0]=datagram[i];
+        confirm->append(q);
         source.append(convertByteToDec(q));
     }
     qDebug() << "нули " << source;
@@ -71,6 +74,7 @@ QStringList Converter::decodeDatagram(QByteArray datagram, QByteArray *package, 
     for (int i=9; i<10; i++) {
         QByteArray q;
         q[0]=datagram[i];
+        confirm->append(q);
         source.append(convertByteToDec(q));
     }
     qDebug() << "протокол " << source;
@@ -79,15 +83,27 @@ QStringList Converter::decodeDatagram(QByteArray datagram, QByteArray *package, 
     for (int i=10; i<12; i++) {
         QByteArray q;
         q[0]=datagram[i];
+        confirm->append(q);
         source.append(convertToBinaryNew(convertByteToDec(q)));
     }
     source = convertToDex(source);
     qDebug() << "длина UDP " << source;
     /*5*/list << source;
     source = "";
+    for (int i=14; i<16; i++) {
+        QByteArray q;
+        q[0]=datagram[i];
+        confirm->append(q);
+        source.append(convertToBinaryNew(convertByteToDec(q)));
+    }
+    source = convertToDex(source);
+    qDebug() << "порт получателя " << source;
+    /*7*/list << source;
+    source = "";
     for (int i=12; i<14; i++) {
         QByteArray q;
         q[0]=datagram[i];
+        confirm->append(q);
         source.append(convertToBinaryNew(convertByteToDec(q)));
     }
     qDebug() << source;
@@ -95,18 +111,10 @@ QStringList Converter::decodeDatagram(QByteArray datagram, QByteArray *package, 
     qDebug() << "порт источника " << source;
     /*6*/list << source;
     source = "";
-    for (int i=14; i<16; i++) {
-        QByteArray q;
-        q[0]=datagram[i];
-        source.append(convertToBinaryNew(convertByteToDec(q)));
-    }
-    source = convertToDex(source);
-    qDebug() << "порт получателя " << source;
-    /*7*/list << source;
-    source = "";
     for (int i=16; i<18; i++) {
         QByteArray q;
         q[0]=datagram[i];
+        confirm->append(q);
         source.append(convertToBinaryNew(convertByteToDec(q)));
     }
     source = convertToDex(source);
@@ -116,6 +124,7 @@ QStringList Converter::decodeDatagram(QByteArray datagram, QByteArray *package, 
     for (int i=18; i<20; i++) {
         QByteArray q;
         q[0]=datagram[i];
+        confirm->append(q);
         source.append(convertToBinaryNew(convertByteToDec(q)));
     }
     source = convertToDex(source);
@@ -125,24 +134,27 @@ QStringList Converter::decodeDatagram(QByteArray datagram, QByteArray *package, 
     for (int i=20; i<22; i++) {
         QByteArray q;
         q[0]=datagram[i];
+        confirm->append(q);
         source.append(convertToBinaryNew(convertByteToDec(q)));
     }
     source = convertToDex(source);
-    qDebug() << "НЕ СДЕЛАНО " << source;
+    qDebug() << "тип " << source;
     /*10*/list << source;
     source = "";
     for (int i=22; i<24; i++) {
         QByteArray q;
         q[0]=datagram[i];
+        confirm->append(q);
         source.append(convertToBinaryNew(convertByteToDec(q)));
     }
     source = convertToDex(source);
-    qDebug() << "НЕ СДЕЛАНО " << source;
+    qDebug() << "номер " << source;
     /*11*/list << source;
     source = "";
     for (int i=24; i<26; i++) {
         QByteArray q;
         q[0]=datagram[i];
+        confirm->append(q);
         source.append(convertToBinaryNew(convertByteToDec(q)));
     }
     source = convertToDex(source);
@@ -152,6 +164,7 @@ QStringList Converter::decodeDatagram(QByteArray datagram, QByteArray *package, 
     for (int i=26; i<28; i++) {
         QByteArray q;
         q[0]=datagram[i];
+        confirm->append(q);
         source.append(convertToBinaryNew(convertByteToDec(q)));
     }
     source = convertToDex(source);

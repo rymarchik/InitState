@@ -107,24 +107,26 @@ void DataTransmissionModule::sendRocket(QString id) //id записи (како�
 }
 
 void DataTransmissionModule::sendMode(QString id) {
-    /*QString data = makeDatagramMode(q);
+    QString data = makeDatagramMode( id );
     QStringList list;
     list << myIp.toString()
          << targetIp.toString()
+         << "0"
          << "17"
          << QString::number( data.length() + 224 )
          << myPort
          << targetPort
          << QString::number( data.length() )
-         << ""
+         << "14"
          << "0001"
          << QString::number( unicumMessageId )
          << "1"
          << "1"
          << data;
     unicumMessageId++;
-    QByteArray datagram = converter->encodeDatagram(list);
-    udpSocket.writeDatagram(datagram, targetIp, targetPort.toLong(Q_NULLPTR, 10));*/
+    QByteArray datagram = converter->encodeDatagram( list );
+    qDebug() << targetPort.toLong( Q_NULLPTR, 10 );
+    udpSocket.writeDatagram( datagram, targetIp, targetPort.toLong( Q_NULLPTR, 10) );
 }
 
 QString DataTransmissionModule::makeDatagramMode( QString q )
