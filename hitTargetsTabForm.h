@@ -39,6 +39,7 @@ public:
 private:
     QFont font = QFont("MS Shell Dlg 2", 9, QFont::Bold);
     QProcess* mapProc;
+    QString mapPath = QCoreApplication::applicationDirPath() + "/mapFiles";
 
 private slots:
     void slotChangeDataSourceBattery(int);

@@ -164,7 +164,6 @@ void MainWindow::slotMap()
     }
 
     QString title1 = "КАРТА-2017 - [Окно Карты" + mapPath + "/maps/100000.rag]";
-    qDebug() << title1;
     LPCWSTR title = (const wchar_t*) title1.utf16();
     HWND hwnd = FindWindow(0,title);
     SetForegroundWindow(hwnd);
