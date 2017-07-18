@@ -9,6 +9,8 @@
 #include <QSqlQuery>
 #include <QSqlTableModel>
 #include <QSqlError>
+#include <commandsmessagebox.h>
+#include <docmessagebox.h>
 
 
 class DataTransmissionModule
@@ -20,8 +22,10 @@ public:
     void sendCoord(QString id);
     void sendRocket(QString id);
     void sendMode(QString id);
-    void sendConfirmationCommand();
-    void sendConfirmationDocument();
+    void parsingMessage(QByteArray s);
+    void parsingCommand(QByteArray s);
+    void readDatagram();
+    void sendConfirm(QByteArray datagram);
 private:
     QString myPort;
     QString targetPort;

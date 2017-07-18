@@ -93,7 +93,8 @@ bool HitTargets::onDelete() {
                           "         AND target_name = "
                           "             (SELECT termhierarchy "
                           "             FROM reference_data.terms "
-                          "             WHERE termname = ?)";
+                          "             WHERE termname = ?)"
+                          "         AND delete_time is null";
     query.prepare(deleteQuery);
     QString targetNumber = navigatorTable->item(navigatorTable->currentRow(), 0)->text();
     QString targetName = navigatorTable->item(navigatorTable->currentRow(), 1)->text();

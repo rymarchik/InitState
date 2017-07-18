@@ -21,24 +21,29 @@ public:
     void onEditSetup(QTableWidget*);
     bool onSaveSetup();
 
-    void reinitializeFormData();
+    void addCommonFormData();
     void addFilledPoints();
     QStringList getDataSourceBatteries();
     QStringList getDataSourceWeaponry();
-    QStringList getHitTargets();
-    QStringList getCoverDegrees();
-    QStringList getDamageDegrees();
-    QStringList getRocketTypes();
+    void getHitTargets();
+    void getCoverDegrees();
+    void getDamageDegrees();
+    void getRocketTypes();
 
+    QString getParsedCoordinates(double, double, double);
+    QString getMakeLineString();
+    QString getMakePolygonString();
     QString getTargetNumberString();
     QString getTargetNameString();
 
 private:
     QFont font = QFont("MS Shell Dlg 2", 9, QFont::Bold);
+    QProcess* mapProc;
 
 private slots:
     void slotChangeDataSourceBattery(int);
 
+    void slotPickCoordinates();
     void slotAddPoint();
     void slotRemovePoint();
 
@@ -47,4 +52,6 @@ private slots:
     void slotToggleRoundRB();
     void slotToggleLaunchCB();
     void slotToggleExplosionCB();
+
+    void receiveMetricsNetwork(QByteArray&);
 };

@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui sql network
+QT       += core gui sql network serialport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -20,7 +20,6 @@ SOURCES += main.cpp\
     battleOrder.cpp \
     commands.cpp \
     positions.cpp \
-    server.cpp \
     addparamform.cpp \
     commandsaddform.cpp \
     basetoolclass.cpp \
@@ -34,7 +33,11 @@ SOURCES += main.cpp\
     commandsmessagebox.cpp \
     datatransmissionmodule.cpp \
     converter.cpp \
-    docmessagebox.cpp
+    docmessagebox.cpp \
+    mapsrc/networkmodule.cpp \
+    mapsrc/NetworkObject.cpp \
+    mapsrc/NetworkObjectManager.cpp \
+    gpsModule.cpp
 
 HEADERS  += mainwindow.h \
     receiversDialog.h \
@@ -43,7 +46,6 @@ HEADERS  += mainwindow.h \
     battleOrder.h \
     commands.h \
     positions.h \
-    server.h \
     addparamform.h \
     commandsaddform.h \
     basetoolclass.h \
@@ -57,7 +59,12 @@ HEADERS  += mainwindow.h \
     commandsmessagebox.h \
     datatransmissionmodule.h \
     converter.h \
-    docmessagebox.h
+    docmessagebox.h \
+    mapsrc/networkmodule.h \
+    mapsrc/NetworkObject.h \
+    mapsrc/NetworkObjectManager.h \
+    mapsrc/PropertyObj.h \
+    gpsModule.h
 
 RESOURCES += \
     resources.qrc
