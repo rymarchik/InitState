@@ -24,14 +24,12 @@ QString HitTargetsTabForm::getTargetNameString() {
 }
 
 void HitTargetsTabForm::slotPickCoordinates() {
-    QString mapPath = "D:/Volat/Qt/KARTA/sample/BIN";
     if (mapProc->state() != QProcess::Running ) {
-        mapProc->setWorkingDirectory(mapPath);
-        mapProc->start(mapPath + QString("/Karta.exe"));
-        mapProc->waitForStarted();
+        mapProc->setWorkingDirectory(mapPath + "/BIN");
+        mapProc->start(mapProc->workingDirectory() + QString("/Karta.exe"));
     }
 
-    QString title1 = "КАРТА-2017 - [Окно КартыD:/Volat/Qt/KARTA/sample/maps/100000.rag]";
+    QString title1 = "КАРТА-2017 - [Окно Карты" + mapPath + "/maps/100000.rag]";
     LPCWSTR title = (const wchar_t*) title1.utf16();
     HWND hwnd = FindWindow(0,title);
     SetForegroundWindow(hwnd);

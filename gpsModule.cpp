@@ -5,20 +5,22 @@ GPSModule::GPSModule(QSqlDatabase db, QObject *parent) :
     QObject(parent),
     db(db)
 {
-    serial = new QSerialPort(this);
-    readPortTimer = new QTimer;
+    if (QSerialPortInfo::availablePorts().size() != 0) {
+        serial = new QSerialPort(this);
+        readPortTimer = new QTimer;
 
-    serial->setPortName(QSerialPortInfo::availablePorts().at(0).portName());
-    serial->setBaudRate(QSerialPort::Baud115200);
-    serial->setDataBits(QSerialPort::Data8);
-    serial->setStopBits(QSerialPort::OneStop);
-    if (serial->open(QIODevice::ReadOnly)) {
-        //readPortTimer->start(5000);
-    } else {
-        QMessageBox::critical(0, tr("Error"), serial->errorString());
+        serial->setPortName(QSerialPortInfo::availablePorts().at(0).portName());
+        serial->setBaudRate(QSerialPort::Baud115200);
+        serial->setDataBits(QSerialPort::Data8);
+        serial->setStopBits(QSerialPort::OneStop);
+        if (serial->open(QIODevice::ReadOnly)) {
+            readPortTimer->start(5000);
+        } else {
+            QMessageBox::critical(0, tr("Error"), serial->errorString());
+        }
+
+        connect(readPortTimer, SIGNAL(timeout()), this, SLOT(slotParseInput()));
     }
-
-    connect(readPortTimer, SIGNAL(timeout()), this, SLOT(slotParseInput()));
 }
 
 void GPSModule::slotParseInput() {

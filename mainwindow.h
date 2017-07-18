@@ -43,7 +43,7 @@ private:
 
     QProcess* mapProcess;
     NetworkObjectManager manager;
-    QString mapPath = "D:/Volat/Qt/KARTA/sample/BIN";
+    QString mapPath = QCoreApplication::applicationDirPath() + "/mapFiles";
 
 private slots:
     void slotChangeCurrentClass(int);
