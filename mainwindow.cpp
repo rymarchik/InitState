@@ -9,6 +9,7 @@ MainWindow::MainWindow(QSqlDatabase DB, QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    gps = new GPSModule(db, this);
 
     ui->battleOrderTabWidget->tabBar()->tabButton(0, QTabBar::RightSide)->resize(0, 0);
     ui->battleOrderTabWidget->tabBar()->tabButton(1, QTabBar::RightSide)->resize(0, 0);

@@ -11,6 +11,7 @@
 #include "battleOrder.h"
 #include "hitTargets.h"
 #include "commands.h"
+#include "gpsModule.h"
 
 #include <QProcess>
 #include <QTcpSocket>
@@ -31,6 +32,7 @@ public:
 private:
     Ui::MainWindow* ui;
     QSqlDatabase db;
+    GPSModule* gps;
 
     BaseToolClass *currentContent;
     QTabWidget    *currentTabWidget;

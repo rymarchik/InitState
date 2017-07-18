@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui sql network
+QT       += core gui sql network serialport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -36,7 +36,8 @@ SOURCES += main.cpp\
     docmessagebox.cpp \
     mapsrc/networkmodule.cpp \
     mapsrc/NetworkObject.cpp \
-    mapsrc/NetworkObjectManager.cpp
+    mapsrc/NetworkObjectManager.cpp \
+    gpsModule.cpp
 
 HEADERS  += mainwindow.h \
     receiversDialog.h \
@@ -62,7 +63,8 @@ HEADERS  += mainwindow.h \
     mapsrc/networkmodule.h \
     mapsrc/NetworkObject.h \
     mapsrc/NetworkObjectManager.h \
-    mapsrc/PropertyObj.h
+    mapsrc/PropertyObj.h \
+    gpsModule.h
 
 RESOURCES += \
     resources.qrc
