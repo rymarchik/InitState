@@ -13,7 +13,6 @@ DataTransmissionModule::DataTransmissionModule(QSqlDatabase db)
 
 void DataTransmissionModule::sendCommand(QString q)
 {
-    QString trash;
     QString data = makeDatagramCommand(q);
     QStringList list;
     list << myIp.toString()
@@ -36,7 +35,6 @@ void DataTransmissionModule::sendCommand(QString q)
 
 void DataTransmissionModule::sendDocument(QString q)
 {
-    QString trash;
     QString data = makeDatagramDocument(q);
     qDebug() << data;
     QStringList list;
@@ -58,19 +56,9 @@ void DataTransmissionModule::sendDocument(QString q)
     udpSocket.writeDatagram( datagram, targetIp, targetPort.toLong( Q_NULLPTR, 10) );
 }
 
-/*void DataTransmissionModule::sendCoord()
+void DataTransmissionModule::sendCoord(QString id) //id записи в БД
 {
-    QString trash;
-    DelDialog dia;
-    if ( dia.exec() ) {
-        trash = dia.value();
-    }
-    QString data = makeDatagramCoord( trash );
-    if ( data == "error" ) {
-        makeLogNote( "ошибка создания датаграммы" );
-        QMessageBox::information(this, "ОШИБКА", "такой записи не существует!");
-        return;
-    }
+    QString data = makeDatagramCoord( id );
     QStringList list;
     list << myIp.toString()
          << targetIp.toString()
@@ -89,30 +77,11 @@ void DataTransmissionModule::sendDocument(QString q)
     QByteArray datagram = converter->encodeDatagram( list );
     qDebug() << targetPort.toLong( Q_NULLPTR, 10 );
     udpSocket.writeDatagram( datagram, targetIp, targetPort.toLong( Q_NULLPTR, 10) );
-    makeLogNote( "отправлен пакет" );
-    QMessageBox::information(this, "УСПЕХ", "Пакет отправлен успешно");
-    bool x = dbConnect.makeNote( 1, getCurrentDateAndTime(), 1, data, 2);
-    if ( x ) {
-        makeLogNote( "запись действия добавлена в БД" );
-    }
-        else {
-        makeLogNote( "ошиба записи действия в БД" );
-    }
 }
 
-void MainWindow::sendRocket()
+void DataTransmissionModule::sendRocket(QString id) //id записи (какой надо уточнить)
 {
-    QString trash;
-    DelDialog dia;
-    if ( dia.exec() ) {
-        trash = dia.value();
-    }
-    QString data = makeDatagramRocket( trash );
-    if ( data == "error" ) {
-        makeLogNote( "ошибка создания датаграммы" );
-        QMessageBox::information(this, "ОШИБКА", "такой записи не существует!");
-        return;
-    }
+    QString data = makeDatagramRocket( id );
     QStringList list;
     list << myIp.toString()
          << targetIp.toString()
@@ -131,18 +100,30 @@ void MainWindow::sendRocket()
     QByteArray datagram = converter->encodeDatagram( list );
     qDebug() << targetPort.toLong( Q_NULLPTR, 10 );
     udpSocket.writeDatagram( datagram, targetIp, targetPort.toLong( Q_NULLPTR, 10) );
-    makeLogNote( "отправлен пакет" );
-    QMessageBox::information(this, "УСПЕХ", "Пакет отправлен успешно");
-    bool x = dbConnect.makeNote( 1, getCurrentDateAndTime(), 1, data, 2);
-    if ( x ) {
-        makeLogNote( "запись действия добавлена в БД" );
-    }
-        else {
-        makeLogNote( "ошиба записи действия в БД" );
-    }
 }
 
-QString MainWindow::makeDatagramCoord( QString q )
+void DataTransmissionModule::sendMode(QString id) {
+    /*QString data = makeDatagramMode(q);
+    QStringList list;
+    list << myIp.toString()
+         << targetIp.toString()
+         << "17"
+         << QString::number( data.length() + 224 )
+         << myPort
+         << targetPort
+         << QString::number( data.length() )
+         << ""
+         << "0001"
+         << QString::number( unicumMessageId )
+         << "1"
+         << "1"
+         << data;
+    unicumMessageId++;
+    QByteArray datagram = converter->encodeDatagram(list);
+    udpSocket.writeDatagram(datagram, targetIp, targetPort.toLong(Q_NULLPTR, 10));*/
+}
+
+QString DataTransmissionModule::makeDatagramMode( QString q )
 {
     QString answer = "";
     answer.append( "0" );                        //метод сжатия
@@ -152,7 +133,7 @@ QString MainWindow::makeDatagramCoord( QString q )
     answer.append( "C" );                        //данные о сообщении
     answer.append( "C1" );                       //Идентификатор приложения, которое  должно обрабатывать переданные данные.
     answer.append( "=" );                        //Признак начала передаваемых данных
-    QString request = dbConnect.getCoordInformation(q);
+    QString request = getCoordInformation(q);
     if (request.compare("error") == 0) {
         return "error";
     }
@@ -162,7 +143,27 @@ QString MainWindow::makeDatagramCoord( QString q )
     return answer;
 }
 
-QString MainWindow::makeDatagramRocket( QString q )
+QString DataTransmissionModule::makeDatagramCoord( QString q )
+{
+    QString answer = "";
+    answer.append( "0" );                        //метод сжатия
+    answer.append( converter->dobei( q, 6 ) );      //отправитель добить до 6
+    answer.append( converter->dobei( "mbu" , 6) );  //получатель
+    answer.append( "0" );                        //категория данных
+    answer.append( "C" );                        //данные о сообщении
+    answer.append( "C1" );                       //Идентификатор приложения, которое  должно обрабатывать переданные данные.
+    answer.append( "=" );                        //Признак начала передаваемых данных
+    QString request = getCoordInformation(q);
+    if (request.compare("error") == 0) {
+        return "error";
+    }
+    else {
+        answer.append(request);
+    }
+    return answer;
+}
+
+QString DataTransmissionModule::makeDatagramRocket( QString q )
 {
     QString answer = "";
     answer.append( "0" );                        //метод сжатия
@@ -172,7 +173,7 @@ QString MainWindow::makeDatagramRocket( QString q )
     answer.append( "C" );                        //данные о сообщении
     answer.append( "T1" );                       //Идентификатор приложения, которое  должно обрабатывать переданные данные.
     answer.append( "=" );                        //Признак начала передаваемых данных
-    QString request = dbConnect.getRocketInformation(q);
+    QString request = getRocketInformation(q);
     if (request.compare("error") == 0) {
         return "error";
     }
@@ -180,7 +181,7 @@ QString MainWindow::makeDatagramRocket( QString q )
         answer.append(request);
     }
     return answer;
-}*/
+}
 
 QString DataTransmissionModule::makeDatagramDocument( QString q )
 {
@@ -219,6 +220,69 @@ QString DataTransmissionModule::makeDatagramCommand( QString q )
     else {
         answer.append(request);
     }
+    return answer;
+}
+
+QString DataTransmissionModule::getCoordInformation(QString object)
+{
+    QString answer = "";
+    QSqlQuery query= QSqlQuery(db);
+    QString s;
+    s = "SELECT st_x(obj_location), st_y(obj_location), st_z(obj_location), direction FROM own_forces.combatobject_location WHERE combat_hierarchy='"+object+"';";
+    if ( !query.exec( s ) ) {
+        return "error";
+    }
+    else {
+        if ( query.size() == 0 ) return "error";
+        while ( query.next() ) {
+            answer.append( query.value(0).toString() );
+            answer.append(";");
+            answer.append( query.value(1).toString() );
+            answer.append( ";" );
+            answer.append( query.value(2).toString() );
+            answer.append(";");
+            answer.append( query.value(3).toString() );
+            answer.append(";");
+        }
+    }
+    answer.append( "\r" );
+    return answer;
+}
+
+QString DataTransmissionModule::getRocketInformation(QString object)
+{
+    QString answer = "";
+    QSqlQuery query= QSqlQuery(db);
+    QString s;
+    s = "SELECT type_tid FROM own_forces.rocket WHERE combatobjectid='"+object+"';";
+    if ( !query.exec( s ) ) {
+        return "error";
+    }
+    else {
+        if ( query.size() == 0 ) return "error";
+        while ( query.next() ) {
+            if (QString::compare( query.value( 0 ).toString(), "51.50.10") == 0) {
+                answer.append( "11" );
+                answer.append( ";" );
+            }
+            if (QString::compare( query.value( 0 ).toString(), "51.50.15") == 0) {
+                answer.append( "12" );
+                answer.append( ";" );
+            }
+            if (QString::compare( query.value( 0 ).toString(), "51.50.20") == 0) {
+                answer.append( "13" );
+                answer.append( ";" );
+            }
+            if (QString::compare( query.value( 0 ).toString(), "51.50.25") == 0) {
+                answer.append( "14" );
+                answer.append( ";" );
+            }
+            if (QString::compare( query.value( 0 ).toString(), "51.50.30") == 0) {
+                answer.append( ";" );
+            }
+        }
+    }
+    answer.append( "\r" );
     return answer;
 }
 

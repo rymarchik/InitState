@@ -74,6 +74,7 @@ CommandsMessageBox CommandsAddForm::getCommandtInformationBox()
     box.setReceivers(receiversList);
     box.setReceiversMarks(receiversMarkList);
     box.setReceiversTime(receiversTimeList);
+    box.setIdCommand(idCommand);
     return box;
 }
 
@@ -101,6 +102,7 @@ DocMessageBox CommandsAddForm::getDocumentInformationBox()
 
 void CommandsAddForm::setDataCommand(QString code)
 {
+    idCommand = code;
     QSqlQuery query = QSqlQuery(db);
     QString selectPattern = "SELECT order_id, order_tid, date_add "
                 "FROM orders_alerts.orders_alerts_info WHERE order_id ='"+code+"'; ";
@@ -210,6 +212,16 @@ void CommandsAddForm::setDataDocument(QString code)
         commandName = query.value(0).toString();
     }
     ui->docTypeBox->setCurrentText(Utility::convertCodeToReferenceName(db,commandName));
+}
+
+int CommandsAddForm::getSaveMode() const
+{
+    return saveMode;
+}
+
+void CommandsAddForm::setSaveMode(int value)
+{
+    saveMode = value;
 }
 
 void CommandsAddForm::changeContent()

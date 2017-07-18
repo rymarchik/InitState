@@ -16,8 +16,8 @@ int main(int argc, char *argv[])
     DB.setDatabaseName("A200");
     DB.setUserName("asrymarchik");
     DB.setPassword("123456");
-    DB.setHostName("localhost");
-//    DB.setHostName("192.168.1.42");
+    //DB.setHostName("localhost");
+    DB.setHostName("192.168.1.42");
 
     if (!DB.open())
     {

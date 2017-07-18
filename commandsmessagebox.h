@@ -26,6 +26,8 @@ public:
     void setReceiversMarks(const QStringList &value);
     QStringList getReceiversTime() const;
     void setReceiversTime(const QStringList &value);
+    QString getIdCommand() const;
+    void setIdCommand(const QString &value);
 
 private:
     QString commandName;
@@ -37,6 +39,7 @@ private:
     QStringList receivers;
     QStringList receiversMarks;
     QStringList receiversTime;
+    QString idCommand;
 };
 
 #endif // COMMANDSMESSAGEBOX_H

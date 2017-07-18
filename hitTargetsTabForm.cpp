@@ -243,6 +243,8 @@ bool HitTargetsTabForm::onSaveSetup() {
             query.addBindValue(ui->depthLE->text());
             query.addBindValue(ui->deviationLE->text());
             query.addBindValue(ui->coverDegreeCB->currentText());
+
+            qDebug() << Utility::getCoords(ui->coordinateLE->text());
         }
         else if (ui->roundRB->isChecked()) {
             if (ui->radiusLE->text().isEmpty()) {

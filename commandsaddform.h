@@ -31,10 +31,15 @@ public:
     void setDataCommand(QString code);
     void setDataDocument(QString code);
 
+    int getSaveMode() const;
+    void setSaveMode(int value);
+
 private:
     QSqlDatabase db;
     AddParamForm *addParamForm;
     AddReciversForm *addReciversForm;
+    int saveMode; //0 новый, 1 изменить
+    QString idCommand;
 
     void setCommandsSignals();
     void setAttributeExecution();

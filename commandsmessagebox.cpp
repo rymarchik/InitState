@@ -2,7 +2,7 @@
 
 CommandsMessageBox::CommandsMessageBox()
 {
-
+    idCommand = "0";
 }
 
 QString CommandsMessageBox::getCommandName() const
@@ -93,4 +93,14 @@ QStringList CommandsMessageBox::getReceiversTime() const
 void CommandsMessageBox::setReceiversTime(const QStringList &value)
 {
     receiversTime = value;
+}
+
+QString CommandsMessageBox::getIdCommand() const
+{
+    return idCommand;
+}
+
+void CommandsMessageBox::setIdCommand(const QString &value)
+{
+    idCommand = value;
 }

@@ -35,7 +35,6 @@ private:
     QTreeWidget* changesTree;
     QList<CommandsAddForm *> addWidgetList;
     DataTransmissionModule* transmissionModule;
-    int saveMode; //0 новый, 1 изменить
 
 
     void addCommand(QTreeWidgetItem *parent, QString name1, QDateTime date, QDateTime date2, QString code);
@@ -44,6 +43,8 @@ private:
     bool saveDocument(DocMessageBox box);
     bool deleteCommand(QString id);
     bool deleteDocument(QString id);
+    bool updateDocument(DocMessageBox box);
+    bool updateCommand(CommandsMessageBox box);
 private slots:
     void showRecivers();
 

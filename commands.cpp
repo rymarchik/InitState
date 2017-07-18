@@ -80,6 +80,7 @@ void Commands::fillChanges() {
 QWidget *Commands::onAdd() {
     //реализация кнопки добавить
     CommandsAddForm *addWidget = new CommandsAddForm(OWN_NAME, db);
+    addWidget->setSaveMode(0);
     addWidgetList << addWidget;
     return addWidget;
 }
@@ -97,6 +98,7 @@ QWidget *Commands::onEdit() {
     QString code = navigatorTree->currentItem()->text(5);
     QString type = navigatorTree->currentItem()->parent()->parent()->text(0);
     CommandsAddForm *editWidget = new CommandsAddForm(OWN_NAME, db);
+    editWidget->setSaveMode(1);
     addWidgetList << editWidget;
     if (type.compare("Документы") == 0) {
         editWidget->setDataDocument(code);
@@ -132,10 +134,21 @@ bool Commands::onSave(int number) {
     //реализация кнопки сохранить
     number-=2;
     bool commandOrDoc = addWidgetList.at(number)->getCommandOrDoc();
+    int saveMode = addWidgetList.at(number)->getSaveMode();
     if(!commandOrDoc) {
-        return saveCommand(OWN_NAME, addWidgetList.at(number)->getCommandtInformationBox());
+        if (saveMode == 0) {
+            return saveCommand(OWN_NAME, addWidgetList.at(number)->getCommandtInformationBox());
+        }
+        else {
+            return updateCommand(addWidgetList.at(number)->getCommandtInformationBox());
+        }
     }
-    else return saveDocument(addWidgetList.at(number)->getDocumentInformationBox());
+    else  {
+        if (saveMode == 0) {
+            return saveDocument(addWidgetList.at(number)->getDocumentInformationBox());
+        }
+        else return updateDocument(addWidgetList.at(number)->getDocumentInformationBox());
+    }
     return false;
 }
 
@@ -292,7 +305,6 @@ bool Commands::saveCommand(QString object, CommandsMessageBox box)
                           "VALUES ('"+QString::number(id)+"', '"
                                      +Utility::convertReferenceNameTOCode(db,box.getParametrs().at(i))+"', '"
                                      +box.getParametrsValue().at(i)+"');";
-            qDebug() << insertQuery;
             if (!query.exec(insertQuery)) {
                 return false;
             }
@@ -308,7 +320,6 @@ bool Commands::saveCommand(QString object, CommandsMessageBox box)
                                      +QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss")+"', '"
                                      +QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss")+"', NULL, '"
                                      +"1"+"');";
-            qDebug() << insertQuery;
             if (!query.exec(insertQuery)) {
                 return false;
             }
@@ -422,4 +433,130 @@ bool Commands::deleteDocument(QString id)
     if (!query.exec(s)) {
         return false;
     }
+    return true;
+}
+
+bool Commands::updateDocument(DocMessageBox box) {
+    QString document = box.getDocNumber();
+    QString id = box.getDocNumber();
+
+    QSqlQuery query = QSqlQuery( db );
+    QString insertQuery = "UPDATE combatdocs.combatdocs_info "
+                          "SET outgoing_reg_datetime='"
+                          +box.getTimeRegister()+"', date_edit='"
+                          +box.getTimeAdd()+"' "
+                          "WHERE cmbdid='"+id+"';";
+    if (!query.exec(insertQuery)) {
+        return false;
+    }
+    query = QSqlQuery( db );
+    QString s = "";
+    s = "DELETE FROM combatdocs.combatdocs_theme WHERE cmbdid ='"+id+"';";
+    if (!query.exec(s)) {
+        return false;
+    }
+    query = QSqlQuery( db );
+    s = "";
+    s = "DELETE FROM combatdocs.combatdocs_type WHERE cmbdid ='"+id+"';";
+    if (!query.exec(s)) {
+        return false;
+    }
+    query = QSqlQuery( db );
+    s = "";
+    s = "DELETE FROM combatdocs.combatdocs_acceptors WHERE cmbdid ='"+id+"';";
+    if (!query.exec(s)) {
+        return false;
+    }
+    query = QSqlQuery( db );
+    insertQuery = "INSERT INTO combatdocs.combatdocs_theme( "
+                          "cmbdid, doctheme_tid, date_add, date_edit, date_delete, tid, id_manager) "
+                          "VALUES ('"+document+"', '"
+                                     +Utility::convertReferenceNameTOCode(db,box.getDocTheme())+"', '"
+                                     +box.getTimeAdd()+"', '"
+                                     +box.getTimeAdd()+"', NULL, '"
+                                     +"1"+"', '"
+                                     +QString::number(1)+"');";
+    if (!query.exec(insertQuery)) {
+        return false;
+    }
+    query = QSqlQuery( db );
+    insertQuery = "INSERT INTO combatdocs.combatdocs_type( "
+                          "cmbdid, doctype_tid, tid, date_add, date_edit, date_delete, id_manager) "
+                          "VALUES ('"+document+"', '"
+                                     +Utility::convertReferenceNameTOCode(db,box.getDocType())+"', '"
+                                     +"1"+"', '"
+                                     +box.getTimeAdd()+"', '"
+                                     +box.getTimeAdd()+"', NULL, '"
+                                     +QString::number(1)+"');";
+    if (!query.exec(insertQuery)) {
+        return false;
+    }
+    for (int i = 0; i < box.getReceivers().size(); i++) {
+        insertQuery = "INSERT INTO combatdocs.combatdocs_acceptors( "
+                      "cmbdid, combat_hierarchy, mark_tid, mark_time, holder_coid, tid, date_add, date_edit, date_delete, id_manager) "
+                      "VALUES ('"+document+"', '"
+                                 +box.getReceivers().at(i)+"', '"
+                                 +Utility::convertReferenceNameTOCode(db,box.getReceiversMarks().at(i))+"', '"
+                                 +box.getReceiversTime().at(i)+"', '"
+                                 +"1"+"', '"
+                                 +"1"+"', '"
+                                 +QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss")+"', '"
+                                 +QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss")+"', NULL, '"
+                                 +"1"+"');";
+        if (!query.exec(insertQuery)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool Commands::updateCommand(CommandsMessageBox box) {
+    QSqlQuery query = QSqlQuery( db );
+    QString s = "";
+    QString command = box.getCommandName();
+    QString id = box.getIdCommand();
+    command=Utility::convertReferenceNameTOCode(db,command);
+    QString insertQuery = "UPDATE orders_alerts.orders_alerts_info "
+                          "SET order_tid='"
+                          +command+"', date_edit='"
+                          +box.getTimeAdd()+"' "
+                          "WHERE order_id ='"+id+"';";
+    qDebug() << insertQuery;
+    if (!query.exec(insertQuery)) {
+        return false;
+    }
+    s = "DELETE FROM orders_alerts.orders_alerts_acceptors WHERE order_id ='"+id+"';";
+    if (!query.exec(s)) {
+        return false;
+    }
+    s = "DELETE FROM orders_alerts.orders_alerts_param WHERE order_id ='"+id+"';";
+    if (!query.exec(s)) {
+        return false;
+    }
+    for (int i = 0; i < box.getParametrs().size(); i++) {
+        insertQuery = "INSERT INTO orders_alerts.orders_alerts_param( "
+                      "order_id, param_tid, param_value) "
+                      "VALUES ('"+id+"', '"
+                                 +Utility::convertReferenceNameTOCode(db,box.getParametrs().at(i))+"', '"
+                                 +box.getParametrsValue().at(i)+"');";
+        if (!query.exec(insertQuery)) {
+            return false;
+        }
+    }
+    for (int i = 0; i < box.getReceivers().size(); i++) {
+        insertQuery = "INSERT INTO orders_alerts.orders_alerts_acceptors( "
+                      "order_id, combat_hierarchy, mark_tid, mark_time, tid, date_add, date_edit, date_delete, id_manager) "
+                      "VALUES ('"+id+"', '"
+                                 +box.getReceivers().at(i)+"', '"
+                                 +Utility::convertReferenceNameTOCode(db,box.getReceiversMarks().at(i))+"', '"
+                                 +box.getReceiversTime().at(i)+"', '"
+                                 +"1"+"', '"
+                                 +QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss")+"', '"
+                                 +QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss")+"', NULL, '"
+                                 +"1"+"');";
+        if (!query.exec(insertQuery)) {
+            return false;
+        }
+    }
+    return true;
 }
