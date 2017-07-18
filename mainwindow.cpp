@@ -159,11 +159,12 @@ void MainWindow::slotSave()
 void MainWindow::slotMap()
 {
     if (mapProcess->state() != QProcess::Running ) {
-        mapProcess->setWorkingDirectory(mapPath);
-        mapProcess->start(mapPath + QString("/Karta.exe"));
+        mapProcess->setWorkingDirectory(mapPath + "/BIN");
+        mapProcess->start(mapProcess->workingDirectory() + QString("/Karta.exe"));
     }
 
-    QString title1 = "КАРТА-2017 - [Окно КартыD:/Volat/Qt/KARTA/sample/maps/100000.rag]";
+    QString title1 = "КАРТА-2017 - [Окно Карты" + mapPath + "/maps/100000.rag]";
+    qDebug() << title1;
     LPCWSTR title = (const wchar_t*) title1.utf16();
     HWND hwnd = FindWindow(0,title);
     SetForegroundWindow(hwnd);
