@@ -408,6 +408,13 @@
        </property>
       </widget>
      </item>
+     <item row="2" column="1">
+      <widget class="QPushButton" name="buttonPickCoordinates">
+       <property name="text">
+        <string>Съем координат</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item row="3" column="0">

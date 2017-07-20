@@ -1,6 +1,9 @@
 #include "battleOrderChangesBM.h"
 #include "ui_battleOrderChangesBM.h"
 
+#include "mapsrc/networkmodule.h"
+#include "mapsrc/NetworkObject.h"
+
 battleOrderChangesBM::battleOrderChangesBM(QSqlDatabase db, QString combatHierarchy, QWidget *parent) :
     db(db),
     combatHierarchy(combatHierarchy),
@@ -9,13 +12,18 @@ battleOrderChangesBM::battleOrderChangesBM(QSqlDatabase db, QString combatHierar
     m_DialogBM(new battleOrderDialogBM(db, combatHierarchy, this))
 {
     ui->setupUi(this);
+    mapProc = new QProcess(this);
 
     ui->lineEditCoordinates->setInputMask(">99°99'99.99\''A 999°99'99.99\''A 9999.9;_");
     ui->lineEditAzimuth->setInputMask(">999°99'99.99\'';_");
 
-    connect( ui->tableWidgetData, SIGNAL(cellClicked(int, int)), this, SLOT(slotTableMunitionSignal()) );
-    connect( m_DialogBM,          SIGNAL(signalRecordDB()),      this, SLOT(slotTableMunition())       );
+    connect( ui->tableWidgetData,        SIGNAL(cellClicked(int, int)), this, SLOT(slotTableMunitionSignal()) );
+    connect( m_DialogBM,                 SIGNAL(signalRecordDB()),      this, SLOT(slotTableMunition())       );
     //connect( m_twView, SIGNAL(tabCloseRequested(int)), this, SLOT(slotCloseTab(int)));
+    connect( &NetworkModule::Instance(), SIGNAL(receiveMetricsNetwork(QByteArray&)),
+             this, SLOT(receiveMetricsNetwork(QByteArray&)));
+    connect( ui->buttonPickCoordinates,  SIGNAL(clicked(bool)),
+             this, SLOT(slotPickCoordinates()));
 }
 
 void battleOrderChangesBM::slotData()
@@ -428,6 +436,72 @@ void battleOrderChangesBM::slotSave()
     }
 
     db.commit();
+}
+
+/*!
+\brief Слот обработки нажатия на кнопку Съем координат
+
+Открывает карту и посылает запрос на переход в режим съема координат
+*/
+void battleOrderChangesBM::slotPickCoordinates()
+{qDebug() << "alo";
+    if (mapProc->state() != QProcess::Running ) {
+        mapProc->setWorkingDirectory(mapPath + "/BIN");
+        mapProc->start(mapProc->workingDirectory() + QString("/Karta.exe"));
+    }
+/*
+    QString title1 = "КАРТА-2017 - [Окно Карты" + mapPath + "/maps/100000.rag]";
+    LPCWSTR title = (const wchar_t*) title1.utf16();
+    HWND hwnd = FindWindow(0,title);
+    SetForegroundWindow(hwnd);
+*/
+
+    NetworkModule::Instance().sendMetricsReq(TYPE_METRIC_LINE);
+}
+
+/*!
+Слот обработки полученных координат, снятых с карты
+\param[in] data массив данных, содержащий информацию о координатах
+*/
+void battleOrderChangesBM::receiveMetricsNetwork(QByteArray& data)
+{
+    unsigned char * lp=(unsigned char *)(data.data());
+    lp+=2*sizeof(quint32);
+    NetworkObject obj;
+    obj.deserialize(lp,data.size()-8);
+
+    ui->lineEditCoordinates->setText(getParsedCoordinates(obj.metrics[0].m_LATITUDE,
+                                     obj.metrics[0].m_LONGITUDE, obj.metrics[0].m_HEIGHT));
+}
+
+/*!
+Метод преобразования широты, долготы и высоты, выраженных десятичной дробью,
+в градусы, минуты и секунды
+\param[in] lat широта
+\param[in] lon долгота
+\param[in] alt высота
+\return возвращает строку с координатами в виде градусов, минут и секунд и высотой
+*/
+QString battleOrderChangesBM::getParsedCoordinates(double lat, double lon, double alt) {
+    QSqlQuery query = QSqlQuery(db);
+    QString makePointString = "SELECT ST_MakePoint(?, ?, ?)";
+    query.prepare(makePointString);
+    query.addBindValue(lat);
+    query.addBindValue(lon);
+    query.addBindValue(alt);
+    query.exec();
+    query.next();
+    QString coordinatesInHex = query.value(0).toString();
+    qDebug() << "coordinatesInHex: " << coordinatesInHex;
+
+    QString parsedString = "SELECT own_forces.coordinates_output(?)";
+    query.prepare(parsedString);
+    query.addBindValue(coordinatesInHex);
+    query.exec();
+    query.next();
+
+    qDebug() << "parsedCoordinates: " << query.value(0).toString();
+    return query.value(0).toString();
 }
 
 battleOrderChangesBM::~battleOrderChangesBM()

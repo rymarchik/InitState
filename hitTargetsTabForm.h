@@ -30,7 +30,7 @@ public:
     Метод инициализации формы для редактируемой поражаемой цели
     \param[in] table верхняя таблица вкладки Навигатор
     */
-    void onEditSetup(QTableWidget*);
+    void onEditSetup(QTableWidget* table);
     /*!
     \brief Метод сохранения заполненной формы в БД
 
@@ -72,7 +72,7 @@ public:
     \param[in] alt высота
     \return возвращает строку с координатами в виде градусов, минут и секунд и высотой
     */
-    QString getParsedCoordinates(double, double, double);
+    QString getParsedCoordinates(double lat, double lon, double alt);
     /*!
      * Метод создает строку, формирующую линию (ST_MakeLine)
      * из имеющихся двух точек, для записи в БД
@@ -108,14 +108,13 @@ private slots:
      * Слот обработки изменения индекса комбобокса Источника данных (батареи)
      * \param n индекс комбобокса
      */
-    void slotChangeDataSourceBattery(int);
+    void slotChangeDataSourceBattery(int n);
 
     /*!
     \brief Слот обработки нажатия на кнопку Съем координат
 
     Открывает карту и посылает запрос на переход в режим съема координат,
     учитывая выбор геометрии цели (ломаная, прямоугольник или круг)
-    \return возвращает индекс удаленной формы HitTargetsForm
     */
     void slotPickCoordinates();
     //!Слот обработки нажатия на кнопку Добавить точку
@@ -135,8 +134,8 @@ private slots:
     void slotToggleExplosionCB();
 
     /*!
-    Слот обработки полученного объекта, созданного на карте
-    \param[in] data массив данных, содержащий информацию об объекте
+    Слот обработки полученных координат, снятых с карты
+    \param[in] data массив данных, содержащий информацию о координатах
     */
-    void receiveMetricsNetwork(QByteArray&);
+    void receiveMetricsNetwork(QByteArray& data);
 };

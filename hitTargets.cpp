@@ -87,7 +87,8 @@ QWidget* HitTargets::onEdit() {
 
 /*!
 Метод сохранения созданной или редактируемой формы HitTargetsForm
-\return возвращает сохраняемую форму HitTargetsForm
+\param[in] n индекс сохраняемой формы HitTargetsForm
+\return возвращает true, если сохранение прошло успешно, иначе false
 */
 bool HitTargets::onSave(int index) {
     HitTargetsTabForm* form = formList.at(index - 2);
@@ -140,7 +141,7 @@ bool HitTargets::onDelete() {
 
 /*!
 Метод удаления формы HitTargetsForm по индексу из списка форм formList
-\param[in] int индекс формы HitTargetsForm
+\param[in] n индекс формы HitTargetsForm
 */
 void HitTargets::removeForm(int index) {
     formList.removeAt(index - 2);

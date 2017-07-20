@@ -36,7 +36,6 @@ QString HitTargetsTabForm::getTargetNameString() {
 
 Открывает карту и посылает запрос на переход в режим съема координат,
 учитывая выбор геометрии цели (ломаная, прямоугольник или круг)
-\return возвращает индекс удаленной формы HitTargetsForm
 */
 void HitTargetsTabForm::slotPickCoordinates() {
     if (mapProc->state() != QProcess::Running ) {
@@ -91,8 +90,8 @@ QString HitTargetsTabForm::getParsedCoordinates(double lat, double lon, double a
 }
 
 /*!
-Слот обработки полученного объекта, созданного на карте
-\param[in] data массив данных, содержащий информацию об объекте
+Слот обработки полученных координат, снятых с карты
+\param[in] data массив данных, содержащий информацию о координатах
 */
 void HitTargetsTabForm::receiveMetricsNetwork(QByteArray& data)
 {

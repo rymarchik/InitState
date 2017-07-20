@@ -49,16 +49,17 @@ public:
 
     /*!
     Метод сохранения созданной или редактируемой формы HitTargetsForm
-    \return возвращает сохраняемую форму HitTargetsForm
+    \param[in] n индекс сохраняемой формы HitTargetsForm
+    \return возвращает true, если сохранение прошло успешно, иначе false
     */
-    bool onSave(int);
+    bool onSave(int n);
     bool onSend();
 
     /*!
     Метод удаления формы HitTargetsForm по индексу из списка форм formList
-    \param[in] int индекс формы HitTargetsForm
+    \param[in] n индекс формы HitTargetsForm
     */
-    void removeForm(int);
+    void removeForm(int n);
 
     /*!
     \brief Метод удаления формы HitTargetsForm из списка форм formList

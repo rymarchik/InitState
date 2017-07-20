@@ -28,6 +28,21 @@ public:
     QString combatHierarchy;    
     battleOrderDialogBM *m_DialogBM ;
 
+    //!Процесс для запуска карты
+    QProcess* mapProc;
+    //!Путь к файлам карты
+    QString mapPath = QCoreApplication::applicationDirPath() + "/mapFiles";
+
+    /*!
+    Метод преобразования широты, долготы и высоты, выраженных десятичной дробью,
+    в градусы, минуты и секунды
+    \param[in] lat широта
+    \param[in] lon долгота
+    \param[in] alt высота
+    \return возвращает строку с координатами в виде градусов, минут и секунд и высотой
+    */
+    QString getParsedCoordinates(double lat, double lon, double alt);
+
 //private:
     void comboBoxTypeRockets(int num, QString str);
     void comboBoxState(int num, QString str);
@@ -49,6 +64,18 @@ public slots:
     void slotDataOnRockets();                //Данные о ракетах
     void slotTableMunition();                //Данные об имуществе и обеспеченности
     void slotSave();                         //Сохранение изменений в закладке
+
+    /*!
+    \brief Слот обработки нажатия на кнопку Съем координат
+
+    Открывает карту и посылает запрос на переход в режим съема координат
+    */
+    void slotPickCoordinates();
+    /*!
+    Слот обработки полученных координат, снятых с карты
+    \param[in] data массив данных, содержащий информацию о координатах
+    */
+    void receiveMetricsNetwork(QByteArray& data);
 
 private slots:
     void slotTableMunitionSignal();
