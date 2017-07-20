@@ -10,6 +10,7 @@ HitTargets::HitTargets(QSqlDatabase db, QTableWidget *navigatorTable,
 
 }
 
+//! Метод заполнения верхней таблицы вкладки Навигатор
 void HitTargets::fillNavigator() {
     Utility::initializeTableSettings(navigatorTable);
     Utility::initializeTableSettings(navigatorReceiversTable);
@@ -49,6 +50,7 @@ void HitTargets::fillNavigator() {
     navigatorReceiversTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 }
 
+//! Метод заполнения верхней таблицы вкладки Изменения
 void HitTargets::fillChanges() {
     Utility::initializeTableSettings(changesTable);
     Utility::initializeTableSettings(changesReceiversTable);
@@ -61,6 +63,10 @@ void HitTargets::fillChanges() {
     changesReceiversTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 }
 
+/*!
+Метод создания и инициализации формы HitTargetsForm для новой поражаемой цели
+\return возвращает созданную форму HitTargetsForm
+*/
 QWidget* HitTargets::onAdd() {
     HitTargetsTabForm* form = new HitTargetsTabForm;
     formList.append(form);
@@ -68,6 +74,10 @@ QWidget* HitTargets::onAdd() {
     return form;
 }
 
+/*!
+Метод создания и инициализации формы HitTargetsForm для редактируемой поражаемой цели
+\return возвращает созданную форму HitTargetsForm
+*/
 QWidget* HitTargets::onEdit() {
     HitTargetsTabForm* form = new HitTargetsTabForm;
     formList.append(form);
@@ -75,6 +85,10 @@ QWidget* HitTargets::onEdit() {
     return form;
 }
 
+/*!
+Метод сохранения созданной или редактируемой формы HitTargetsForm
+\return возвращает сохраняемую форму HitTargetsForm
+*/
 bool HitTargets::onSave(int index) {
     HitTargetsTabForm* form = formList.at(index - 2);
     return form->onSaveSetup();
@@ -85,8 +99,12 @@ bool HitTargets::onSend()
     return true;
 }
 
+/*!
+Метод удаления поражаемой цели
+\return возвращает true, если удаление прошло успешно, иначе false
+*/
 bool HitTargets::onDelete() {
-    QSqlQuery query;
+    QSqlQuery query = QSqlQuery(db);
     QString deleteQuery = "UPDATE obj_targets.target_params "
                           "SET delete_time = now() "
                           "WHERE target_number = ? "
@@ -120,10 +138,21 @@ bool HitTargets::onDelete() {
     return false;
 }
 
+/*!
+Метод удаления формы HitTargetsForm по индексу из списка форм formList
+\param[in] int индекс формы HitTargetsForm
+*/
 void HitTargets::removeForm(int index) {
     formList.removeAt(index - 2);
 }
 
+/*!
+\brief Метод удаления формы HitTargetsForm из списка форм formList
+
+Используется при удалении поражаемой цели прямо из вкладки Навигатор,
+когда неизвестен индекс формы выбранной цели
+\return возвращает индекс удаленной формы HitTargetsForm
+*/
 int HitTargets::removeFormFromNavigator() {
     foreach (HitTargetsTabForm* form, formList) {
         QString targetNumber = form->getTargetNumberString();
@@ -138,6 +167,10 @@ int HitTargets::removeFormFromNavigator() {
     return -1;
 }
 
+/*!
+Метод формирования названия вкладки
+\return возвращает строку с названием вкладки
+*/
 QString HitTargets::getTargetNumber() {
     return "Цель № " + navigatorTable->item(navigatorTable->currentRow(), 0)->text();
 }
