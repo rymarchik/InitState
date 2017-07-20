@@ -15,14 +15,29 @@ HitTargetsTabForm::HitTargetsTabForm(QWidget *parent) :
     connect(&NetworkModule::Instance(),SIGNAL(receiveMetricsNetwork(QByteArray&)),this,SLOT(receiveMetricsNetwork(QByteArray&)));
 }
 
+/*!
+Метод получения номера цели (на интерфейсе № Цели)
+\return возвращает строку с номером цели
+*/
 QString HitTargetsTabForm::getTargetNumberString() {
     return ui->targetNumberLE->text();
 }
 
+/*!
+Метод получения текущего названия цели (на интерфейсе Наименование)
+\return возвращает строку с текущим названием цели
+*/
 QString HitTargetsTabForm::getTargetNameString() {
     return ui->targetNameCB->currentText();
 }
 
+/*!
+\brief Слот обработки нажатия на кнопку Съем координат
+
+Открывает карту и посылает запрос на переход в режим съема координат,
+учитывая выбор геометрии цели (ломаная, прямоугольник или круг)
+\return возвращает индекс удаленной формы HitTargetsForm
+*/
 void HitTargetsTabForm::slotPickCoordinates() {
     if (mapProc->state() != QProcess::Running ) {
         mapProc->setWorkingDirectory(mapPath + "/BIN");
@@ -45,6 +60,14 @@ void HitTargetsTabForm::slotPickCoordinates() {
     }
 }
 
+/*!
+Метод преобразования широты, долготы и высоты, выраженных десятичной дробью,
+в градусы, минуты и секунды
+\param[in] lat широта
+\param[in] lon долгота
+\param[in] alt высота
+\return возвращает строку с координатами в виде градусов, минут и секунд и высотой
+*/
 QString HitTargetsTabForm::getParsedCoordinates(double lat, double lon, double alt) {
     QSqlQuery query;
     QString makePointString = "SELECT ST_MakePoint(?, ?, ?)";
@@ -67,6 +90,10 @@ QString HitTargetsTabForm::getParsedCoordinates(double lat, double lon, double a
     return query.value(0).toString();
 }
 
+/*!
+Слот обработки полученного объекта, созданного на карте
+\param[in] data массив данных, содержащий информацию об объекте
+*/
 void HitTargetsTabForm::receiveMetricsNetwork(QByteArray& data)
 {
     unsigned char * lp=(unsigned char *)(data.data());
@@ -113,6 +140,7 @@ void HitTargetsTabForm::receiveMetricsNetwork(QByteArray& data)
     }
 }
 
+//!Метод инициализации формы для новой поражаемой цели
 void HitTargetsTabForm::onAddSetup() {
     addCommonFormData();
     ui->dataSourceBatteryCB->addItems(getDataSourceBatteries());
@@ -133,6 +161,10 @@ void HitTargetsTabForm::onAddSetup() {
     slotAddPoint();
 }
 
+/*!
+Метод инициализации формы для редактируемой поражаемой цели
+\param[in] table верхняя таблица вкладки Навигатор
+*/
 void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
     addCommonFormData();
     ui->dataSourceBatteryCB->addItem(table->item(table->currentRow(), 2)->text().split('/').last());
@@ -140,7 +172,6 @@ void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
     ui->targetNumberLE->setText(table->item(table->currentRow(), 0)->text());
     getHitTargets();
     ui->targetNameCB->setCurrentText(table->item(table->currentRow(), 1)->text());
-//    ui->targetNameCB->addItem(table->item(table->currentRow(), 1)->text());
 
     ui->dataSourceBatteryCB->setEnabled(false);
     ui->dataSourceWeaponryCB->setEnabled(false);
@@ -232,6 +263,14 @@ void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
     ui->coverDegreeCB->setCurrentText(query.value(3).toString());
 }
 
+/*!
+\brief Метод сохранения заполненной формы в БД
+
+Форма сохраняется как для новой, так и для редактируемой цели.
+В обоих случаях координаты ложатся в БД четырьмя разными способами:
+как линия, как ломаная, как прямоугольник и как круг (4 insert и 4 update запроса)
+\return возвращает true, если сохранение прошло успешно, иначе false
+*/
 bool HitTargetsTabForm::onSaveSetup() {
     if (ui->targetNumberLE->text().isEmpty() || ui->importanceLE->text().isEmpty() ||
             !ui->coordinateLE->text().contains(QRegExp("\\d+"))) {
@@ -280,12 +319,13 @@ bool HitTargetsTabForm::onSaveSetup() {
                             "       importance, target_time, target_geometry, target_location, "
                             "       cover_degree, platoon, weaponry) "
                             "VALUES (?, ?, ?, ?, ?, %1, ?, (%2), (%3))";
-            qDebug() << "extraCoordinatesLayout: " << ui->extraCoordinatesLayout->count();
             if (ui->extraCoordinatesLayout->count() >= 2) {
+                //!Запрос на вставку в БД поражаемой цели, представленной полигоном
                 insertQuery = insertPattern.arg(getMakePolygonString())
                         .arg(dataSourceBatteryString).arg(dataSourceWeaponryString);
             }
             else {
+                //!Запрос на вставку в БД поражаемой цели, представленной линией
                 insertQuery = insertPattern.arg(getMakeLineString())
                         .arg(dataSourceBatteryString).arg(dataSourceWeaponryString);
             }
@@ -307,6 +347,7 @@ bool HitTargetsTabForm::onSaveSetup() {
                             "       importance, target_time, target_geometry, target_location, "
                             "       front, depth, deviation, cover_degree, platoon, weaponry) "
                             "VALUES (?, ?, ?, ?, ?, own_forces.coordinates_input(?), ?, ?, ?, ?, (%1), (%2)) ";
+            //!Запрос на вставку в БД поражаемой цели, представленной прямоугольником
             insertQuery = insertPattern.arg(dataSourceBatteryString).arg(dataSourceWeaponryString);
 
             query.prepare(insertQuery);
@@ -319,11 +360,7 @@ bool HitTargetsTabForm::onSaveSetup() {
             query.addBindValue(ui->frontLE->text());
             query.addBindValue(ui->depthLE->text());
             query.addBindValue(ui->deviationLE->text());
-//
-//            query.addBindValue(ui->coverDegreeCB->currentText());
-
-//            qDebug() << Utility::getCoords(ui->coordinateLE->text());
-           query.addBindValue(ui->coverDegreeCB->currentData());
+            query.addBindValue(ui->coverDegreeCB->currentData());
         }
         else if (ui->roundRB->isChecked()) {
             if (ui->radiusLE->text().isEmpty()) {
@@ -334,6 +371,7 @@ bool HitTargetsTabForm::onSaveSetup() {
                             "       importance, target_time, target_geometry, target_location, "
                             "       radius, cover_degree, platoon, weaponry) "
                             "VALUES (?, ?, ?, ?, ?, own_forces.coordinates_input(?), ?, ?, (%1), (%2))";
+            //!Запрос на вставку в БД поражаемой цели, представленной кругом
             insertQuery = insertPattern.arg(dataSourceBatteryString).arg(dataSourceWeaponryString);
 
             query.prepare(insertQuery);
@@ -375,9 +413,11 @@ bool HitTargetsTabForm::onSaveSetup() {
                             "       AND target_name = ?";
             qDebug() << "extraCoordinatesLayout: " << ui->extraCoordinatesLayout->count();
             if (ui->extraCoordinatesLayout->count() >= 2) {
+                //!Запрос на обновление в БД поражаемой цели, представленной полигоном
                 updateQuery = updatePattern.arg(getMakePolygonString());
             }
             else {
+                //!Запрос на обновление в БД поражаемой цели, представленной линией
                 updateQuery = updatePattern.arg(getMakeLineString());
             }
 
@@ -394,6 +434,7 @@ bool HitTargetsTabForm::onSaveSetup() {
                 QMessageBox::warning(this, "Ошибка", "Заполнены не все поля!");
                 return false;
             }
+            //!Запрос на обновление в БД поражаемой цели, представленной прямоугольником
             updateQuery = "UPDATE obj_targets.target_params "
                           "SET importance = ?, target_time = ?, target_geometry = ?, "
                           "     target_location = own_forces.coordinates_input(?), "
@@ -418,6 +459,7 @@ bool HitTargetsTabForm::onSaveSetup() {
                 QMessageBox::warning(this, "Ошибка", "Не заполнено поле с радиусом!");
                 return false;
             }
+            //!Запрос на обновление в БД поражаемой цели, представленной кругом
             updateQuery = "UPDATE obj_targets.target_params "
                           "SET importance = ?, target_time = ?, target_geometry = 2, "
                           "     target_location = own_forces.coordinates_input(?), "
@@ -447,6 +489,7 @@ bool HitTargetsTabForm::onSaveSetup() {
     return false;
 }
 
+//!Слот обработки нажатия на кнопку Добавить точку
 void HitTargetsTabForm::slotAddPoint() {
     QLabel* newCoordLbl = new QLabel("Координата");
     QLineEdit* newCoordLE = new QLineEdit;
@@ -463,6 +506,7 @@ void HitTargetsTabForm::slotAddPoint() {
         ui->removePointBtn->setEnabled(true);
 }
 
+//!Слот обработки нажатия на кнопку Убрать точку
 void HitTargetsTabForm::slotRemovePoint() {
     QLayout* layout = ui->extraCoordinatesLayout->itemAt(ui->extraCoordinatesLayout->count() - 1)->layout();
     for (int i = 1; i >= 0; i--) {
@@ -475,6 +519,7 @@ void HitTargetsTabForm::slotRemovePoint() {
         ui->removePointBtn->setEnabled(false);
 }
 
+//!Метод заполнения координатами полей при просмотре/правке цели с произвольной геометрией
 void HitTargetsTabForm::addFilledPoints() {
     QSqlQuery query;
 
@@ -545,6 +590,10 @@ void HitTargetsTabForm::addFilledPoints() {
         ui->removePointBtn->setEnabled(false);
 }
 
+/*!
+ * Слот обработки изменения индекса комбобокса Источника данных (батареи)
+ * \param n индекс комбобокса
+ */
 void HitTargetsTabForm::slotChangeDataSourceBattery(int n) {
     if (n != -1) {
         ui->dataSourceWeaponryCB->clear();
@@ -552,6 +601,7 @@ void HitTargetsTabForm::slotChangeDataSourceBattery(int n) {
     }
 }
 
+//!Слот обработки нажатия на радиокнопку Произвольная
 void HitTargetsTabForm::slotToggleRandomRB() {
     ui->addPointBtn->setHidden(false);
     ui->removePointBtn->setHidden(false);
@@ -573,6 +623,7 @@ void HitTargetsTabForm::slotToggleRandomRB() {
     ui->radiusLE->setHidden(true);
 }
 
+//!Слот обработки нажатия на радиокнопку Прямоугольник
 void HitTargetsTabForm::slotToggleSquareRB() {
     ui->addPointBtn->setHidden(true);
     ui->removePointBtn->setHidden(true);
@@ -594,6 +645,7 @@ void HitTargetsTabForm::slotToggleSquareRB() {
     ui->radiusLE->setHidden(true);
 }
 
+//!Слот обработки нажатия на радиокнопку Круговая
 void HitTargetsTabForm::slotToggleRoundRB() {
     ui->addPointBtn->setHidden(true);
     ui->removePointBtn->setHidden(true);
@@ -615,6 +667,7 @@ void HitTargetsTabForm::slotToggleRoundRB() {
     ui->radiusLE->setHidden(false);
 }
 
+//!Слот обработки нажатия на чекбокс Пуск
 void HitTargetsTabForm::slotToggleLaunchCB() {
     if (ui->launchChB->isChecked()) {
         ui->launchTimeDTE->setEnabled(true);
@@ -627,6 +680,7 @@ void HitTargetsTabForm::slotToggleLaunchCB() {
     }
 }
 
+//!Слот обработки нажатия на чекбокс Взрыв
 void HitTargetsTabForm::slotToggleExplosionCB() {
     if (ui->explosionChB->isChecked()) {
         ui->launchTimeDTE->setEnabled(true);
@@ -639,6 +693,7 @@ void HitTargetsTabForm::slotToggleExplosionCB() {
     }
 }
 
+//!Метод заполнения информацией общих для новой и редактируемой цели виджетов
 void HitTargetsTabForm::addCommonFormData() {
     getCoverDegrees();
     ui->launchTimeDTE->setDateTime(QDateTime::currentDateTime());
@@ -646,6 +701,11 @@ void HitTargetsTabForm::addCommonFormData() {
     getRocketTypes();
 }
 
+/*!
+ * Метод создает строку, формирующую линию (ST_MakeLine)
+ * из имеющихся двух точек, для записи в БД
+ * \return сформированная строка
+ */
 QString HitTargetsTabForm::getMakeLineString() {
     QString selectHexCoordsQuery = "SELECT own_forces.coordinates_input(?), own_forces.coordinates_input(?)";
 
@@ -668,6 +728,11 @@ QString HitTargetsTabForm::getMakeLineString() {
     return makeLineString;
 }
 
+/*!
+ * Метод создает строку, формирующую полигон (ST_MakePolygon)
+ * из имеющихся трех и более точек, для записи в БД
+ * \return сформированная строка
+ */
 QString HitTargetsTabForm::getMakePolygonString() {
     QString selectHexCoordsQuery = "SELECT ";
     QString funcString = "own_forces.coordinates_input(?)";
@@ -704,6 +769,10 @@ QString HitTargetsTabForm::getMakePolygonString() {
     return makePolygonString;
 }
 
+/*!
+ * Метод получения списка батарей
+ * \return список батарей
+ */
 QStringList HitTargetsTabForm::getDataSourceBatteries() {
     QSqlQuery query;
     QString selectQuery = "SELECT object_number, termname "
@@ -726,6 +795,10 @@ QStringList HitTargetsTabForm::getDataSourceBatteries() {
     return list;
 }
 
+/*!
+ * Метод получения списка боевых машин определенной батареи
+ * \return список боевых машин
+ */
 QStringList HitTargetsTabForm::getDataSourceWeaponry() {
     QString targetNumber = ui->dataSourceBatteryCB->currentText().split(' ').first();
     QString targetName = ui->dataSourceBatteryCB->currentText().remove(0, targetNumber.size() + 1);
@@ -756,6 +829,7 @@ QStringList HitTargetsTabForm::getDataSourceWeaponry() {
     return list;
 }
 
+//!Метод заполнения комбобокса списком поражаемых целей (на интерфейсе поле Наименование)
 void HitTargetsTabForm::getHitTargets() {
     QSqlQuery query;
     QString selectQuery = "SELECT termhierarchy, termname "
@@ -771,6 +845,7 @@ void HitTargetsTabForm::getHitTargets() {
     }
 }
 
+//!Метод заполнения комбобокса списком степеней укрытия
 void HitTargetsTabForm::getCoverDegrees() {
     QSqlQuery query;
     QString selectQuery = "SELECT termhierarchy, termname "
@@ -786,6 +861,7 @@ void HitTargetsTabForm::getCoverDegrees() {
     }
 }
 
+//!Метод заполнения комбобокса списком степеней поражения
 void HitTargetsTabForm::getDamageDegrees() {
     QSqlQuery query;
     QString selectQuery = "SELECT termhierarchy, termname "
@@ -801,6 +877,7 @@ void HitTargetsTabForm::getDamageDegrees() {
     }
 }
 
+//!Метод заполнения комбобокса списком типов ракет
 void HitTargetsTabForm::getRocketTypes() {
     QSqlQuery query;
     QString selectQuery = "SELECT termhierarchy, termname "

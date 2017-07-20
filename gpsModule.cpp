@@ -92,9 +92,9 @@ void GPSModule::slotParseInput() {
         qDebug() << query.lastError();
     }
 
-    qDebug() << "longitude: " << longitude;
-    qDebug() << "latitude: " << latitude;
-    qDebug() << "altitude: " << altitude;
-    qDebug() << "utc time: " << dateTime.toString("hh:mm:ss dd-MMM-yyyy");
-    qDebug() << "local time: " << dateTime.toLocalTime().toString("hh:mm:ss dd-MMM-yyyy") << endl;
+//    qDebug() << "longitude: " << longitude;
+//    qDebug() << "latitude: " << latitude;
+//    qDebug() << "altitude: " << altitude;
+//    qDebug() << "utc time: " << dateTime.toString("hh:mm:ss dd-MMM-yyyy");
+//    qDebug() << "local time: " << dateTime.toLocalTime().toString("hh:mm:ss dd-MMM-yyyy") << endl;
 }

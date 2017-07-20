@@ -69,7 +69,7 @@
        <enum>QFrame::Plain</enum>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="battleOrderTool">
        <property name="geometry">
@@ -1389,8 +1389,8 @@
    <slot>slotSend()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>570</x>
-     <y>289</y>
+     <x>-1</x>
+     <y>-1</y>
     </hint>
     <hint type="destinationlabel">
      <x>570</x>
