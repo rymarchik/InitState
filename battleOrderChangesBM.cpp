@@ -10,8 +10,8 @@ battleOrderChangesBM::battleOrderChangesBM(QSqlDatabase db, QString combatHierar
 {
     ui->setupUi(this);
 
-    ui->lineEditCoordinates->setInputMask(">99°99'99.99\"A 999°99'99.99\"A 9999.9;_");
-    ui->lineEditAzimuth->setInputMask(">999°99'99.99\";_");
+    ui->lineEditCoordinates->setInputMask(">99°99'99.99\''A 999°99'99.99\''A 9999.9;_");
+    ui->lineEditAzimuth->setInputMask(">999°99'99.99\'';_");
 
     connect( ui->tableWidgetData, SIGNAL(cellClicked(int, int)), this, SLOT(slotTableMunitionSignal()) );
     connect( m_DialogBM,          SIGNAL(signalRecordDB()),      this, SLOT(slotTableMunition())       );
@@ -291,7 +291,7 @@ QString battleOrderChangesBM::getCoordinates()
     QString coordinates = ui->lineEditCoordinates->text();
     //qDebug()<<"coordinates1: "<< coordinates ;
     //coordinates = coordinates.replace(QRegExp("[']"), "''");
-    coordinates = coordinates.replace(QRegExp("[\"]"), "''");
+    //coordinates = coordinates.replace(QRegExp("[\"]"), "''");
     qDebug()<< "coordinates: " << coordinates;
     return coordinates;
 }
@@ -300,7 +300,7 @@ QString battleOrderChangesBM::getAzimuth()
 {
     QString azimuth = ui->lineEditAzimuth->text();
     //azimuth = azimuth.replace(QRegExp("[']"), "''");
-    azimuth = azimuth.replace(QRegExp("[\"]"), "''");
+    //azimuth = azimuth.replace(QRegExp("[\"]"), "''");
     qDebug()<< "azimuth: " << azimuth;
     return azimuth;
 }

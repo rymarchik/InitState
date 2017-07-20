@@ -28,12 +28,12 @@ void HitTargetsTabForm::slotPickCoordinates() {
         mapProc->setWorkingDirectory(mapPath + "/BIN");
         mapProc->start(mapProc->workingDirectory() + QString("/Karta.exe"));
     }
-
+/*
     QString title1 = "КАРТА-2017 - [Окно Карты" + mapPath + "/maps/100000.rag]";
     LPCWSTR title = (const wchar_t*) title1.utf16();
     HWND hwnd = FindWindow(0,title);
     SetForegroundWindow(hwnd);
-
+*/
     if (ui->randomRB->isChecked()) {
         NetworkModule::Instance().sendMetricsReq(TYPE_METRIC_LINE);
     }

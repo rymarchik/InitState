@@ -162,11 +162,12 @@ void MainWindow::slotMap()
         mapProcess->setWorkingDirectory(mapPath + "/BIN");
         mapProcess->start(mapProcess->workingDirectory() + QString("/Karta.exe"));
     }
-
+/*
     QString title1 = "КАРТА-2017 - [Окно Карты" + mapPath + "/maps/100000.rag]";
     LPCWSTR title = (const wchar_t*) title1.utf16();
     HWND hwnd = FindWindow(0,title);
     SetForegroundWindow(hwnd);
+*/
 }
 
 void MainWindow::slotSend() {
