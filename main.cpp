@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include <QApplication>
+//#include "socketapi.h"
 #include <QtSql>
 #include <QMessageBox>
 
@@ -12,11 +13,16 @@ int main(int argc, char *argv[])
 
     QApplication a(argc, argv);
 
+    int UserID = 0;
+    for (int i=0; i<argc; i++)
+    {
+        UserID = QString(argv[i]).toInt();
+    }
+
     QSqlDatabase DB = QSqlDatabase::addDatabase("QPSQL");
     DB.setDatabaseName("A200");
-    DB.setUserName("asrymarchik");
-    DB.setPassword("123456");
-//  DB.setHostName("localhost");
+    DB.setUserName("postgres");
+    DB.setPassword("qwerty");
     DB.setHostName("192.168.1.42");
 
     if (!DB.open())
@@ -29,7 +35,7 @@ int main(int argc, char *argv[])
         qDebug() << "Success!";
     }
 
-    MainWindow w(DB);
+    MainWindow w(DB, UserID);
     w.show();
 
     return a.exec();

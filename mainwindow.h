@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QtWidgets>
+//#include <QUdpSocket>
 #include <QtSql>
 #include <QDebug>
 
@@ -16,6 +17,8 @@
 #include <QProcess>
 #include <QTcpSocket>
 #include "mapsrc/NetworkObjectManager.h"
+#include "mapsrc/networkmodule.h"
+#include "mapsrc/PropertyObj.h"
 
 namespace Ui {
 class MainWindow;
@@ -26,13 +29,20 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:  
-    explicit MainWindow(QSqlDatabase DB = QSqlDatabase::database(), QWidget *parent = 0);
+    explicit MainWindow(QSqlDatabase DB = QSqlDatabase::database(), int UserID = 0, QWidget *parent = 0);
     ~MainWindow();
 
 private:
-    Ui::MainWindow* ui;
-    QSqlDatabase db;
-    GPSModule* gps;
+    Ui::MainWindow *ui;
+
+    QSqlDatabase  db;
+    int idUser = 0;
+
+    QString title = "Исходная обстановка";
+    QString objectName;
+    QString combatHierarchy;
+    QString currentMode;
+    QString currentModeName;
 
     BaseToolClass *currentContent;
     QTabWidget    *currentTabWidget;
@@ -40,10 +50,14 @@ private:
     BattleOrder   *c_battleOrder;
     HitTargets    *c_hitTargets;
     Commands      *c_commands;
+    GPSModule     *gps;
 
-    QProcess* mapProcess;
+    QProcess      *mapProcess;
     NetworkObjectManager manager;
+
     QString mapPath = QCoreApplication::applicationDirPath() + "/mapFiles";
+
+    void windowsTitle(int idUser);  //Формирование названия формы
 
 private slots:
     void slotChangeCurrentClass(int);
@@ -64,6 +78,7 @@ private slots:
     void serverError(QString);
     void sendNetworkUserMap(QTcpSocket* pSocket);
     void receiveInsertObjectNetwork(QByteArray&);
+
     /**
     \fn   receiveDeleteObjectNetwork
     Слот для обработки сигнала о приеме пакета данных, в котором хранятся идентификаторы удаленных объектов

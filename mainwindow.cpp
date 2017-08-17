@@ -1,14 +1,16 @@
 #include "mainwindow.h"
 
-#include "mapsrc/networkmodule.h"
-#include "mapsrc/PropertyObj.h"
-
-MainWindow::MainWindow(QSqlDatabase DB, QWidget *parent) :
+MainWindow::MainWindow(QSqlDatabase DB, int UserID, QWidget *parent) :
     db(DB),
+    idUser(UserID),
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    //Формирование названия формы:
+    windowsTitle(idUser);
+
     gps = new GPSModule(db, this);
 
     ui->battleOrderTabWidget->tabBar()->tabButton(0, QTabBar::RightSide)->resize(0, 0);
@@ -18,19 +20,20 @@ MainWindow::MainWindow(QSqlDatabase DB, QWidget *parent) :
     ui->commandsTabWidget->tabBar()->tabButton(0, QTabBar::RightSide)->resize(0, 0);
     ui->commandsTabWidget->tabBar()->tabButton(1, QTabBar::RightSide)->resize(0, 0);
 
-    c_battleOrder = new BattleOrder(db, ui->navigatorBattleOrderTree, ui->navigatorBattleOrderReceivers,
+    c_battleOrder = new BattleOrder(db, combatHierarchy, currentMode, ui->navigatorBattleOrderTree, ui->navigatorBattleOrderReceivers,
                                     ui->changesBattleOrderTable, ui->changesBattleOrderReceivers);
+
     c_hitTargets  = new HitTargets(db, ui->navigatorHitTargetsTable, ui->navigatorHitTargetsReceivers,
                                    ui->changesHitTargetsTable, ui->changesHitTargetsReceivers);
     c_commands    = new Commands(db, ui->navigatorCommandsTree, ui->navigatorCommandsReceivers,
                                  ui->changesCommandsTree, ui->changesCommandsReceivers);
 
-    currentContent  = c_battleOrder;
+    currentContent   = c_battleOrder;
     currentTabWidget = ui->battleOrderTabWidget;
 
     ui->toolBox->setCurrentIndex(0);
-    slotNavigator();
 
+    slotNavigator();
     connect(ui->toolBox, SIGNAL(currentChanged(int)), this, SLOT(slotChangeCurrentClass(int)));
     connect(ui->m_exit, SIGNAL(triggered()), qApp, SLOT(quit()));
     connect(currentTabWidget, SIGNAL(currentChanged(int)), this, SLOT(slotOnChangeTab(int)));
@@ -40,11 +43,53 @@ MainWindow::MainWindow(QSqlDatabase DB, QWidget *parent) :
     if (!NetworkModule::Instance().serverFunc()) {
         QMessageBox::critical(this, "Ошибка", "Server error!");
     }
-    connect(mapProcess, SIGNAL(finished(int)), SLOT(finished(int)));
-    connect(&NetworkModule::Instance(), SIGNAL(serverError(QString)), SLOT(serverError(QString)));
-    connect(&NetworkModule::Instance(), SIGNAL(sendNetworkUserMap(QTcpSocket*)), SLOT(sendNetworkUserMap(QTcpSocket*)));
+    connect(mapProcess,                 SIGNAL(finished(int)),                   SLOT(finished(int)));
+    connect(&NetworkModule::Instance(), SIGNAL(serverError(QString)),            SLOT(serverError(QString)));
+    connect(&NetworkModule::Instance(), SIGNAL(sendNetworkUserMap(QTcpSocket*)), SLOT(sendNetworkUserMap(QTcpSocket*)));    
     connect(&NetworkModule::Instance(), SIGNAL(receiveInsertObjectNetwork(QByteArray&)), SLOT(receiveInsertObjectNetwork(QByteArray&)));
     connect(&NetworkModule::Instance(), SIGNAL(receiveDeleteObjectNetwork(QByteArray&)), SLOT(receiveDeleteObjectNetwork(QByteArray&)));
+}
+
+//Формирование названия формы:
+void MainWindow::windowsTitle(int idUser)
+{
+    QSqlQuery query(db);
+    db.transaction();
+    query.prepare( " SELECT cs2.object_number || t2.termname || ' / ' || cs1.object_number || t1.termname, "
+                   "        cs2.combat_hierarchy, cu.currentmode_tid, t3.termname "
+                   " FROM reference_data.users u "
+                   " LEFT JOIN own_forces.currentmode cu ON  cu.combat_hierarchy = u.combat_hierarchy "
+                   "                                     AND cu.date_delete IS NULL  "
+                   " LEFT JOIN own_forces.combatstructure cs2 ON  cs2.combat_hierarchy = u.combat_hierarchy "
+                   "                                          AND cs2.date_delete IS NULL "
+                   " LEFT JOIN own_forces.combatstructure cs1 ON  cs1.combat_hierarchy = subltree(cs2.combat_hierarchy,0,1) "
+                   "                                          AND cs1.date_delete IS NULL "
+                   " LEFT JOIN reference_data.terms t1 ON t1.termhierarchy = cs1.object_name "
+                   " LEFT JOIN reference_data.terms t2 ON t2.termhierarchy = cs2.object_name "
+                   " LEFT JOIN reference_data.terms t3 ON t3.termhierarchy = cu.currentmode_tid "
+                   " WHERE u.user_id =  ? "
+                   "       AND u.date_delete IS NULL  " );
+    query.addBindValue( idUser );
+    query.exec();
+
+    while(query.next())
+    {
+        objectName      = query.value(0).toString();
+        combatHierarchy = query.value(1).toString();
+        currentMode     = query.value(2).toString();
+        currentModeName = query.value(3).toString();
+        //qDebug()<< "objectName: "  << objectName;
+        //qDebug()<< "combatHierarchy1: "  << combatHierarchy;
+        //qDebug()<< "currentMode: " << currentMode;
+        //qDebug()<< "currentModeName: " << currentModeName;
+    }
+    db.commit();
+
+    title = title + " - " + objectName + " ( " + currentModeName + " режим )";
+    setWindowTitle(title);
+
+    //c_battleOrder = new BattleOrder(db, currentMode, ui->navigatorBattleOrderTree, ui->navigatorBattleOrderReceivers,
+    //                                ui->changesBattleOrderTable, ui->changesBattleOrderReceivers);
 }
 
 //заполнение закладки "Навигатор":

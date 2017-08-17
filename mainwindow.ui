@@ -23,7 +23,7 @@
    <enum>Qt::StrongFocus</enum>
   </property>
   <property name="windowTitle">
-   <string>Исходная обстановка</string>
+   <string/>
   </property>
   <property name="windowIcon">
    <iconset resource="resources.qrc">

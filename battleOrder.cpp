@@ -3,9 +3,11 @@
 
 #include <QDebug>
 
-BattleOrder::BattleOrder(QSqlDatabase db, QTreeWidget *navigatorTree,
+BattleOrder::BattleOrder(QSqlDatabase db, QString combatHierarchy, QString currentMode, QTreeWidget *navigatorTree,
                          QTableWidget *navigatorReciversTable, QTableWidget *changesTable,
                          QTableWidget *changesReciversTable, QWidget *parent) :
+    combatHierarchy(combatHierarchy),
+    currentMode(currentMode),
     navigatorTree(navigatorTree),
     changesTable(changesTable),
     BaseToolClass(db, navigatorReciversTable, changesReciversTable, parent)
@@ -25,7 +27,7 @@ void BattleOrder::showAttribute()
 }
 
 void BattleOrder::fillNavigator()
-{
+{    
     navigatorTree->clear();
     navigatorTree->header()->setVisible(true);
 
@@ -41,7 +43,8 @@ void BattleOrder::fillNavigator()
     classifItem = rootItem;
 
     QSqlQuery sql = QSqlQuery(db);
-    if (!sql.exec(  "SELECT c.combat_hierarchy, c.object_number||' '||t1.termname, t3.termname, t4.termname, "
+    //if (!sql.exec
+    sql.prepare(  "SELECT c.combat_hierarchy, c.object_number||' '||t1.termname, t3.termname, t4.termname, "
                     "       CASE t1.termhierarchy    "
                     "            WHEN '53.10' THEN 1 "  //'MBU'
                     "            WHEN '53.20' THEN 2 "  //'BM'
@@ -49,20 +52,25 @@ void BattleOrder::fillNavigator()
                     "            ELSE 0 "
                     "       END as attribute "
                     "FROM own_forces.combatstructure c "
-                    "LEFT JOIN own_forces.currentmode cur ON cur.combat_hierarchy = c.combat_hierarchy AND cur.date_delete IS NULL "
-                    "LEFT JOIN own_forces.combatobject_manner m ON m.combat_hierarchy = c.combat_hierarchy AND m.date_delete IS NULL "
+                    "LEFT JOIN own_forces.currentmode cu  ON  cu.combat_hierarchy = c.combat_hierarchy "
+                    "                                     AND cu.date_delete IS NULL "
+                    "LEFT JOIN own_forces.combatobject_manner m ON  m.combat_hierarchy = c.combat_hierarchy "
+                    "                                           AND m.date_delete IS NULL "
                     "LEFT JOIN reference_data.terms t1 ON c.object_name = t1.termhierarchy "
                     "LEFT JOIN reference_data.terms t2 ON c.type_army   = t2.termhierarchy "
                     "LEFT JOIN reference_data.terms t3 ON m.manner_tid  = t3.termhierarchy "
-                    "LEFT JOIN reference_data.terms t4 ON cur.currentmode_tid = t4.termhierarchy "
-                    "WHERE c.date_delete is NULL "))
-    {
+                    "LEFT JOIN reference_data.terms t4 ON cu.currentmode_tid = t4.termhierarchy "
+                    "WHERE c.date_delete is NULL "
+                    "      AND cu.currentmode_tid = ? ");//)
+     sql.addBindValue( currentMode );
+     sql.exec();
+/*    {
         db.rollback();
         QApplication::restoreOverrideCursor();
         QMessageBox::warning(this, tr("warning"), sql.lastError().text());
         return;
     }
-
+*/
     while(sql.next())
     {
         QTreeWidgetItem *item = new QTreeWidgetItem();
@@ -72,6 +80,15 @@ void BattleOrder::fillNavigator()
         item->setText(2, sql.value(3).toString().trimmed());
         item->setText(3, sql.value(4).toString().trimmed());
         item->setText(4, sql.value(0).toString().trimmed());
+
+        //Закрашивает название и характеристики текущего объекта:
+        if (item->text(4) == combatHierarchy)
+        {
+            item->setTextColor(0, Qt::blue);
+            item->setTextColor(1, Qt::blue);
+            item->setTextColor(2, Qt::blue);
+            item->setTextColor(3, Qt::blue);
+        }
 
         QString termhierarchy = sql.value(0).toString().trimmed();
         termhierarchy.contains(".", Qt::CaseInsensitive);
@@ -99,13 +116,12 @@ void BattleOrder::fillNavigator()
         }
         hashItems[termhierarchy] = item;
     }
-
     db.commit();
 
     navigatorTree->sortByColumn(0, Qt::AscendingOrder);
 
     QApplication::restoreOverrideCursor();
-    classifItem->setExpanded(true);    
+    classifItem->setExpanded(true);
 }
 
 void BattleOrder::fillChanges()

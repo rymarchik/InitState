@@ -16,11 +16,14 @@ class BattleOrder : public BaseToolClass
     Q_OBJECT
 
 public:
-    BattleOrder(QSqlDatabase db, QTreeWidget *navigatorTree,
+    BattleOrder(QSqlDatabase db, QString combatHierarchy, QString currentMode, QTreeWidget *navigatorTree,
                 QTableWidget *navigatorReciversTable, QTableWidget *changesTable,
                 QTableWidget *changesReciversTable, QWidget* parent = 0);
 
     battleOrderChangesBM *m_changesBM;
+    QString combatHierarchy;
+    QString currentMode;
+
     void fillNavigator();
     void fillChanges();
     void removeForm(int);
