@@ -20,7 +20,7 @@ class HitTargetsTabForm : public QWidget
     Q_OBJECT
 
 public:
-    explicit HitTargetsTabForm(QWidget *parent = 0);
+    explicit HitTargetsTabForm(QSqlDatabase db, QWidget *parent = 0);
     ~HitTargetsTabForm();
     Ui::HitTargets *ui;
 
@@ -45,16 +45,10 @@ public:
     void addCommonFormData();
     //!Метод заполнения координатами полей при просмотре/правке цели с произвольной геометрией
     void addFilledPoints();
-    /*!
-     * Метод получения списка батарей
-     * \return список батарей
-     */
-    QStringList getDataSourceBatteries();
-    /*!
-     * Метод получения списка боевых машин определенной батареи
-     * \return список боевых машин
-     */
-    QStringList getDataSourceWeaponry();
+    //!Метод заполнения комбобокса списком батарей
+    void getDataSourceBatteries();
+    //!Метод заполнения комбобокса списком боевых машин определенной батареи
+    void getDataSourceWeaponry();
     //!Метод заполнения комбобокса списком поражаемых целей (на интерфейсе поле Наименование)
     void getHitTargets();
     //!Метод заполнения комбобокса списком степеней укрытия
@@ -97,6 +91,7 @@ public:
     QString getTargetNameString();
 
 private:
+    QSqlDatabase db;
     QFont font = QFont("MS Shell Dlg 2", 9, QFont::Bold);
     //!Процесс для запуска карты
     QProcess* mapProc;

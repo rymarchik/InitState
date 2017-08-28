@@ -5,7 +5,8 @@
 #include "mapsrc/networkmodule.h"
 #include "mapsrc/NetworkObject.h"
 
-HitTargetsTabForm::HitTargetsTabForm(QWidget *parent) :
+HitTargetsTabForm::HitTargetsTabForm(QSqlDatabase db, QWidget *parent) :
+    db(db),
     QWidget(parent),
     ui(new Ui::HitTargets)
 {
@@ -68,7 +69,7 @@ void HitTargetsTabForm::slotPickCoordinates() {
 \return возвращает строку с координатами в виде градусов, минут и секунд и высотой
 */
 QString HitTargetsTabForm::getParsedCoordinates(double lat, double lon, double alt) {
-    QSqlQuery query;
+    QSqlQuery query = QSqlQuery(db);
     QString makePointString = "SELECT ST_MakePoint(?, ?, ?)";
     query.prepare(makePointString);
     query.addBindValue(lat);
@@ -142,8 +143,6 @@ void HitTargetsTabForm::receiveMetricsNetwork(QByteArray& data)
 //!Метод инициализации формы для новой поражаемой цели
 void HitTargetsTabForm::onAddSetup() {
     addCommonFormData();
-    ui->dataSourceBatteryCB->addItems(getDataSourceBatteries());
-    getHitTargets();
     ui->detectionTimeDTE->setDateTime(QDateTime::currentDateTime());
 
     ui->dataSourceBatteryCB->setEnabled(true);
@@ -166,10 +165,9 @@ void HitTargetsTabForm::onAddSetup() {
 */
 void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
     addCommonFormData();
-    ui->dataSourceBatteryCB->addItem(table->item(table->currentRow(), 2)->text().split('/').last());
-    ui->dataSourceWeaponryCB->addItem(table->item(table->currentRow(), 2)->text().split('/').first());
+    ui->dataSourceBatteryCB->setCurrentText(table->item(table->currentRow(), 2)->text().split('/').last());
+    ui->dataSourceWeaponryCB->setCurrentText(table->item(table->currentRow(), 2)->text().split('/').first());
     ui->targetNumberLE->setText(table->item(table->currentRow(), 0)->text());
-    getHitTargets();
     ui->targetNameCB->setCurrentText(table->item(table->currentRow(), 1)->text());
 
     ui->dataSourceBatteryCB->setEnabled(false);
@@ -177,23 +175,28 @@ void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
     ui->targetNumberLE->setEnabled(false);
     ui->targetNameCB->setEnabled(false);
 
-    QSqlQuery query;
-    QString selectPattern = "SELECT importance, target_time, target_geometry, t2.termname "
-                            "FROM obj_targets.target_params "
-                            "JOIN reference_data.terms t1 ON t1.termhierarchy = target_name "
-                            "JOIN reference_data.terms t2 ON t2.termhierarchy = cover_degree "
-                            "WHERE target_number = %1 "
-                            "       AND t1.termname = '%2' "
-                            "       AND delete_time is null";
-    QString selectQuery = selectPattern.arg(ui->targetNumberLE->text()).arg(ui->targetNameCB->currentText());
+    QSqlQuery query = QSqlQuery(db);
+    QString selectQuery = "SELECT importance, target_time, method_location, t.termname "
+                          "FROM targets.targets_param tp "
+                          "JOIN targets.obj_targets ot ON tp.id_target = ot.id_target "
+                          "JOIN reference_data.terms t ON tp.manner_tid = t.termhierarchy "
+                          "WHERE ot.target_number = ? "
+                          "     AND ot.target_name = ? "
+                          "     AND ot.combat_hierarchy = ? "
+                          "     AND ot.date_delete IS null";
+    query.prepare(selectQuery);
+    query.addBindValue(ui->targetNumberLE->text());
+    query.addBindValue(ui->targetNameCB->currentData());
+    query.addBindValue(ui->dataSourceWeaponryCB->currentData());
 
-    if (!query.exec(selectQuery)) {
-        qDebug() << "Unable to make select operation!" << query.lastError();
+    if (!query.exec()) {
+        qDebug() << query.lastError();
     }
 
     query.next();
     ui->importanceLE->setText(query.value(0).toString());
     ui->detectionTimeDTE->setDateTime(query.value(1).toDateTime());
+    ui->coverDegreeCB->setCurrentText(query.value(3).toString());
 
     switch (query.value(2).toInt()) {
     case 0: {
@@ -212,25 +215,27 @@ void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
         else
             ui->squareRB->setChecked(true);
 
-        QSqlQuery squareQuery;
-        QString squarePatternQuery = "SELECT own_forces.coordinates_output(target_location), "
-                                     "      front, depth, deviation "
-                                     "FROM obj_targets.target_params "
-                                     "JOIN reference_data.terms ON termhierarchy = target_name "
-                                     "WHERE target_number = %1 "
-                                     "      AND termname = '%2'"
-                                     "      AND delete_time is null";
-        QString squareFullQuery = squarePatternQuery.arg(ui->targetNumberLE->text()).arg(ui->targetNameCB->currentText());
+        QString squareQuery = "SELECT own_forces.coordinates_output(obj_location), front, depth, deviation "
+                              "FROM targets.targets_param tp "
+                              "JOIN targets.obj_targets ot ON tp.id_target = ot.id_target "
+                              "WHERE ot.target_number = ? "
+                              "     AND ot.target_name = ? "
+                              "     AND ot.combat_hierarchy = ? "
+                              "     AND ot.date_delete IS null";
+        query.prepare(squareQuery);
+        query.addBindValue(ui->targetNumberLE->text());
+        query.addBindValue(ui->targetNameCB->currentData());
+        query.addBindValue(ui->dataSourceWeaponryCB->currentData());
 
-        if (!squareQuery.exec(squareFullQuery)) {
-            qDebug() << "Unable to make select operation!" << squareQuery.lastError();
+        if (!query.exec()) {
+            qDebug() << query.lastError();
         }
-        squareQuery.next();
+        query.next();
 
-        ui->coordinateLE->setText(squareQuery.value(0).toString());
-        ui->frontLE->setText(QString::number(squareQuery.value(1).toInt()));
-        ui->depthLE->setText(QString::number(squareQuery.value(2).toInt()));
-        ui->deviationLE->setText(QString::number(squareQuery.value(3).toInt()));
+        ui->coordinateLE->setText(query.value(0).toString());
+        ui->frontLE->setText(QString::number(query.value(1).toInt()));
+        ui->depthLE->setText(QString::number(query.value(2).toInt()));
+        ui->deviationLE->setText(QString::number(query.value(3).toInt()));
         break;
     }
     case 2: {
@@ -240,26 +245,28 @@ void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
         else
             ui->roundRB->setChecked(true);
 
-        QSqlQuery roundQuery;
-        QString roundPatternQuery = "SELECT own_forces.coordinates_output(target_location), radius "
-                                    "FROM obj_targets.target_params "
-                                    "JOIN reference_data.terms ON termhierarchy = target_name "
-                                    "WHERE target_number = %1 "
-                                    "       AND termname = '%2' "
-                                    "       AND delete_time is null";
-        QString roundFullQuery = roundPatternQuery.arg(ui->targetNumberLE->text()).arg(ui->targetNameCB->currentText());
+        QString roundQuery = "SELECT own_forces.coordinates_output(target_location), radius "
+                             "FROM targets.targets_param tp "
+                             "JOIN targets.obj_targets ot ON tp.id_target = ot.id_target "
+                             "WHERE ot.target_number = ? "
+                             "     AND ot.target_name = ? "
+                             "     AND ot.combat_hierarchy = ? "
+                             "     AND ot.date_delete IS null";
+       query.prepare(roundQuery);
+       query.addBindValue(ui->targetNumberLE->text());
+       query.addBindValue(ui->targetNameCB->currentData());
+       query.addBindValue(ui->dataSourceWeaponryCB->currentData());
 
-        if (!roundQuery.exec(roundFullQuery)) {
-            qDebug() << "Unable to make select operation!" << roundQuery.lastError();
+        if (!query.exec()) {
+            qDebug() << query.lastError();
         }
-        roundQuery.next();
+        query.next();
 
-        ui->coordinateLE->setText(roundQuery.value(0).toString());
-        ui->radiusLE->setText(QString::number(roundQuery.value(1).toInt()));
+        ui->coordinateLE->setText(query.value(0).toString());
+        ui->radiusLE->setText(QString::number(query.value(1).toInt()));
         break;
     }
     }
-    ui->coverDegreeCB->setCurrentText(query.value(3).toString());
 }
 
 /*!
@@ -277,35 +284,13 @@ bool HitTargetsTabForm::onSaveSetup() {
         return false;
     }
 
-    QSqlQuery query;
+    QSqlQuery query = QSqlQuery(db);
 
     if (ui->dataSourceBatteryCB->isEnabled()) { //i.e. add tab
         QString insertPattern;
         QString insertQuery;
 
-        QString batteryPattern = "SELECT combat_hierarchy "
-                                 "FROM own_forces.combatstructure "
-                                 "JOIN reference_data.terms ON termhierarchy = object_name "
-                                 "WHERE object_number = %1 "
-                                 "      AND termname = '%2' "
-                                 "      AND type_army = '22.10' "
-                                 "      AND date_delete is null";
-        QString weaponryPattern = "SELECT combat_hierarchy "
-                                  "FROM own_forces.combatstructure "
-                                  "JOIN reference_data.terms ON termhierarchy = object_name "
-                                  "WHERE object_number = %1 "
-                                  "     AND termname = '%2' "
-                                  "     AND date_delete is null "
-                                  "     AND subltree(combat_hierarchy, 0, 1) = (%3)";
-        QString batteryTargetNumber = ui->dataSourceBatteryCB->currentText().split(' ').first();
-        QString batteryTargetName = ui->dataSourceBatteryCB->currentText().remove(0, batteryTargetNumber.size() + 1);
-        QString weaponryTargetNumber = ui->dataSourceWeaponryCB->currentText().split(' ').first();
-        QString weaponryTargetName = ui->dataSourceWeaponryCB->currentText().remove(0, weaponryTargetNumber.size() + 1);
-
-        QString dataSourceBatteryString = batteryPattern.arg(batteryTargetNumber).arg(batteryTargetName);
-        QString dataSourceWeaponryString = weaponryPattern.arg(weaponryTargetNumber)
-                .arg(weaponryTargetName).arg(dataSourceBatteryString);
-
+        db.transaction();
         if (ui->randomRB->isChecked()) {
             for (int i = 0; i < ui->extraCoordinatesLayout->count(); i++) {
                 QLineEdit* coord = (QLineEdit*)ui->extraCoordinatesLayout->itemAt(i)->layout()->itemAt(1)->widget();
@@ -314,77 +299,97 @@ bool HitTargetsTabForm::onSaveSetup() {
                     return false;
                 }
             }
-            insertPattern = "INSERT INTO obj_targets.target_params (target_number, target_name, "
-                            "       importance, target_time, target_geometry, target_location, "
-                            "       cover_degree, platoon, weaponry) "
-                            "VALUES (?, ?, ?, ?, ?, %1, ?, (%2), (%3))";
+
+            QString insertObjTargets = "INSERT INTO targets.obj_targets (target_number, target_name, "
+                                       "    combat_hierarchy, date_add, id_manager) "
+                                       "VALUES (?, ?, ?, now(), ?)";
+            query.prepare(insertObjTargets);
+            query.addBindValue(ui->targetNumberLE->text());
+            query.addBindValue(ui->targetNameCB->currentData());
+            query.addBindValue(ui->dataSourceWeaponryCB->currentData());
+            query.addBindValue(1);
+            query.exec();
+
+            QString selectJustAddedId = "SELECT MAX(id_target) "
+                                        "FROM targets.obj_targets ";
+            query.prepare(selectJustAddedId);
+            query.exec();
+            query.next();
+            int targetID = query.value(0).toInt();
+            qDebug() << targetID;
+
+            QString insertTargetsParam = "INSERT INTO targets.targets_param (id_target, target_time, "
+                                         "      importance, method_location, obj_location, manner_tid, "
+                                         "      tid, date_add, id_manager) "
+                                         "VALUES (?, ?, ?, ?, %1, ?, ?, now(), ?)";
+            QString insertTargetsParamWithArgs;
             if (ui->extraCoordinatesLayout->count() >= 2) {
                 //!Запрос на вставку в БД поражаемой цели, представленной полигоном
-                insertQuery = insertPattern.arg(getMakePolygonString())
-                        .arg(dataSourceBatteryString).arg(dataSourceWeaponryString);
+                insertTargetsParamWithArgs = insertTargetsParam.arg(getMakePolygonString());
             }
             else {
                 //!Запрос на вставку в БД поражаемой цели, представленной линией
-                insertQuery = insertPattern.arg(getMakeLineString())
-                        .arg(dataSourceBatteryString).arg(dataSourceWeaponryString);
+                insertTargetsParamWithArgs = insertTargetsParam.arg(getMakeLineString());
             }
 
-            query.prepare(insertQuery);
-            query.addBindValue(ui->targetNumberLE->text());
-            query.addBindValue(ui->targetNameCB->currentData());
-            query.addBindValue(ui->importanceLE->text());
+            query.prepare(insertTargetsParamWithArgs);
+            query.addBindValue(targetID);
             query.addBindValue(ui->detectionTimeDTE->text());
+            query.addBindValue(ui->importanceLE->text());
             query.addBindValue(0);
             query.addBindValue(ui->coverDegreeCB->currentData());
+            query.addBindValue(Utility::getTid(db));
+            query.addBindValue(1);
+            query.exec();
         }
         else if (ui->squareRB->isChecked()) {
-            if (ui->frontLE->text().isEmpty() || ui->depthLE->text().isEmpty() || ui->deviationLE->text().isEmpty()) {
-                QMessageBox::warning(this, "Ошибка", "Заполнены не все поля!");
-                return false;
-            }
-            insertPattern = "INSERT INTO obj_targets.target_params (target_number, target_name, "
-                            "       importance, target_time, target_geometry, target_location, "
-                            "       front, depth, deviation, cover_degree, platoon, weaponry) "
-                            "VALUES (?, ?, ?, ?, ?, own_forces.coordinates_input(?), ?, ?, ?, ?, (%1), (%2)) ";
-            //!Запрос на вставку в БД поражаемой цели, представленной прямоугольником
-            insertQuery = insertPattern.arg(dataSourceBatteryString).arg(dataSourceWeaponryString);
+//            if (ui->frontLE->text().isEmpty() || ui->depthLE->text().isEmpty() || ui->deviationLE->text().isEmpty()) {
+//                QMessageBox::warning(this, "Ошибка", "Заполнены не все поля!");
+//                return false;
+//            }
+//            insertPattern = "INSERT INTO obj_targets.target_params (target_number, target_name, "
+//                            "       importance, target_time, target_geometry, target_location, "
+//                            "       front, depth, deviation, cover_degree, platoon, weaponry) "
+//                            "VALUES (?, ?, ?, ?, ?, own_forces.coordinates_input(?), ?, ?, ?, ?, (%1), (%2)) ";
+//            //!Запрос на вставку в БД поражаемой цели, представленной прямоугольником
+//            insertQuery = insertPattern.arg(dataSourceBatteryString).arg(dataSourceWeaponryString);
 
-            query.prepare(insertQuery);
-            query.addBindValue(ui->targetNumberLE->text());
-            query.addBindValue(ui->targetNameCB->currentData());
-            query.addBindValue(ui->importanceLE->text());
-            query.addBindValue(ui->detectionTimeDTE->text());
-            query.addBindValue(1);
-            query.addBindValue(ui->coordinateLE->text());
-            query.addBindValue(ui->frontLE->text());
-            query.addBindValue(ui->depthLE->text());
-            query.addBindValue(ui->deviationLE->text());
-            query.addBindValue(ui->coverDegreeCB->currentData());
+//            query.prepare(insertQuery);
+//            query.addBindValue(ui->targetNumberLE->text());
+//            query.addBindValue(ui->targetNameCB->currentData());
+//            query.addBindValue(ui->importanceLE->text());
+//            query.addBindValue(ui->detectionTimeDTE->text());
+//            query.addBindValue(1);
+//            query.addBindValue(ui->coordinateLE->text());
+//            query.addBindValue(ui->frontLE->text());
+//            query.addBindValue(ui->depthLE->text());
+//            query.addBindValue(ui->deviationLE->text());
+//            query.addBindValue(ui->coverDegreeCB->currentData());
         }
         else if (ui->roundRB->isChecked()) {
-            if (ui->radiusLE->text().isEmpty()) {
-                QMessageBox::warning(this, "Ошибка", "Не заполнено поле с радиусом!");
-                return false;
-            }
-            insertPattern = "INSERT INTO obj_targets.target_params (target_number, target_name, "
-                            "       importance, target_time, target_geometry, target_location, "
-                            "       radius, cover_degree, platoon, weaponry) "
-                            "VALUES (?, ?, ?, ?, ?, own_forces.coordinates_input(?), ?, ?, (%1), (%2))";
-            //!Запрос на вставку в БД поражаемой цели, представленной кругом
-            insertQuery = insertPattern.arg(dataSourceBatteryString).arg(dataSourceWeaponryString);
+//            if (ui->radiusLE->text().isEmpty()) {
+//                QMessageBox::warning(this, "Ошибка", "Не заполнено поле с радиусом!");
+//                return false;
+//            }
+//            insertPattern = "INSERT INTO obj_targets.target_params (target_number, target_name, "
+//                            "       importance, target_time, target_geometry, target_location, "
+//                            "       radius, cover_degree, platoon, weaponry) "
+//                            "VALUES (?, ?, ?, ?, ?, own_forces.coordinates_input(?), ?, ?, (%1), (%2))";
+//            //!Запрос на вставку в БД поражаемой цели, представленной кругом
+//            insertQuery = insertPattern.arg(dataSourceBatteryString).arg(dataSourceWeaponryString);
 
-            query.prepare(insertQuery);
-            query.addBindValue(ui->targetNumberLE->text());
-            query.addBindValue(ui->targetNameCB->currentData());
-            query.addBindValue(ui->importanceLE->text());
-            query.addBindValue(ui->detectionTimeDTE->text());
-            query.addBindValue(2);
-            query.addBindValue(ui->coordinateLE->text());
-            query.addBindValue(ui->radiusLE->text());
-            query.addBindValue(ui->coverDegreeCB->currentData());
+//            query.prepare(insertQuery);
+//            query.addBindValue(ui->targetNumberLE->text());
+//            query.addBindValue(ui->targetNameCB->currentData());
+//            query.addBindValue(ui->importanceLE->text());
+//            query.addBindValue(ui->detectionTimeDTE->text());
+//            query.addBindValue(2);
+//            query.addBindValue(ui->coordinateLE->text());
+//            query.addBindValue(ui->radiusLE->text());
+//            query.addBindValue(ui->coverDegreeCB->currentData());
         }
-        if (!query.exec()) {
-            qDebug() << "Unable to make insert operation\n" << query.lastError();
+        if (!db.commit()) {
+            qDebug() << query.lastError();
             QMessageBox::critical(this, "Ошибка", "Добавить данные не удалось!");
         }
         else {
@@ -520,18 +525,22 @@ void HitTargetsTabForm::slotRemovePoint() {
 
 //!Метод заполнения координатами полей при просмотре/правке цели с произвольной геометрией
 void HitTargetsTabForm::addFilledPoints() {
-    QSqlQuery query;
+    QSqlQuery query = QSqlQuery(db);
 
-    QString selectHexCoordsPattern = "SELECT (ST_dumppoints(target_location)).geom "
-                                     "FROM obj_targets.target_params "
-                                     "JOIN reference_data.terms ON termhierarchy = target_name "
-                                     "WHERE target_number = %1 "
-                                     "      AND termname = '%2'"
-                                     "      AND delete_time is null";
-    QString selectHexCoordsQuery = selectHexCoordsPattern.arg(ui->targetNumberLE->text())
-            .arg(ui->targetNameCB->currentText());
+    db.transaction();
+    QString selectHexCoordsQuery = "SELECT (ST_dumppoints(obj_location)).geom "
+                                   "FROM targets.targets_param tp "
+                                   "JOIN targets.obj_targets ot ON tp.id_target = ot.id_target "
+                                   "WHERE ot.target_number = ? "
+                                   "     AND ot.target_name = ? "
+                                   "     AND ot.combat_hierarchy = ? "
+                                   "     AND ot.date_delete IS null";
+    query.prepare(selectHexCoordsQuery);
+    query.addBindValue(ui->targetNumberLE->text());
+    query.addBindValue(ui->targetNameCB->currentData());
+    query.addBindValue(ui->dataSourceWeaponryCB->currentData());
 
-    if (!query.exec(selectHexCoordsQuery)) {
+    if (!query.exec()) {
         qDebug() << "Unable to select hex coordinates!" << query.lastError();
     }
     QStringList hexCoords;
@@ -556,6 +565,7 @@ void HitTargetsTabForm::addFilledPoints() {
     if (!query.exec()) {
         qDebug() << "Unable to select parsed coordinates!" << query.lastError();
     }
+    db.commit();
     query.next();
 
     for (int i = 0; i < query.record().count(); i++) {
@@ -596,7 +606,7 @@ void HitTargetsTabForm::addFilledPoints() {
 void HitTargetsTabForm::slotChangeDataSourceBattery(int n) {
     if (n != -1) {
         ui->dataSourceWeaponryCB->clear();
-        ui->dataSourceWeaponryCB->addItems(getDataSourceWeaponry());
+        getDataSourceWeaponry();
     }
 }
 
@@ -694,6 +704,8 @@ void HitTargetsTabForm::slotToggleExplosionCB() {
 
 //!Метод заполнения информацией общих для новой и редактируемой цели виджетов
 void HitTargetsTabForm::addCommonFormData() {
+    getDataSourceBatteries();
+    getHitTargets();
     getCoverDegrees();
     ui->launchTimeDTE->setDateTime(QDateTime::currentDateTime());
     getDamageDegrees();
@@ -708,7 +720,7 @@ void HitTargetsTabForm::addCommonFormData() {
 QString HitTargetsTabForm::getMakeLineString() {
     QString selectHexCoordsQuery = "SELECT own_forces.coordinates_input(?), own_forces.coordinates_input(?)";
 
-    QSqlQuery query;
+    QSqlQuery query = QSqlQuery(db);
     query.prepare(selectHexCoordsQuery);
     query.addBindValue(ui->coordinateLE->text());
     QLineEdit* coord = (QLineEdit*)ui->extraCoordinatesLayout->itemAt(0)->layout()->itemAt(1)->widget();
@@ -741,7 +753,7 @@ QString HitTargetsTabForm::getMakePolygonString() {
     selectHexCoordsQuery.append(funcString);
 //    qDebug() << "selectHexCoordsQuery: " << selectHexCoordsQuery << endl;
 
-    QSqlQuery query;
+    QSqlQuery query = QSqlQuery(db);
     query.prepare(selectHexCoordsQuery);
     query.addBindValue(ui->coordinateLE->text());
     for (int i = 0; i < ui->extraCoordinatesLayout->count(); i++) {
@@ -768,75 +780,60 @@ QString HitTargetsTabForm::getMakePolygonString() {
     return makePolygonString;
 }
 
-/*!
- * Метод получения списка батарей
- * \return список батарей
- */
-QStringList HitTargetsTabForm::getDataSourceBatteries() {
-    QSqlQuery query;
-    QString selectQuery = "SELECT object_number, termname "
+//!Метод заполнения комбобокса списком батарей
+void HitTargetsTabForm::getDataSourceBatteries() {
+    QSqlQuery query = QSqlQuery(db);
+    QString selectQuery = "SELECT object_number, termname, combat_hierarchy "
                           "FROM own_forces.combatstructure "
                           "JOIN reference_data.terms ON termhierarchy = object_name "
                           "WHERE combat_hierarchy IN (SELECT combat_hierarchy "
-                          "                             FROM own_forces.combatstructure "
-                          "                             WHERE nlevel(combat_hierarchy) = 1 "
-                          "                                 AND type_army = '22.10' "
+                          "                           FROM own_forces.combatstructure "
+                          "                           WHERE nlevel(combat_hierarchy) = 1 "
+                          "                                 AND type_army = ? "
                           "                                 AND date_delete is null) "
                           "ORDER BY object_number";
-    if (!query.exec(selectQuery)) {
-        qDebug() << "Unable to make select operation!" << query.lastError();
+    query.prepare(selectQuery);
+    query.addBindValue("22.10");
+    if (!query.exec()) {
+        qDebug() << query.lastError();
     }
 
-    QStringList list;
     while (query.next()) {
-        list.append(tr("%1").arg(query.value(0).toInt()) + " " + query.value(1).toString());
+        ui->dataSourceBatteryCB->addItem(tr("%1").arg(query.value(0).toInt()) + " " + query.value(1).toString(),
+                                         query.value(2).toString());
     }
-    return list;
 }
 
-/*!
- * Метод получения списка боевых машин определенной батареи
- * \return список боевых машин
- */
-QStringList HitTargetsTabForm::getDataSourceWeaponry() {
-    QString targetNumber = ui->dataSourceBatteryCB->currentText().split(' ').first();
-    QString targetName = ui->dataSourceBatteryCB->currentText().remove(0, targetNumber.size() + 1);
-
-    QSqlQuery query;
-    QString selectPattern = "SELECT object_number, termname "
-                            "FROM own_forces.combatstructure "
-                            "JOIN reference_data.terms ON termhierarchy = object_name "
-                            "WHERE subltree(combat_hierarchy, 0, 1) = (SELECT combat_hierarchy "
-                            "                                           FROM own_forces.combatstructure "
-                            "                                           JOIN reference_data.terms "
-                            "                                           ON termhierarchy = object_name "
-                            "                                           WHERE termname = '%2' "
-                            "                                               AND object_number = %1 "
-                            "                                               AND type_army = '22.10' "
-                            "                                               AND date_delete is null) "
-                            "   AND nlevel(combat_hierarchy) = 2 "
-                            "ORDER BY object_number";
-    QString selectQuery = selectPattern.arg(targetNumber).arg(targetName);
-    if (!query.exec(selectQuery)) {
-        qDebug() << "Unable to make select operation!" << query.lastError();
+//!Метод заполнения комбобокса списком боевых машин определенной батареи
+void HitTargetsTabForm::getDataSourceWeaponry() {
+    QSqlQuery query = QSqlQuery(db);
+    QString selectQuery = "SELECT object_number, termname, combat_hierarchy "
+                          "FROM own_forces.combatstructure "
+                          "JOIN reference_data.terms ON termhierarchy = object_name "
+                          "WHERE subltree(combat_hierarchy, 0, 1) = ? "
+                          "     AND nlevel(combat_hierarchy) = 2 "
+                          "ORDER BY object_number";
+    query.prepare(selectQuery);
+    query.addBindValue(ui->dataSourceBatteryCB->currentData());
+    if (!query.exec()) {
+        qDebug() << query.lastError();
     }
 
-    QStringList list;
     while (query.next()) {
-        list.append(tr("%1").arg(query.value(0).toInt()) + " " + query.value(1).toString());
+        ui->dataSourceWeaponryCB->addItem(tr("%1").arg(query.value(0).toInt()) + " " + query.value(1).toString(),
+                                          query.value(2).toString());
     }
-    return list;
 }
 
 //!Метод заполнения комбобокса списком поражаемых целей (на интерфейсе поле Наименование)
 void HitTargetsTabForm::getHitTargets() {
-    QSqlQuery query;
+    QSqlQuery query = QSqlQuery(db);
     QString selectQuery = "SELECT termhierarchy, termname "
                           "FROM reference_data.terms "
                           "WHERE termhierarchy ~ '90.*' "
                           "     AND nlevel(termhierarchy) = 3";
     if (!query.exec(selectQuery)) {
-        qDebug() << "Unable to make select operation!" << query.lastError();
+        qDebug() << query.lastError();
     }
 
     while (query.next()) {
@@ -846,13 +843,13 @@ void HitTargetsTabForm::getHitTargets() {
 
 //!Метод заполнения комбобокса списком степеней укрытия
 void HitTargetsTabForm::getCoverDegrees() {
-    QSqlQuery query;
+    QSqlQuery query = QSqlQuery(db);
     QString selectQuery = "SELECT termhierarchy, termname "
                           "FROM reference_data.terms "
                           "WHERE termhierarchy ~ '95.20.*' "
                           "     AND nlevel(termhierarchy) = 3";
     if (!query.exec(selectQuery)) {
-        qDebug() << "Unable to make select operation!" << query.lastError();
+        qDebug() << query.lastError();
     }
 
     while (query.next()) {
@@ -862,13 +859,13 @@ void HitTargetsTabForm::getCoverDegrees() {
 
 //!Метод заполнения комбобокса списком степеней поражения
 void HitTargetsTabForm::getDamageDegrees() {
-    QSqlQuery query;
+    QSqlQuery query = QSqlQuery(db);
     QString selectQuery = "SELECT termhierarchy, termname "
                           "FROM reference_data.terms "
                           "WHERE termhierarchy ~ '95.10.*' "
                           "     AND nlevel(termhierarchy) = 3";
     if (!query.exec(selectQuery)) {
-        qDebug() << "Unable to make select operation!" << query.lastError();
+        qDebug() << query.lastError();
     }
 
     while (query.next()) {
@@ -878,14 +875,14 @@ void HitTargetsTabForm::getDamageDegrees() {
 
 //!Метод заполнения комбобокса списком типов ракет
 void HitTargetsTabForm::getRocketTypes() {
-    QSqlQuery query;
+    QSqlQuery query = QSqlQuery(db);
     QString selectQuery = "SELECT termhierarchy, termname "
                           "FROM reference_data.terms "
                           "WHERE termhierarchy ~ '51.50.*' "
                           "     AND termhierarchy != '51.50.30' "
                           "     AND nlevel(termhierarchy) = 3";
     if (!query.exec(selectQuery)) {
-        qDebug() << "Unable to make select operation!" << query.lastError();
+        qDebug() << query.lastError();
     }
 
     while (query.next()) {

@@ -70,34 +70,35 @@ QString Utility::convertCoordToDegreeFormat(double coord) {
 
 QString Utility::convertCodeToReferenceName(QSqlDatabase db, QString code)
 {
-    QSqlQuery query = QSqlQuery( db );
-    QString s = "";
-    QString referenceName;
-    s = "SELECT reference_data.terms.termname FROM reference_data.terms WHERE reference_data.terms.termhierarchy ='"+code+"';";
-    if (!query.exec(s)) {
-        return "";
-    }
-    else {
-            while ( query.next() ) {
-                referenceName = query.value( 0 ).toString();
-            }
-    }
-    return referenceName;
+    QSqlQuery query = QSqlQuery(db);
+    QString selectQuery = "SELECT termname "
+                          "FROM reference_data.terms "
+                          "WHERE termhierarchy = ?";
+    query.prepare(selectQuery);
+    query.addBindValue(code);
+    query.exec();
+    query.next();
+    return query.value(0).toString();
 }
 
 QString Utility::convertReferenceNameTOCode(QSqlDatabase db, QString referenceName)
 {
-    QSqlQuery query = QSqlQuery( db );
-    QString s = "";
-    QString code;
-    s = "SELECT reference_data.terms.termhierarchy FROM reference_data.terms WHERE reference_data.terms.termname ='"+referenceName+"';";
-    if (!query.exec(s)) {
-        return "";
-    }
-    else {
-            while ( query.next() ) {
-                code = query.value( 0 ).toString();
-            }
-    }
-    return code;
+    QSqlQuery query = QSqlQuery(db);
+    QString selectQuery = "SELECT termhierarchy "
+                          "FROM reference_data.terms "
+                          "WHERE termname = ?";
+    query.prepare(selectQuery);
+    query.addBindValue(referenceName);
+    query.exec();
+    query.next();
+    return query.value(0).toString();
+}
+
+int Utility::getTid(QSqlDatabase db) {
+    QSqlQuery query = QSqlQuery(db);
+    QString selectQuery = "SELECT txid_current()";
+    query.prepare(selectQuery);
+    query.exec();
+    query.next();
+    return query.value(0).toInt();
 }

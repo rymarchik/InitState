@@ -20,21 +20,20 @@ void HitTargets::fillNavigator() {
     navigatorReceiversTable->setRowCount(0);
 
     QSqlQuery query = QSqlQuery(db);
-    QString selectPattern = "SELECT tp.target_number, t.termname, cs1.object_number, t1.termname, "
-                            "       cs2.object_number, t2.termname "
-                            "FROM obj_targets.target_params tp "
-                            "JOIN reference_data.terms t ON tp.target_name = t.termhierarchy "
-                            "JOIN own_forces.combatstructure cs1 ON tp.weaponry = cs1.combat_hierarchy "
-                            "JOIN own_forces.combatstructure cs2 ON tp.platoon = cs2.combat_hierarchy "
-                            "JOIN reference_data.terms t1 ON cs1.object_name = t1.termhierarchy "
+    QString selectPattern = "SELECT ot.target_number, t.termname, cs.object_number, t1.termname, "
+                            "   cs2.object_number, t2.termname "
+                            "FROM targets.obj_targets ot "
+                            "JOIN reference_data.terms t ON ot.target_name = t.termhierarchy "
+                            "JOIN own_forces.combatstructure cs ON ot.combat_hierarchy = cs.combat_hierarchy "
+                            "JOIN own_forces.combatstructure cs2 ON subltree(ot.combat_hierarchy, 0, 1) = cs2.combat_hierarchy "
+                            "JOIN reference_data.terms t1 ON cs.object_name = t1.termhierarchy "
                             "JOIN reference_data.terms t2 ON cs2.object_name = t2.termhierarchy "
-                            "WHERE delete_time is null";
+                            "WHERE ot.date_delete is null";
     if (!query.exec(selectPattern)) {
-        qDebug() << "Unable to make select operation!" << query.lastError();
+        qDebug() << query.lastError();
     }
 
     navigatorTable->setRowCount(query.size());
-
     int i = 0;
     while (query.next()) {
         navigatorTable->setItem(i, 0, new QTableWidgetItem(tr("%1").arg(query.value(0).toInt())));
@@ -44,7 +43,7 @@ void HitTargets::fillNavigator() {
                                                            tr("%1").arg(query.value(4).toInt()) + " " +
                                                            query.value(5).toString()));
         i++;
-    }
+    }    
 
     navigatorTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     navigatorReceiversTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
@@ -68,7 +67,7 @@ void HitTargets::fillChanges() {
 \return возвращает созданную форму HitTargetsForm
 */
 QWidget* HitTargets::onAdd() {
-    HitTargetsTabForm* form = new HitTargetsTabForm;
+    HitTargetsTabForm* form = new HitTargetsTabForm(db);
     formList.append(form);
     form->onAddSetup();
     return form;
@@ -79,7 +78,7 @@ QWidget* HitTargets::onAdd() {
 \return возвращает созданную форму HitTargetsForm
 */
 QWidget* HitTargets::onEdit() {
-    HitTargetsTabForm* form = new HitTargetsTabForm;
+    HitTargetsTabForm* form = new HitTargetsTabForm(db);
     formList.append(form);
     form->onEditSetup(navigatorTable);
     return form;
@@ -106,19 +105,20 @@ bool HitTargets::onSend()
 */
 bool HitTargets::onDelete() {
     QSqlQuery query = QSqlQuery(db);
-    QString deleteQuery = "UPDATE obj_targets.target_params "
-                          "SET delete_time = now() "
-                          "WHERE target_number = ? "
-                          "         AND target_name = "
-                          "             (SELECT termhierarchy "
-                          "             FROM reference_data.terms "
-                          "             WHERE termname = ?)"
-                          "         AND delete_time is null";
+    QString deleteQuery = "UPDATE targets.obj_targets ot "
+                          "SET date_delete = now() "
+                          "FROM own_forces.combatstructure cs "
+                          "WHERE ot.combat_hierarchy = cs.combat_hierarchy "
+                          "         AND target_number = ? "
+                          "         AND target_name = ? "
+                          "         AND type_army = ? "
+                          "         AND date_delete is null";
     query.prepare(deleteQuery);
     QString targetNumber = navigatorTable->item(navigatorTable->currentRow(), 0)->text();
     QString targetName = navigatorTable->item(navigatorTable->currentRow(), 1)->text();
     query.addBindValue(targetNumber);
-    query.addBindValue(targetName);
+    query.addBindValue(Utility::convertReferenceNameTOCode(db, targetName));
+    query.addBindValue("22.10");
 
     QMessageBox warningDialog(QMessageBox::Warning, "Подтверждение удаления",
                               "Действительно хотить удалить этот элемент?\n" +
