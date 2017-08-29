@@ -272,7 +272,14 @@ void MainWindow::slotOnChangeTab(int index)
         break;
     default: //остальные вкладки
         ui->m_edit->setEnabled(false);
-        ui->m_delete->setEnabled(false);
+        if (ui->toolBox->currentIndex() == 1 && currentTabWidget->tabText(index).contains("Цель"))
+        {
+            ui->m_delete->setEnabled(true);
+        }
+        else
+        {
+            ui->m_delete->setEnabled(false);
+        }
         ui->m_save->setEnabled(true);
         ui->m_send->setEnabled(false);
         break;

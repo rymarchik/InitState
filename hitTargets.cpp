@@ -109,10 +109,10 @@ bool HitTargets::onDelete() {
                           "SET date_delete = now() "
                           "FROM own_forces.combatstructure cs "
                           "WHERE ot.combat_hierarchy = cs.combat_hierarchy "
-                          "         AND target_number = ? "
-                          "         AND target_name = ? "
-                          "         AND type_army = ? "
-                          "         AND date_delete is null";
+                          "         AND ot.target_number = ? "
+                          "         AND ot.target_name = ? "
+                          "         AND cs.type_army = ? "
+                          "         AND ot.date_delete is null";
     query.prepare(deleteQuery);
     QString targetNumber = navigatorTable->item(navigatorTable->currentRow(), 0)->text();
     QString targetName = navigatorTable->item(navigatorTable->currentRow(), 1)->text();
