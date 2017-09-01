@@ -176,15 +176,16 @@ void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
     ui->targetNameCB->setEnabled(false);
 
     QSqlQuery query = QSqlQuery(db);
-    QString selectQuery = "SELECT importance, target_time, method_location, t.termname "
-                          "FROM targets.targets_param tp "
-                          "JOIN targets.obj_targets ot ON tp.id_target = ot.id_target "
-                          "JOIN reference_data.terms t ON tp.manner_tid = t.termhierarchy "
-                          "WHERE ot.target_number = ? "
-                          "     AND ot.target_name = ? "
-                          "     AND ot.combat_hierarchy = ? "
-                          "     AND ot.date_delete IS null";
-    query.prepare(selectQuery);
+    db.transaction();
+    QString selectTargetsParam = "SELECT tp.id_target, importance, target_time, method_location, t.termname "
+                                 "FROM targets.targets_param tp "
+                                 "JOIN targets.obj_targets ot ON tp.id_target = ot.id_target "
+                                 "JOIN reference_data.terms t ON tp.manner_tid = t.termhierarchy "
+                                 "WHERE ot.target_number = ? "
+                                 "     AND ot.target_name = ? "
+                                 "     AND ot.combat_hierarchy = ? "
+                                 "     AND ot.date_delete IS null";
+    query.prepare(selectTargetsParam);
     query.addBindValue(ui->targetNumberLE->text());
     query.addBindValue(ui->targetNameCB->currentData());
     query.addBindValue(ui->dataSourceWeaponryCB->currentData());
@@ -194,11 +195,12 @@ void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
     }
 
     query.next();
-    ui->importanceLE->setText(query.value(0).toString());
-    ui->detectionTimeDTE->setDateTime(query.value(1).toDateTime());
-    ui->coverDegreeCB->setCurrentText(query.value(3).toString());
+    int targetID = query.value(0).toInt();
+    ui->importanceLE->setText(query.value(1).toString());
+    ui->detectionTimeDTE->setDateTime(query.value(2).toDateTime());
+    ui->coverDegreeCB->setCurrentText(query.value(4).toString());
 
-    switch (query.value(2).toInt()) {
+    switch (query.value(3).toInt()) {
     case 0: {
         if (ui->randomRB->isChecked() == true)
             slotToggleRandomRB();
@@ -216,16 +218,10 @@ void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
             ui->squareRB->setChecked(true);
 
         QString squareQuery = "SELECT own_forces.coordinates_output(obj_location), front, depth, deviation "
-                              "FROM targets.targets_param tp "
-                              "JOIN targets.obj_targets ot ON tp.id_target = ot.id_target "
-                              "WHERE ot.target_number = ? "
-                              "     AND ot.target_name = ? "
-                              "     AND ot.combat_hierarchy = ? "
-                              "     AND ot.date_delete IS null";
+                              "FROM targets.targets_param "
+                              "WHERE id_target = ?";
         query.prepare(squareQuery);
-        query.addBindValue(ui->targetNumberLE->text());
-        query.addBindValue(ui->targetNameCB->currentData());
-        query.addBindValue(ui->dataSourceWeaponryCB->currentData());
+        query.addBindValue(targetID);
 
         if (!query.exec()) {
             qDebug() << query.lastError();
@@ -246,16 +242,10 @@ void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
             ui->roundRB->setChecked(true);
 
         QString roundQuery = "SELECT own_forces.coordinates_output(obj_location), radius "
-                             "FROM targets.targets_param tp "
-                             "JOIN targets.obj_targets ot ON tp.id_target = ot.id_target "
-                             "WHERE ot.target_number = ? "
-                             "     AND ot.target_name = ? "
-                             "     AND ot.combat_hierarchy = ? "
-                             "     AND ot.date_delete IS null";
+                             "FROM targets.targets_param "
+                             "WHERE id_target = ?";
        query.prepare(roundQuery);
-       query.addBindValue(ui->targetNumberLE->text());
-       query.addBindValue(ui->targetNameCB->currentData());
-       query.addBindValue(ui->dataSourceWeaponryCB->currentData());
+       query.addBindValue(targetID);
 
         if (!query.exec()) {
             qDebug() << query.lastError();
@@ -266,6 +256,63 @@ void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
         ui->radiusLE->setText(QString::number(query.value(1).toInt()));
         break;
     }
+    }
+
+    //! Запрос на получение метода и времени поражения
+    QString selectDamageCondition = "SELECT method_destruction, stated_time "
+                                    "FROM targets.damage_condition "
+                                    "WHERE id_target = ?";
+    query.prepare(selectDamageCondition);
+    query.addBindValue(targetID);
+
+    if (!query.exec()) {
+        qDebug() << "Ошибка в запросе на получение метода и времени поражения" << query.lastError();
+    }
+    if (query.size() == 1) {
+        query.next();
+
+        if (query.value(1).toDateTime().isValid() && query.value(0).toBool() == true) {
+            ui->explosionChB->setChecked(true);
+            slotToggleExplosionCB();
+        }
+        else if (query.value(1).toDateTime().isValid() && query.value(0).toBool() == false) {
+            ui->launchChB->setChecked(true);
+            slotToggleLaunchCB();
+        }
+        ui->launchTimeDTE->setDateTime(query.value(1).toDateTime());
+    }
+
+    //! Запрос на получение степени поражения
+    QString selectDamageDegree = "SELECT degree_tid "
+                                 "FROM targets.damage_degree "
+                                 "WHERE id_target = ?";
+    query.prepare(selectDamageDegree);
+    query.addBindValue(targetID);
+
+    if (!query.exec()) {
+        qDebug() << "Ошибка в запросе на получение степени поражения" << query.lastError();
+    }
+
+    query.next();
+    ui->damageDegreeCB->setCurrentText(Utility::convertCodeToReferenceName(db, query.value(0).toString()));
+
+    //! Запрос на получение типа и количества ракет
+    QString selectStatedWeapons = "SELECT type_tid, amount "
+                                  "FROM targets.stated_weapons "
+                                  "WHERE id_target = ?";
+    query.prepare(selectStatedWeapons);
+    query.addBindValue(targetID);
+
+    if (!query.exec()) {
+        qDebug() << "Ошибка в запросе на получение типа и количества ракет" << query.lastError();
+    }
+
+    query.next();
+    ui->rocketTypeCB->setCurrentText(Utility::convertCodeToReferenceName(db, query.value(0).toString()));
+    ui->quantityLE->setText(QString::number(query.value(1).toInt()));
+
+    if (!db.commit()) {
+        QMessageBox::critical(this, "Ошибка", "Не все данные удалось получить!");
     }
 }
 
@@ -279,7 +326,7 @@ void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
 */
 bool HitTargetsTabForm::onSaveSetup() {
     if (ui->targetNumberLE->text().isEmpty() || ui->importanceLE->text().isEmpty() ||
-            !ui->coordinateLE->text().contains(QRegExp("\\d+"))) {
+            !ui->coordinateLE->text().contains(QRegExp("\\d+")) || ui->quantityLE->text().isEmpty()) {
         QMessageBox::warning(this, "Ошибка", "Не заполнено поле с координатами!");
         return false;
     }
@@ -289,6 +336,7 @@ bool HitTargetsTabForm::onSaveSetup() {
     if (ui->dataSourceBatteryCB->isEnabled()) { //i.e. add tab
         db.transaction();
 
+        //! Запрос на добавление данных номера, наименования цели и машины, ее обнаружившей
         QString insertObjTargets = "INSERT INTO targets.obj_targets (target_number, target_name, "
                                    "    combat_hierarchy, date_add, id_manager) "
                                    "VALUES (?, ?, ?, now(), ?)";
@@ -297,8 +345,11 @@ bool HitTargetsTabForm::onSaveSetup() {
         query.addBindValue(ui->targetNameCB->currentData());
         query.addBindValue(ui->dataSourceWeaponryCB->currentData());
         query.addBindValue(1);
-        query.exec();
+        if (!query.exec()) {
+            qDebug() << "Ошибка добавления данных номера и наименования цели в БД!" << query.lastError();
+        }
 
+        //! Запрос на получение айди только что добавленной цели
         QString selectJustAddedId = "SELECT MAX(id_target) "
                                     "FROM targets.obj_targets ";
         query.prepare(selectJustAddedId);
@@ -338,10 +389,12 @@ bool HitTargetsTabForm::onSaveSetup() {
             query.addBindValue(ui->coverDegreeCB->currentData());
             query.addBindValue(Utility::getTid(db));
             query.addBindValue(1);
-            query.exec();
+            if (!query.exec()) {
+                qDebug() << "Ошибка добавления данных координат в БД!" << query.lastError();
+            }
         }
         else if (ui->squareRB->isChecked()) {
-            if (ui->frontLE->text().isEmpty() || ui->depthLE->text().isEmpty() || ui->deviationLE->text().isEmpty()) {
+            if (ui->frontLE->text().isEmpty() || ui->depthLE->text().isEmpty()) {
                 QMessageBox::warning(this, "Ошибка", "Заполнены не все поля!");
                 return false;
             }
@@ -359,11 +412,13 @@ bool HitTargetsTabForm::onSaveSetup() {
             query.addBindValue(ui->coordinateLE->text());
             query.addBindValue(ui->frontLE->text());
             query.addBindValue(ui->depthLE->text());
-            query.addBindValue(ui->deviationLE->text());
+            query.addBindValue(ui->deviationLE->text().toInt());
             query.addBindValue(ui->coverDegreeCB->currentData());
             query.addBindValue(Utility::getTid(db));
             query.addBindValue(1);
-            query.exec();
+            if (!query.exec()) {
+                qDebug() << "Ошибка добавления данных координат и фронта/глубины в БД!" << query.lastError();
+            }
         }
         else if (ui->roundRB->isChecked()) {
             if (ui->radiusLE->text().isEmpty()) {
@@ -386,8 +441,54 @@ bool HitTargetsTabForm::onSaveSetup() {
             query.addBindValue(ui->coverDegreeCB->currentData());
             query.addBindValue(Utility::getTid(db));
             query.addBindValue(1);
-            query.exec();
+            if (!query.exec()) {
+                qDebug() << "Ошибка добавления данных координат и радиуса в БД!" << query.lastError();
+            }
         }
+
+        if (ui->launchTimeDTE->isEnabled()) {
+            //! Запрос на добавление данных метода и времени запуска в БД
+            QString insertDamageCondition = "INSERT INTO targets.damage_condition (id_target, method_destruction, "
+                                            "       stated_time, tid, date_add, id_manager) "
+                                            "VALUES (?, ?, ?, ?, now(), ?)";
+            query.prepare(insertDamageCondition);
+            query.addBindValue(targetID);
+            query.addBindValue(ui->explosionChB->isChecked());
+            query.addBindValue(ui->launchTimeDTE->text());
+            query.addBindValue(Utility::getTid(db));
+            query.addBindValue(1);
+            if (!query.exec()) {
+                qDebug() << "Ошибка добавления данных метода и времени запуска в БД!" << query.lastError();
+            }
+        }
+
+        //! Запрос на добавление данных степени поражения в БД
+        QString insertDamageDegree = "INSERT INTO targets.damage_degree (id_target, degree_tid, "
+                                     "      tid, date_add, id_manager) "
+                                     "VALUES (?, ?, ?, now(), ?)";
+        query.prepare(insertDamageDegree);
+        query.addBindValue(targetID);
+        query.addBindValue(ui->damageDegreeCB->currentData());
+        query.addBindValue(Utility::getTid(db));
+        query.addBindValue(1);
+        if (!query.exec()) {
+            qDebug() << "Ошибка добавления данных степени поражения в БД!" << query.lastError();
+        }
+
+        //! Запрос на добавление данных типа и количества ракет в БД
+        QString insertStatedWeapons = "INSERT INTO targets.stated_weapons (id_target, type_tid, "
+                                      "     amount, tid, date_add, id_manager) "
+                                      "VALUES (?, ?, ?, ?, now(), ?)";
+        query.prepare(insertStatedWeapons);
+        query.addBindValue(targetID);
+        query.addBindValue(ui->rocketTypeCB->currentData());
+        query.addBindValue(ui->quantityLE->text());
+        query.addBindValue(Utility::getTid(db));
+        query.addBindValue(1);
+        if (!query.exec()) {
+            qDebug() << "Ошибка добавления данных типа и количества ракет в БД!" << query.lastError();
+        }
+
         if (!db.commit()) {
             qDebug() << query.lastError();
             QMessageBox::critical(this, "Ошибка", "Добавить данные не удалось!");
@@ -400,6 +501,31 @@ bool HitTargetsTabForm::onSaveSetup() {
     else if (!ui->dataSourceBatteryCB->isEnabled()) { //i.e. edit tab
         db.transaction();
 
+        //! Запрос на получение айди цели по выбранному номеру, наименованию цели и машине, ее обнаружившей
+        QString selectEditableId = "SELECT id_target "
+                                   "FROM targets.obj_targets "
+                                   "WHERE target_number = ? "
+                                   "    AND target_name = ? "
+                                   "    AND combat_hierarchy = ? "
+                                   "    AND date_delete IS null";
+        query.prepare(selectEditableId);
+        query.addBindValue(ui->targetNumberLE->text());
+        query.addBindValue(ui->targetNameCB->currentData());
+        query.addBindValue(ui->dataSourceWeaponryCB->currentData());
+        if (!query.exec()) {
+            qDebug() << "Ошибка в выборе айди цели!" << query.lastError();
+        }
+        query.next();
+        int targetID = query.value(0).toInt();
+
+        //! Запрос на обновление даты изменения по айди цели в таблице obj_targets
+        QString updateObjParams = "UPDATE targets.obj_targets "
+                                  "SET date_edit = now() "
+                                  "WHERE id_target = ?";
+        query.prepare(updateObjParams);
+        query.addBindValue(targetID);
+        query.exec();
+
         QString updateTargetsParam;
 
         if (ui->randomRB->isChecked()) {
@@ -410,17 +536,12 @@ bool HitTargetsTabForm::onSaveSetup() {
                     return false;
                 }
             }
-            QString updateTargetsParamPatt = "UPDATE targets.targets_param tp "
+            QString updateTargetsParamPatt = "UPDATE targets.targets_param "
                                              "SET target_time = ?, importance = ?, method_location = ?, "
                                              "       obj_location = %1, front = null, depth = null, "
                                              "       deviation = null, radius = null, manner_tid = ?, "
                                              "       tid = ?, date_edit = now() "
-                                             "FROM targets.obj_targets ot "
-                                             "WHERE tp.id_target = ot.id_target "
-                                             "       AND ot.target_number = ? "
-                                             "       AND ot.target_name = ? "
-                                             "       AND ot.combat_hierarchy = ? "
-                                             "       AND ot.date_delete IS null";
+                                             "WHERE id_target = ?";
             qDebug() << "extraCoordinatesLayout: " << ui->extraCoordinatesLayout->count();
             if (ui->extraCoordinatesLayout->count() >= 2) {
                 //!Запрос на обновление в БД поражаемой цели, представленной полигоном
@@ -437,29 +558,23 @@ bool HitTargetsTabForm::onSaveSetup() {
             query.addBindValue(0);
             query.addBindValue(ui->coverDegreeCB->currentData());
             query.addBindValue(Utility::getTid(db));
-            query.addBindValue(ui->targetNumberLE->text());
-            query.addBindValue(ui->targetNameCB->currentData());
-            query.addBindValue(ui->dataSourceWeaponryCB->currentData());
-            query.exec();
+            query.addBindValue(targetID);
+            if (!query.exec()) {
+                qDebug() << "Ошибка в запросе на обновление цели произвольной геометрии!" << query.lastError();
+            }
         }
         else if (ui->squareRB->isChecked()) {
-            if (ui->frontLE->text().isEmpty() || ui->depthLE->text().isEmpty() || ui->deviationLE->text().isEmpty()) {
+            if (ui->frontLE->text().isEmpty() || ui->depthLE->text().isEmpty()) {
                 QMessageBox::warning(this, "Ошибка", "Заполнены не все поля!");
                 return false;
             }
             //!Запрос на обновление в БД поражаемой цели, представленной прямоугольником
-            updateTargetsParam = "UPDATE targets.targets_param tp "
+            updateTargetsParam = "UPDATE targets.targets_param "
                                  "SET target_time = ?, importance = ?, method_location = ?, "
                                  "       obj_location = own_forces.coordinates_input(?), front = ?, "
                                  "       depth = ?, deviation = ?, radius = null, manner_tid = ?, "
                                  "       tid = ?, date_edit = now() "
-                                 "FROM targets.obj_targets ot "
-                                 "WHERE tp.id_target = ot.id_target "
-                                 "       AND ot.target_number = ? "
-                                 "       AND ot.target_name = ? "
-                                 "       AND ot.combat_hierarchy = ? "
-                                 "       AND ot.date_delete IS null";
-
+                                 "WHERE id_target = ?";
             query.prepare(updateTargetsParam);
             query.addBindValue(ui->detectionTimeDTE->text());
             query.addBindValue(ui->importanceLE->text());
@@ -467,13 +582,13 @@ bool HitTargetsTabForm::onSaveSetup() {
             query.addBindValue(ui->coordinateLE->text());
             query.addBindValue(ui->frontLE->text());
             query.addBindValue(ui->depthLE->text());
-            query.addBindValue(ui->deviationLE->text());
+            query.addBindValue(ui->deviationLE->text().toInt());
             query.addBindValue(ui->coverDegreeCB->currentData());
             query.addBindValue(Utility::getTid(db));
-            query.addBindValue(ui->targetNumberLE->text());
-            query.addBindValue(ui->targetNameCB->currentData());
-            query.addBindValue(ui->dataSourceWeaponryCB->currentData());
-            query.exec();
+            query.addBindValue(targetID);
+            if (!query.exec()) {
+                qDebug() << "Ошибка в запросе на обновление прямоугольной цели!" << query.lastError();
+            }
         }
         else if (ui->roundRB->isChecked()) {
             if (ui->radiusLE->text().isEmpty()) {
@@ -481,18 +596,12 @@ bool HitTargetsTabForm::onSaveSetup() {
                 return false;
             }
             //!Запрос на обновление в БД поражаемой цели, представленной кругом
-            updateTargetsParam = "UPDATE targets.targets_param tp "
+            updateTargetsParam = "UPDATE targets.targets_param "
                                  "SET target_time = ?, importance = ?, method_location = ?, "
                                  "       obj_location = own_forces.coordinates_input(?), front = null, "
                                  "       depth = null, deviation = null, radius = ?, manner_tid = ?, "
                                  "       tid = ?, date_edit = now() "
-                                 "FROM targets.obj_targets ot "
-                                 "WHERE tp.id_target = ot.id_target "
-                                 "       AND ot.target_number = ? "
-                                 "       AND ot.target_name = ? "
-                                 "       AND ot.combat_hierarchy = ? "
-                                 "       AND ot.date_delete IS null";
-
+                                 "WHERE id_target = ?";
             query.prepare(updateTargetsParam);
             query.addBindValue(ui->detectionTimeDTE->text());
             query.addBindValue(ui->importanceLE->text());
@@ -501,13 +610,52 @@ bool HitTargetsTabForm::onSaveSetup() {
             query.addBindValue(ui->radiusLE->text());
             query.addBindValue(ui->coverDegreeCB->currentData());
             query.addBindValue(Utility::getTid(db));
-            query.addBindValue(ui->targetNumberLE->text());
-            query.addBindValue(ui->targetNameCB->currentData());
-            query.addBindValue(ui->dataSourceWeaponryCB->currentData());
-            query.exec();
+            query.addBindValue(targetID);
+            if (!query.exec()) {
+                qDebug() << "Ошибка в запросе на обновление круговой цели!" << query.lastError();
+            }
         }
+
+//рассмотреть случай когда было пусто в чекбоксах. тогда нужно не апдейт а инсерт
+        if (ui->launchTimeDTE->isEnabled()) {
+            //! Запрос на обновление данных метода и времени запуска в БД
+            QString updateDamageCondition = "UPDATE targets.damage_condition "
+                                            "SET method_destruction = ?, stated_time = ?, date_edit = now() "
+                                            "WHERE id_target = ?";
+            query.prepare(updateDamageCondition);
+            query.addBindValue(ui->explosionChB->isChecked());
+            query.addBindValue(ui->launchTimeDTE->text());
+            query.addBindValue(targetID);
+            if (!query.exec()) {
+                qDebug() << "Ошибка обновления данных метода и времени запуска в БД!" << query.lastError();
+            }
+        }
+
+        //! Запрос на обновление данных степени поражения в БД
+        QString updateDamageDegree = "UPDATE targets.damage_degree "
+                                     "SET degree_tid = ?, date_edit = now() "
+                                     "WHERE id_target = ?";
+        query.prepare(updateDamageDegree);
+        query.addBindValue(ui->damageDegreeCB->currentData());
+        query.addBindValue(targetID);
+        if (!query.exec()) {
+            qDebug() << "Ошибка обновления данных степени поражения в БД!" << query.lastError();
+        }
+
+        //! Запрос на обновление данных типа и количества ракет в БД
+        QString updateStatedWeapons = "UPDATE targets.stated_weapons "
+                                      "SET type_tid = ?, amount = ?, date_edit = now() "
+                                      "WHERE id_target = ?";
+        query.prepare(updateStatedWeapons);
+        query.addBindValue(ui->rocketTypeCB->currentData());
+        query.addBindValue(ui->quantityLE->text());
+        query.addBindValue(targetID);
+        if (!query.exec()) {
+            qDebug() << "Ошибка обновления данных типа и количества ракет в БД!" << query.lastError();
+        }
+
         if (!db.commit()) {
-            qDebug() << "Unable to make update operation\n" << query.lastError();
+            qDebug() << query.lastError();
             QMessageBox::critical(this, "Ошибка", "Обновить данные не удалось!");
         }
         else {
@@ -708,6 +856,9 @@ void HitTargetsTabForm::slotToggleLaunchCB() {
         if (ui->explosionChB->isChecked()) {
             ui->explosionChB->setChecked(false);
         }
+        else {
+            ui->launchTimeDTE->setDateTime(QDateTime::currentDateTime());
+        }
     }
     else {
         ui->launchTimeDTE->setEnabled(false);
@@ -721,6 +872,9 @@ void HitTargetsTabForm::slotToggleExplosionCB() {
         if (ui->launchChB->isChecked()) {
             ui->launchChB->setChecked(false);
         }
+        else {
+            ui->launchTimeDTE->setDateTime(QDateTime::currentDateTime());
+        }
     }
     else {
         ui->launchTimeDTE->setEnabled(false);
@@ -732,7 +886,6 @@ void HitTargetsTabForm::addCommonFormData() {
     getDataSourceBatteries();
     getHitTargets();
     getCoverDegrees();
-    ui->launchTimeDTE->setDateTime(QDateTime::currentDateTime());
     getDamageDegrees();
     getRocketTypes();
 }
