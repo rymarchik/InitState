@@ -614,20 +614,45 @@ bool HitTargetsTabForm::onSaveSetup() {
             if (!query.exec()) {
                 qDebug() << "Ошибка в запросе на обновление круговой цели!" << query.lastError();
             }
-        }
+        }   
 
-//рассмотреть случай когда было пусто в чекбоксах. тогда нужно не апдейт а инсерт
         if (ui->launchTimeDTE->isEnabled()) {
-            //! Запрос на обновление данных метода и времени запуска в БД
-            QString updateDamageCondition = "UPDATE targets.damage_condition "
-                                            "SET method_destruction = ?, stated_time = ?, date_edit = now() "
-                                            "WHERE id_target = ?";
-            query.prepare(updateDamageCondition);
-            query.addBindValue(ui->explosionChB->isChecked());
-            query.addBindValue(ui->launchTimeDTE->text());
+            //! Проверка наличия айди редактируемой цели в таблице damage_condition
+            QString checkForIdInDamageCondition = "SELECT 1 "
+                                                  "FROM targets.damage_condition "
+                                                  "WHERE id_target = ?";
+            query.prepare(checkForIdInDamageCondition);
             query.addBindValue(targetID);
-            if (!query.exec()) {
-                qDebug() << "Ошибка обновления данных метода и времени запуска в БД!" << query.lastError();
+            query.exec();
+            query.next();
+
+            if (query.size() == 1) {
+                //! Запрос на обновление данных метода и времени запуска в БД
+                QString updateDamageCondition = "UPDATE targets.damage_condition "
+                                                "SET method_destruction = ?, stated_time = ?, date_edit = now() "
+                                                "WHERE id_target = ?";
+                query.prepare(updateDamageCondition);
+                query.addBindValue(ui->explosionChB->isChecked());
+                query.addBindValue(ui->launchTimeDTE->text());
+                query.addBindValue(targetID);
+                if (!query.exec()) {
+                    qDebug() << "Ошибка обновления данных метода и времени запуска в БД!" << query.lastError();
+                }
+            }
+            else if (query.size() == 0) {
+                //! Запрос на добавление данных метода и времени запуска в БД
+                QString insertDamageCondition = "INSERT INTO targets.damage_condition (id_target, method_destruction, "
+                                                "       stated_time, tid, date_add, id_manager) "
+                                                "VALUES (?, ?, ?, ?, now(), ?)";
+                query.prepare(insertDamageCondition);
+                query.addBindValue(targetID);
+                query.addBindValue(ui->explosionChB->isChecked());
+                query.addBindValue(ui->launchTimeDTE->text());
+                query.addBindValue(Utility::getTid(db));
+                query.addBindValue(1);
+                if (!query.exec()) {
+                    qDebug() << "Ошибка добавления данных метода и времени запуска в БД!" << query.lastError();
+                }
             }
         }
 
