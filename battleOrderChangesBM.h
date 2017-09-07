@@ -12,6 +12,7 @@ class battleOrderChangesBM;
 }
 
 class battleOrderDialogBM;
+class NorthSearchUnit;
 
 class battleOrderChangesBM : public QWidget
 {
@@ -27,6 +28,10 @@ public:
     QSqlDatabase db;
     QString combatHierarchy;    
     battleOrderDialogBM *m_DialogBM ;
+    NorthSearchUnit* northSearchUnit;
+
+    QTimer* clockTimer;
+    QTime* time;
 
     //!Процесс для запуска карты
     QProcess* mapProc;
@@ -57,6 +62,7 @@ public:
 
 signals:
     void signalRecordDB();
+    void readyReadAzimuthResult();
 
 public slots:
     void slotData();                         //Установка значений для выбранной записи
@@ -76,6 +82,9 @@ public slots:
     \param[in] data массив данных, содержащий информацию о координатах
     */
     void receiveMetricsNetwork(QByteArray& data);
+    void slotAzimuthSearch();
+    void slotAzimuthResult();
+    void slotShowRemainingTime();
 
 private slots:
     void slotTableMunitionSignal();

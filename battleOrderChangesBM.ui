@@ -36,13 +36,6 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="1">
-    <widget class="QLineEdit" name="lineEditMode">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
    <item row="1" column="0" colspan="2">
     <widget class="QLabel" name="labelPosition">
      <property name="font">
@@ -56,10 +49,10 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="labelState">
-     <property name="text">
-      <string>Состояние</string>
+   <item row="0" column="1">
+    <widget class="QLineEdit" name="lineEditMode">
+     <property name="enabled">
+      <bool>false</bool>
      </property>
     </widget>
    </item>
@@ -70,83 +63,12 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="2" rowspan="4">
-    <layout class="QFormLayout" name="formLayout_4">
-     <property name="sizeConstraint">
-      <enum>QLayout::SetDefaultConstraint</enum>
+   <item row="2" column="0">
+    <widget class="QLabel" name="labelState">
+     <property name="text">
+      <string>Состояние</string>
      </property>
-     <property name="fieldGrowthPolicy">
-      <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-     </property>
-     <property name="rowWrapPolicy">
-      <enum>QFormLayout::DontWrapRows</enum>
-     </property>
-     <property name="labelAlignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-     <property name="horizontalSpacing">
-      <number>8</number>
-     </property>
-     <property name="verticalSpacing">
-      <number>5</number>
-     </property>
-     <property name="leftMargin">
-      <number>0</number>
-     </property>
-     <property name="topMargin">
-      <number>0</number>
-     </property>
-     <property name="rightMargin">
-      <number>143</number>
-     </property>
-     <property name="bottomMargin">
-      <number>24</number>
-     </property>
-     <item row="0" column="0">
-      <widget class="QLabel" name="labelTime_1">
-       <property name="text">
-        <string>Время</string>
-       </property>
-       <property name="buddy">
-        <cstring>lineEditTimeState</cstring>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QLineEdit" name="lineEditTimeState">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="labelTime_2">
-       <property name="text">
-        <string>Время</string>
-       </property>
-       <property name="buddy">
-        <cstring>lineEditTimeCoordinates</cstring>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QLineEdit" name="lineEditTimeCoordinates">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QPushButton" name="buttonPickCoordinates">
-       <property name="text">
-        <string>Съем координат</string>
-       </property>
-       <property name="autoRepeatDelay">
-        <number>285</number>
-       </property>
-      </widget>
-     </item>
-    </layout>
+    </widget>
    </item>
    <item row="3" column="0">
     <widget class="QLabel" name="labelCoordinates">
@@ -158,6 +80,9 @@
    <item row="3" column="1">
     <widget class="QLineEdit" name="lineEditCoordinates"/>
    </item>
+   <item row="4" column="1">
+    <widget class="QLineEdit" name="lineEditAzimuth"/>
+   </item>
    <item row="4" column="0">
     <widget class="QLabel" name="labelAzimuth">
      <property name="text">
@@ -167,9 +92,6 @@
       <cstring>lineEditAzimuth</cstring>
      </property>
     </widget>
-   </item>
-   <item row="4" column="1">
-    <widget class="QLineEdit" name="lineEditAzimuth"/>
    </item>
    <item row="5" column="0" colspan="2">
     <widget class="QLabel" name="labelDataRockets_1">
@@ -530,6 +452,95 @@
       </property>
      </column>
     </widget>
+   </item>
+   <item row="2" column="2" rowspan="4">
+    <layout class="QGridLayout" name="gridLayout_2">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetDefaultConstraint</enum>
+     </property>
+     <property name="leftMargin">
+      <number>0</number>
+     </property>
+     <property name="topMargin">
+      <number>0</number>
+     </property>
+     <property name="rightMargin">
+      <number>143</number>
+     </property>
+     <property name="bottomMargin">
+      <number>24</number>
+     </property>
+     <property name="horizontalSpacing">
+      <number>8</number>
+     </property>
+     <property name="verticalSpacing">
+      <number>5</number>
+     </property>
+     <item row="0" column="0">
+      <widget class="QLabel" name="labelTime_1">
+       <property name="text">
+        <string>Время</string>
+       </property>
+       <property name="buddy">
+        <cstring>lineEditTimeState</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QPushButton" name="buttonPickCoordinates">
+       <property name="text">
+        <string>Съем координат</string>
+       </property>
+       <property name="autoRepeatDelay">
+        <number>285</number>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="lineEditTimeCoordinates">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QPushButton" name="buttonNorthSearch">
+       <property name="text">
+        <string>Поиск севера</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="lineEditTimeState">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="labelTime_2">
+       <property name="text">
+        <string>Время</string>
+       </property>
+       <property name="buddy">
+        <cstring>lineEditTimeCoordinates</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="2">
+      <widget class="QLCDNumber" name="lcdNorthSearch">
+       <property name="lineWidth">
+        <number>0</number>
+       </property>
+       <property name="midLineWidth">
+        <number>1</number>
+       </property>
+       <property name="segmentStyle">
+        <enum>QLCDNumber::Flat</enum>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
   <zorder>labelMode</zorder>
