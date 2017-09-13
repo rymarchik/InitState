@@ -514,7 +514,7 @@ QString battleOrderChangesBM::getParsedCoordinates(double lat, double lon, doubl
 
 void battleOrderChangesBM::slotAzimuthSearch()
 {
-//    if (northSearchUnit->openPort()) {
+    if (northSearchUnit->openPort()) {
         time->setHMS(0, 0, 5);
         ui->lcdNorthSearch->display(time->toString("mm:ss"));
 
@@ -523,7 +523,7 @@ void battleOrderChangesBM::slotAzimuthSearch()
         if (clockTimer->isActive())
             clockTimer->stop();
         clockTimer->start(1000);
-//    }
+    }
 }
 
 void battleOrderChangesBM::slotAzimuthResult() {
@@ -531,6 +531,7 @@ void battleOrderChangesBM::slotAzimuthResult() {
     if (parsedAzimuth != -1) {
         QSqlQuery query = QSqlQuery(db);
         db.transaction();
+
 //        QString deleteOldLocation = "UPDATE own_forces.combatobject_location "
 //                                    "SET date_delete = now() "
 //                                    "WHERE combat_hierarchy = ? "
