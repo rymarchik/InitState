@@ -43,11 +43,12 @@ MainWindow::MainWindow(QSqlDatabase DB, int UserID, QWidget *parent) :
     if (!NetworkModule::Instance().serverFunc()) {
         QMessageBox::critical(this, "Ошибка", "Server error!");
     }
-    connect(mapProcess,                 SIGNAL(finished(int)),                   SLOT(finished(int)));
-    connect(&NetworkModule::Instance(), SIGNAL(serverError(QString)),            SLOT(serverError(QString)));
-    connect(&NetworkModule::Instance(), SIGNAL(sendNetworkUserMap(QTcpSocket*)), SLOT(sendNetworkUserMap(QTcpSocket*)));    
-    connect(&NetworkModule::Instance(), SIGNAL(receiveInsertObjectNetwork(QByteArray&)), SLOT(receiveInsertObjectNetwork(QByteArray&)));
-    connect(&NetworkModule::Instance(), SIGNAL(receiveDeleteObjectNetwork(QByteArray&)), SLOT(receiveDeleteObjectNetwork(QByteArray&)));
+    connect(mapProcess,                 SIGNAL(finished(int)),                                 SLOT(finished(int)));
+    connect(&NetworkModule::Instance(), SIGNAL(serverError(QString)),                          SLOT(serverError(QString)));
+    connect(&NetworkModule::Instance(), SIGNAL(sendNetworkUserMap(QTcpSocket*)),               SLOT(sendNetworkUserMap(QTcpSocket*)));
+    connect(&NetworkModule::Instance(), SIGNAL(receiveInsertObjectNetwork(QByteArray&)),       SLOT(receiveInsertObjectNetwork(QByteArray&)));
+    connect(&NetworkModule::Instance(), SIGNAL(receiveInsertObjectNetworkFromDB(QByteArray&)), SLOT(receiveInsertObjectNetworkFromDB(QByteArray&)));
+    connect(&NetworkModule::Instance(), SIGNAL(receiveDeleteObjectNetwork(QByteArray&)),       SLOT(receiveDeleteObjectNetwork(QByteArray&)));
 }
 
 //Формирование названия формы:
@@ -351,56 +352,174 @@ void MainWindow::sendNetworkUserMap(QTcpSocket* pSocket) {
 }
 
 void MainWindow::receiveInsertObjectNetwork(QByteArray& data) {
+    qDebug() << "receive object created on map?";
     unsigned char * lp=(unsigned char *)(data.data());
     lp+=2*sizeof(quint32);
     NetworkObject obj;
     obj.deserialize(lp,data.size()-8);
 
-    QString makePointPattern = "ST_MakePoint(%1, %2, %3)";
-    QString makePointString = makePointPattern.arg(obj.metrics[0].m_LATITUDE).arg(obj.metrics[0].m_LONGITUDE)
-            .arg(obj.metrics[0].m_HEIGHT);
+    qDebug() << obj.data.m_CODE;
+    qDebug() << obj.data.m_NAME;
+    qDebug() << obj.data.m_TYPE_ID;
+    qDebug() << obj.data.m_ENEMY;
+    qDebug() << obj.data.m_VISIBLE;
+    qDebug() << obj.data.m_ACCESS_LVL;
+    qDebug() << obj.metrics[0].m_LATITUDE;
+    qDebug() << obj.metrics[0].m_LONGITUDE;
+    qDebug() << obj.metrics[0].m_HEIGHT;
+    qDebug() << obj.metrics[1].m_LATITUDE;
+    qDebug() << obj.metrics[1].m_LONGITUDE;
+    qDebug() << obj.metrics[1].m_HEIGHT;
+    qDebug() << obj.masObject;
 
-    QString insertPattern = "INSERT INTO map_objects.object_params (code, object_name, geometry_type, "
-                            "       enemy, visible, access_level, object_location, mas_object) "
-                            "VALUES (?, ?, ?, ?, ?, ?, %1, ?)";
-    QString insertObjectFromMap = insertPattern.arg(makePointString);
-
-    QString selectId = "SELECT id "
-                       "FROM map_objects.object_params "
-                       "WHERE mas_object = ?";
 
     QSqlQuery query = QSqlQuery(db);
     db.transaction();
+    QString insertPattern;
+    QString insertObjectFromMap;
+    QString makePointPattern = "ST_MakePoint(%1, %2, %3)";
+    QString makeStartPointString = makePointPattern.arg(obj.metrics[0].m_LATITUDE)
+                                                   .arg(obj.metrics[0].m_LONGITUDE)
+                                                   .arg(obj.metrics[0].m_HEIGHT);
+    switch (obj.data.m_TYPE_ID) {
+    case TYPE_METRIC_LINE:
+        insertPattern = "INSERT INTO map_objects.object_params (code, object_name, geometry_type, "
+                        "       enemy, visible, access_level, object_location, mas_object) "
+                        "VALUES (?, ?, ?, ?, ?, ?, %1, ?)";
+        if (obj.metrics.size() == 2) {
+            QString makeLinePattern = "ST_MakeLine(ST_MakePoint(%1, %2, %3), ST_MakePoint(%4, %5, %6))";
+            QString makeLineString = makeLinePattern.arg(obj.metrics[0].m_LATITUDE)
+                                                    .arg(obj.metrics[0].m_LONGITUDE)
+                                                    .arg(obj.metrics[0].m_HEIGHT)
+                                                    .arg(obj.metrics[1].m_LATITUDE)
+                                                    .arg(obj.metrics[1].m_LONGITUDE)
+                                                    .arg(obj.metrics[1].m_HEIGHT);
+            insertObjectFromMap = insertPattern.arg(makeLineString);
+        }
+        else if (obj.metrics.size() > 2) {
+            QString makePolygonString = "ST_MakePolygon(ST_MakeLine(ARRAY[";
+            for (int i = 0; i < obj.metrics.size(); i++) {
+                QString makePointString = makePointPattern.arg(obj.metrics[i].m_LATITUDE)
+                                                          .arg(obj.metrics[i].m_LONGITUDE)
+                                                          .arg(obj.metrics[i].m_HEIGHT);
+                makePolygonString.append(makePointString).append(", ");
+            }
+            makePolygonString.append(makeStartPointString).append("]))");
+            insertObjectFromMap = insertPattern.arg(makePolygonString);
+        }
+        query.prepare(insertObjectFromMap);
+        query.addBindValue(obj.data.m_CODE);
+        query.addBindValue(obj.data.m_NAME);
+        query.addBindValue(obj.data.m_TYPE_ID);
+        query.addBindValue(obj.data.m_ENEMY);
+        query.addBindValue(obj.data.m_VISIBLE);
+        query.addBindValue(obj.data.m_ACCESS_LVL);
+        query.addBindValue(obj.masObject);
+        break;
 
-    query.prepare(insertObjectFromMap);
-    query.addBindValue(obj.data.m_CODE);
-    query.addBindValue(obj.data.m_NAME);
-    query.addBindValue(obj.data.m_TYPE_ID);
-    query.addBindValue(obj.data.m_ENEMY);
-    query.addBindValue(obj.data.m_VISIBLE);
-    query.addBindValue(obj.data.m_ACCESS_LVL);
-    query.addBindValue(obj.masObject);
+    case TYPE_METRIC_RECT:
+        insertPattern = "INSERT INTO map_objects.object_params (code, object_name, geometry_type, enemy, "
+                        "       visible, access_level, object_location, front, depth, deviation, mas_object) "
+                        "VALUES (?, ?, ?, ?, ?, ?, %1, ?, ?, ?, ?)";
+        insertObjectFromMap = insertPattern.arg(makeStartPointString);
+
+        query.prepare(insertObjectFromMap);
+        query.addBindValue(obj.data.m_CODE);
+        query.addBindValue(obj.data.m_NAME);
+        query.addBindValue(obj.data.m_TYPE_ID);
+        query.addBindValue(obj.data.m_ENEMY);
+        query.addBindValue(obj.data.m_VISIBLE);
+        query.addBindValue(obj.data.m_ACCESS_LVL);
+        query.addBindValue(obj.metrics[1].m_LATITUDE);
+        query.addBindValue(obj.metrics[1].m_LONGITUDE);
+        query.addBindValue(obj.metrics[1].m_HEIGHT);
+        query.addBindValue(obj.masObject);
+        break;
+
+    case TYPE_METRIC_CIRCLE:
+        insertPattern = "INSERT INTO map_objects.object_params (code, object_name, geometry_type, enemy, "
+                        "       visible, access_level, object_location, radius, mas_object) "
+                        "VALUES (?, ?, ?, ?, ?, ?, %1, ?, ?)";
+        insertObjectFromMap = insertPattern.arg(makeStartPointString);
+
+        query.prepare(insertObjectFromMap);
+        query.addBindValue(obj.data.m_CODE);
+        query.addBindValue(obj.data.m_NAME);
+        query.addBindValue(obj.data.m_TYPE_ID);
+        query.addBindValue(obj.data.m_ENEMY);
+        query.addBindValue(obj.data.m_VISIBLE);
+        query.addBindValue(obj.data.m_ACCESS_LVL);
+        query.addBindValue(obj.metrics[1].m_LATITUDE);
+        query.addBindValue(obj.masObject);
+        break;
+    }
     if (!query.exec()) {
         qDebug() << query.lastError();
         QMessageBox::critical(this, "Ошибка", "Добавить объект не удалось!");
     }
 
-    query.prepare(selectId);
-    query.addBindValue(obj.masObject);
-    if (!query.exec()) {
-        qDebug() << query.lastError();
-        QMessageBox::critical(this, "Ошибка", "Получить ID объекта не удалось!");
-    }
-    query.next();
-    obj.data.m_OBJECT_ID = query.value(0).toInt();
-    qDebug() << "ID" << obj.data.m_OBJECT_ID;
-    manager.listObject.push_back(obj);
+
+//    QString selectId = "SELECT id "
+//                       "FROM map_objects.object_params "
+//                       "WHERE mas_object = ?";
+
+//    query.prepare(selectId);
+//    query.addBindValue(obj.masObject);
+//    if (!query.exec()) {
+//        qDebug() << query.lastError();
+//        QMessageBox::critical(this, "Ошибка", "Получить ID объекта не удалось!");
+//    }
+//    query.next();
+//    obj.data.m_OBJECT_ID = query.value(0).toInt();
+//    qDebug() << "ID" << obj.data.m_OBJECT_ID;
+//    manager.listObject.push_back(obj);
 
     db.commit();
 
-    QByteArray mas = NetworkModule::Instance().maskData(NETWORK_OBJECT_SET_ID, obj.serialize());
-    NetworkModule::Instance().sendDataFromMap(mas);
+//    QByteArray mas = NetworkModule::Instance().maskData(NETWORK_OBJECT_SET_ID, obj.serialize());
+//    NetworkModule::Instance().sendDataFromMap(mas);
 }
+
+void MainWindow::receiveInsertObjectNetworkFromDB(QByteArray& data)
+{
+    qDebug() << "object back to server with mas_object";
+
+    unsigned char * lp=(unsigned char *)(data.data());
+    lp+=2*sizeof(quint32);
+    NetworkObject obj;
+    obj.deserialize(lp,data.size()-8);
+
+    qDebug() << obj.metrics[0].m_LATITUDE;
+    qDebug() << obj.metrics[0].m_LONGITUDE;
+    qDebug() << obj.metrics[0].m_HEIGHT;
+
+//    qDebug() << obj.metrics[1].m_LATITUDE;
+//    qDebug() << obj.metrics[1].m_LONGITUDE;
+//    qDebug() << obj.metrics[1].m_HEIGHT;
+
+    qDebug() << "ID" << obj.data.m_OBJECT_ID;
+    qDebug() << obj.data.m_CODE;
+    qDebug() << obj.data.m_NAME;
+    qDebug() << obj.data.m_TYPE_ID;
+    qDebug() << obj.data.m_ENEMY;
+    qDebug() << obj.data.m_VISIBLE;
+    qDebug() << obj.data.m_ACCESS_LVL;
+    qDebug() << obj.masObject;
+
+    QSqlQuery query = QSqlQuery(db);
+    QString updateMasObject = "UPDATE map_objects.object_params "
+                              "SET mas_object = ? "
+                              "WHERE id = ?";
+    query.prepare(updateMasObject);
+    query.addBindValue(obj.masObject);
+    query.addBindValue(obj.data.m_OBJECT_ID);
+    if (!query.exec()) {
+        qDebug() << query.lastError();
+        QMessageBox::critical(this, "Ошибка", "Добавить объект не удалось!");
+    }
+    manager.listObject.push_back(obj);
+}
+
 
 void MainWindow::receiveDeleteObjectNetwork(QByteArray& mas)
 {

@@ -27,6 +27,7 @@ enum TypeNetworkModule
 #define NETWORK_INSERT_OBJECT 6
 #define NETWORK_INSERT_OBJECT_FROM_DB 7
 #define NETWORK_OBJECT_SET_ID 8
+#define NETWORK_UPDATE_OBJECT 9
 #define NETWORK_DELETE_OBJECT 10
 #define NETWORK_GROUP_OBJECT 12
 #define NETWORK_UNGROUP_OBJECT 13
@@ -213,10 +214,13 @@ signals:
     void createNetworkUserMap();
     void clientConnected();
     void receiveInsertObjectNetwork(QByteArray&);
+    void receiveInsertObjectNetworkFromDB(QByteArray&);
     void receiveInsertObjectNetworkSetID(QByteArray&);
     void receiveMetricsNetworkReq(quint32);
     void receiveMetricsNetwork(QByteArray&);
     void receiveDeleteObjectNetwork(QByteArray&);
+    void receiveUpdateObjectNetwork(QByteArray&);
+
 };
 
 #endif // QCALC_H

@@ -98,6 +98,9 @@ private:
     //!Путь к файлам карты
     QString mapPath = QCoreApplication::applicationDirPath() + "/mapFiles";
 
+signals:
+    void insertMapObjectCompleted();
+
 private slots:
     /*!
      * Слот обработки изменения индекса комбобокса Источника данных (батареи)

@@ -19,15 +19,15 @@
 
 struct tagDataObj
 {
-	tagDataObj() : 
-	m_OBJECT_ID(-1),m_ENEMY(1),m_ACCESS_LVL(1),m_VISIBLE(0),m_NAME(),m_CODE(14000000),m_TYPE_ID(1){};
+    tagDataObj() :
+    m_OBJECT_ID(-1),m_ENEMY(1),m_ACCESS_LVL(1),m_VISIBLE(1),m_NAME(),m_CODE(1015010110),m_TYPE_ID(1){};
 	virtual ~tagDataObj(){};
 	int	m_OBJECT_ID;	// ИД объекта в базе данных
 	int m_ENEMY;		// признак свой-чужой
 	int m_ACCESS_LVL;	// уровень/доступ 
 	bool m_VISIBLE;		// признак видимости или лог. удаления
 	QString m_NAME;		// имя объекта 
-	int	m_CODE;			// код цифровой (8-12 цифрр)
+    quint64 m_CODE;     // код цифровой (8-12 цифрр)
 	int m_TYPE_ID;		// тип (прямоуг, произв, круг,точка, линия)
 };
 

@@ -44,6 +44,7 @@ int NetworkObject::getSize()
 		sizeof(int)+
 		data.m_NAME.toUtf8().size()+
 		sizeof(int)+
+        sizeof(int)+
 		sizeof(double)*metrics.size()*3+
 		sizeof(int)+
 		masObject.size()
@@ -71,8 +72,10 @@ int NetworkObject::serialize(unsigned char * mas, int size)
 	sz=buf.size();
 	copyToSerialize(sz)
 	memcpy(mas+pos,buf.data(),sz);
-	pos+=sz;
+	pos+=sz;  
 //----------------------------
+    copyToSerialize(idObj)
+//-------------------------------
 	sz=metrics.size();
 	copyToSerialize(sz)
 	for(int ii=0;ii<metrics.size();ii++)
@@ -119,6 +122,8 @@ int NetworkObject::deserialize(unsigned char * mas, int size)
 	data.m_NAME=QString::fromUtf8(((const char *)(mas+pos)),sz);
 	pos+=sz;
 //----------------------------
+    copyToDeserialize(idObj)
+//---------------------------
 	metrics.clear();
 	copyToDeserialize(sz)
 

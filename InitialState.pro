@@ -38,7 +38,8 @@ SOURCES += main.cpp\
     mapsrc/NetworkObject.cpp \
     mapsrc/NetworkObjectManager.cpp \
     gpsModule.cpp \
-    northSearchUnit.cpp
+    northSearchUnit.cpp \
+    mapCommands.cpp
 
 HEADERS  += mainwindow.h \
     receiversDialog.h \
@@ -66,7 +67,8 @@ HEADERS  += mainwindow.h \
     mapsrc/NetworkObjectManager.h \
     mapsrc/PropertyObj.h \
     gpsModule.h \
-    northSearchUnit.h
+    northSearchUnit.h \
+    mapCommands.h
 
 RESOURCES += \
     resources.qrc

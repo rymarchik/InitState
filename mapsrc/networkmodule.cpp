@@ -204,7 +204,9 @@ void NetworkModule::slotReadServer()
 		memcpy(&command,data+pos,sizeof(quint32));
 		pos+=sizeof(quint32);
 		bool fl=true;
-		switch(command)
+
+        qDebug() << "4e tam, 4e tam: " << command;
+        switch(command)
 		{
 		case 0:		//квитанция готовности 
 			break;
@@ -216,6 +218,9 @@ void NetworkModule::slotReadServer()
 			break;
         case NETWORK_INSERT_OBJECT: //пришел созданный на карте объект
 			emit receiveInsertObjectNetwork(dataBlock);
+            break;
+        case NETWORK_INSERT_OBJECT_FROM_DB: //пришел созданный на сервере объект с прикрепленным mas_object
+            emit receiveInsertObjectNetworkFromDB(dataBlock);
             break;
         case NETWORK_OBJECT_SET_ID: //пока не юзается
             emit receiveInsertObjectNetworkSetID(dataBlock);
@@ -260,6 +265,7 @@ void NetworkModule::slotConnected()
 */
 void NetworkModule::slotReadClient()
 {
+    qDebug() << "zahodit li kogda-nibud?";
 	QByteArray mas;
 	QByteArray dataBlock;
 	QTcpSocket* pClientSocket = (QTcpSocket*)sender();
@@ -287,6 +293,9 @@ void NetworkModule::slotReadClient()
             break;
         case NETWORK_INSERT_OBJECT:
             emit receiveInsertObjectNetwork(dataBlock);
+            break;
+        case NETWORK_INSERT_OBJECT_FROM_DB:
+            emit receiveInsertObjectNetworkFromDB(dataBlock);
             break;
         case NETWORK_OBJECT_SET_ID:
             emit receiveInsertObjectNetworkSetID(dataBlock);
@@ -432,6 +441,7 @@ void NetworkModule::sendDataFromMap(QByteArray mas)
 		{
             listSocket[i]->write(mas);
 		}
+        qDebug() << "sending to map";
 	}
     else if(m_ptcpSocket)
     {

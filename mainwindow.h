@@ -78,6 +78,7 @@ private slots:
     void serverError(QString);
     void sendNetworkUserMap(QTcpSocket* pSocket);
     void receiveInsertObjectNetwork(QByteArray&);
+    void receiveInsertObjectNetworkFromDB(QByteArray&);
 
     /**
     \fn   receiveDeleteObjectNetwork
