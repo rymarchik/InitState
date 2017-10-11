@@ -311,7 +311,7 @@ void MainWindow::serverError(QString str) {
 
 void MainWindow::sendNetworkUserMap(QTcpSocket* pSocket) {
     QSqlQuery query = QSqlQuery(db);
-    QString selectMapObjects = "SELECT id, code, object_name, geometry_type, enemy, visible, "
+    QString selectMapObjects = "SELECT id, code, object_name, geometry_type, enemy, visibility, "
                                "        access_level, object_location, mas_object "
                                "FROM map_objects.object_params";
     if (!query.exec(selectMapObjects)) {
@@ -384,7 +384,7 @@ void MainWindow::receiveInsertObjectNetwork(QByteArray& data) {
     switch (obj.data.m_TYPE_ID) {
     case TYPE_METRIC_LINE:
         insertPattern = "INSERT INTO map_objects.object_params (code, object_name, geometry_type, "
-                        "       enemy, visible, access_level, object_location, mas_object) "
+                        "       enemy, visibility, access_level, object_location, mas_object) "
                         "VALUES (?, ?, ?, ?, ?, ?, %1, ?)";
         if (obj.metrics.size() == 2) {
             QString makeLinePattern = "ST_MakeLine(ST_MakePoint(%1, %2, %3), ST_MakePoint(%4, %5, %6))";
@@ -419,7 +419,7 @@ void MainWindow::receiveInsertObjectNetwork(QByteArray& data) {
 
     case TYPE_METRIC_RECT:
         insertPattern = "INSERT INTO map_objects.object_params (code, object_name, geometry_type, enemy, "
-                        "       visible, access_level, object_location, front, depth, deviation, mas_object) "
+                        "       visibility, access_level, object_location, front, depth, deviation, mas_object) "
                         "VALUES (?, ?, ?, ?, ?, ?, %1, ?, ?, ?, ?)";
         insertObjectFromMap = insertPattern.arg(makeStartPointString);
 
@@ -438,7 +438,7 @@ void MainWindow::receiveInsertObjectNetwork(QByteArray& data) {
 
     case TYPE_METRIC_CIRCLE:
         insertPattern = "INSERT INTO map_objects.object_params (code, object_name, geometry_type, enemy, "
-                        "       visible, access_level, object_location, radius, mas_object) "
+                        "       visibility, access_level, object_location, radius, mas_object) "
                         "VALUES (?, ?, ?, ?, ?, ?, %1, ?, ?)";
         insertObjectFromMap = insertPattern.arg(makeStartPointString);
 
@@ -548,7 +548,7 @@ void MainWindow::receiveDeleteObjectNetwork(QByteArray& mas)
             {
                 QSqlQuery query;
                 QString deleteObject = "DELETE FROM map_objects.object_params WHERE id = ?";
-                QString deleteObject2 = "UPDATE map_objects.object_params SET visible = false WHERE id = ?";
+                QString deleteObject2 = "UPDATE map_objects.object_params SET visibility = false WHERE id = ?";
                 query.prepare(deleteObject2);
                 query.addBindValue(manager.listObject[j].data.m_OBJECT_ID);
                 if (!query.exec()) {
