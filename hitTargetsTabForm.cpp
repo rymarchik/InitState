@@ -732,8 +732,8 @@ bool HitTargetsTabForm::onSaveSetup() {
         //! Запрос на получение айди обновляемой цели из таблицы карты
         QString selectMapObjectId = "SELECT id "
                                     "FROM map_objects.object_params op "
-                                    "JOIN targets.targets_param tp on op.create_time = tp.date_add "
-                                    "WHERE tp.id_target = ?";
+                                    "JOIN targets.obj_targets ot on op.create_time = ot.date_add "
+                                    "WHERE ot.id_target = ?";
         query.prepare(selectMapObjectId);
         query.addBindValue(targetID);
         query.exec();

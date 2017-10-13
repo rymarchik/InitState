@@ -1,5 +1,11 @@
 #include "hitTargets.h"
 
+#include <QProcess>
+#include <QTcpSocket>
+#include "mapsrc/NetworkObjectManager.h"
+#include "mapsrc/networkmodule.h"
+#include "mapsrc/PropertyObj.h"
+
 HitTargets::HitTargets(QSqlDatabase db, QTableWidget *navigatorTable,
                        QTableWidget *navigatorReceiversTable, QTableWidget *changesTable,
                        QTableWidget *changesReceiversTable, QWidget *parent) :
@@ -105,20 +111,6 @@ bool HitTargets::onSend()
 */
 bool HitTargets::onDelete() {
     QSqlQuery query = QSqlQuery(db);
-    QString deleteQuery = "UPDATE targets.obj_targets ot "
-                          "SET date_delete = now() "
-                          "FROM own_forces.combatstructure cs "
-                          "WHERE ot.combat_hierarchy = cs.combat_hierarchy "
-                          "         AND ot.target_number = ? "
-                          "         AND ot.target_name = ? "
-                          "         AND cs.type_army = ? "
-                          "         AND ot.date_delete is null";
-    query.prepare(deleteQuery);
-    QString targetNumber = navigatorTable->item(navigatorTable->currentRow(), 0)->text();
-    QString targetName = navigatorTable->item(navigatorTable->currentRow(), 1)->text();
-    query.addBindValue(targetNumber);
-    query.addBindValue(Utility::convertReferenceNameTOCode(db, targetName));
-    query.addBindValue("22.10");
 
     QMessageBox warningDialog(QMessageBox::Warning, "Подтверждение удаления",
                               "Действительно хотить удалить этот элемент?\n" +
@@ -127,11 +119,60 @@ bool HitTargets::onDelete() {
     warningDialog.setButtonText(QMessageBox::No, "Отмена");
 
     if (warningDialog.exec() == QMessageBox::Yes) {
+        db.transaction();
+
+        QString deleteQuery = "UPDATE targets.obj_targets ot "
+                              "SET date_delete = now() "
+                              "FROM own_forces.combatstructure cs "
+                              "WHERE ot.combat_hierarchy = cs.combat_hierarchy "
+                              "         AND ot.target_number = ? "
+                              "         AND ot.target_name = ? "
+                              "         AND cs.type_army = ? "
+                              "         AND ot.date_delete is null";
+        query.prepare(deleteQuery);
+        QString targetNumber = navigatorTable->item(navigatorTable->currentRow(), 0)->text();
+        QString targetName = navigatorTable->item(navigatorTable->currentRow(), 1)->text();
+        query.addBindValue(targetNumber);
+        query.addBindValue(Utility::convertReferenceNameTOCode(db, targetName));
+        query.addBindValue("22.10");
         if (!query.exec()) {
-            qDebug() << "Unable to make delete operation\n" << query.lastError();
+            qDebug() << "1" << query.lastError();
+        }
+
+        //! Запрос на получение айди удаляемой цели из таблицы карты
+        QString selectMapObjectId = "SELECT id "
+                                    "FROM map_objects.object_params op "
+                                    "JOIN targets.obj_targets ot on op.create_time = ot.date_add "
+                                    "WHERE ot.date_delete = (SELECT MAX(date_delete) FROM targets.obj_targets)";
+        query.prepare(selectMapObjectId);
+        if (!query.exec()) {
+            qDebug() << "2" << query.lastError();
+        }
+        query.next();
+        int mapObjectId = query.value(0).toInt();
+
+        for (int i = 0; i < manager.listObject.size(); i++) {
+            if (manager.listObject[i].data.m_OBJECT_ID == mapObjectId) {
+                //! Запрос на удаление цели из таблицы карты
+                QString deleteMapObject = "UPDATE map_objects.object_params "
+                                          "SET visibility = false, delete_time = now() "
+                                          "WHERE id = ?";
+                query.prepare(deleteMapObject);
+                query.addBindValue(mapObjectId);
+                if (!query.exec()) {
+                    qDebug() << "3" << query.lastError();
+                }
+                manager.listObject.remove(i);
+                break;
+            }
+        }
+
+        if (!db.commit()) {
             QMessageBox::critical(this, "Ошибка", "Удалить данные не удалось!");
         }
         else {
+            QByteArray mas = NetworkModule::Instance().maskData(NETWORK_SEND_MAP, manager.serialize());
+            NetworkModule::Instance().sendDataFromMap(mas);
             QMessageBox::information(this, "Уведомление", "Удаление прошло успешно!");
             return true;
         }

@@ -313,7 +313,8 @@ void MainWindow::sendNetworkUserMap(QTcpSocket* pSocket) {
     QSqlQuery query = QSqlQuery(db);
     QString selectMapObjects = "SELECT id, code, object_name, geometry_type, enemy, visibility, "
                                "        access_level, object_location, mas_object "
-                               "FROM map_objects.object_params";
+                               "FROM map_objects.object_params "
+                               "WHERE delete_time is null";
     if (!query.exec(selectMapObjects)) {
         qDebug() << query.lastError();
         QMessageBox::critical(this, "Ошибка", "Загрузить объекты с БД не удалось!");
@@ -520,7 +521,6 @@ void MainWindow::receiveInsertObjectNetworkFromDB(QByteArray& data)
     manager.listObject.push_back(obj);
 }
 
-
 void MainWindow::receiveDeleteObjectNetwork(QByteArray& mas)
 {
     QVector<int> masId;
@@ -547,9 +547,11 @@ void MainWindow::receiveDeleteObjectNetwork(QByteArray& mas)
             if(masId[i]==manager.listObject[j].data.m_OBJECT_ID)
             {
                 QSqlQuery query;
-                QString deleteObject = "DELETE FROM map_objects.object_params WHERE id = ?";
-                QString deleteObject2 = "UPDATE map_objects.object_params SET visibility = false WHERE id = ?";
-                query.prepare(deleteObject2);
+//                QString deleteObject = "DELETE FROM map_objects.object_params WHERE id = ?";
+                QString deleteObject = "UPDATE map_objects.object_params "
+                                       "SET visibility = false, delete_time = now() "
+                                       "WHERE id = ?";
+                query.prepare(deleteObject);
                 query.addBindValue(manager.listObject[j].data.m_OBJECT_ID);
                 if (!query.exec()) {
                     qDebug() << query.lastError();
