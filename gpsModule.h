@@ -18,8 +18,6 @@ private:
     QTimer* readPortTimer;
 
 private slots:
-//    void slotOpenPort();
-//    void slotClosePort();
     void slotParseInput();
 };
 

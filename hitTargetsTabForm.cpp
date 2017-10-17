@@ -1,19 +1,17 @@
 #include "hitTargetsTabForm.h"
 #include "ui_hittargets.h"
+#include "mapModule.h"
 #include "utility.h"
 
-#include "mapsrc/networkmodule.h"
-#include "mapsrc/NetworkObject.h"
-
-HitTargetsTabForm::HitTargetsTabForm(QSqlDatabase db, QWidget *parent) :
+HitTargetsTabForm::HitTargetsTabForm(QSqlDatabase db, MapModule* map, QWidget *parent) :
     db(db),
+    map(map),
     QWidget(parent),
     ui(new Ui::HitTargets)
 {
     ui->setupUi(this);
     ui->coordinateLE->setInputMask("99°99'99.99\''A 999°99'99.99\''A 9999.9;_");    
-    mapProc = new QProcess(this);
-    connect(&NetworkModule::Instance(),SIGNAL(receiveMetricsNetwork(QByteArray&)),this,SLOT(receiveMetricsNetwork(QByteArray&)));
+    connect(&NetworkModule::Instance(), SIGNAL(receiveMetricsNetwork(QByteArray&)), this, SLOT(receiveMetricsNetwork(QByteArray&)));
 }
 
 /*!
@@ -39,10 +37,7 @@ QString HitTargetsTabForm::getTargetNameString() {
 учитывая выбор геометрии цели (ломаная, прямоугольник или круг)
 */
 void HitTargetsTabForm::slotPickCoordinates() {
-    if (mapProc->state() != QProcess::Running ) {
-        mapProc->setWorkingDirectory(mapPath + "/BIN");
-        mapProc->start(mapProc->workingDirectory() + QString("/Karta.exe"));
-    }
+    map->launchMap();
 /*
     QString title1 = "КАРТА-2017 - [Окно Карты" + mapPath + "/maps/100000.rag]";
     LPCWSTR title = (const wchar_t*) title1.utf16();
@@ -331,7 +326,6 @@ bool HitTargetsTabForm::onSaveSetup() {
         return false;
     }
 
-    qDebug() << "onSave";
     QSqlQuery query = QSqlQuery(db);
 
     if (ui->dataSourceBatteryCB->isEnabled()) { //i.e. add tab
@@ -430,9 +424,9 @@ bool HitTargetsTabForm::onSaveSetup() {
             }
 
             query.prepare(insertMapObject);
-            query.addBindValue(1260010110);
+            query.addBindValue(1031010110); //костыль, должен быть code
             query.addBindValue(ui->targetNameCB->currentText());
-            query.addBindValue(2); //костыль (2 - точка с направлением, 3 - линия). должно быть 3, т.е. TYPE_METRIC_LINE, т.к. поражаемые цели должны быть площадными
+            query.addBindValue(TYPE_METRIC_LINE);
             query.addBindValue(1);
             query.addBindValue(true);
             query.addBindValue(1);
@@ -510,7 +504,7 @@ bool HitTargetsTabForm::onSaveSetup() {
                               "     enemy, visibility, access_level, object_location, front, depth, deviation) "
                               "VALUES (?, ?, ?, ?, ?, ?, own_forces.coordinates_input(?), ?, ?, ?)";
             query.prepare(insertMapObject);
-            query.addBindValue(1031010110);
+            query.addBindValue(1031010110); //костыль, должен быть code
             query.addBindValue(ui->targetNameCB->currentText());
             query.addBindValue(TYPE_METRIC_RECT);
             query.addBindValue(1);
@@ -595,7 +589,7 @@ bool HitTargetsTabForm::onSaveSetup() {
                               "     enemy, visibility, access_level, object_location, radius) "
                               "VALUES (?, ?, ?, ?, ?, ?, own_forces.coordinates_input(?), ?)";
             query.prepare(insertMapObject);
-            query.addBindValue(1031010110);
+            query.addBindValue(1031010110); //костыль, должен быть code
             query.addBindValue(ui->targetNameCB->currentText());
             query.addBindValue(TYPE_METRIC_CIRCLE);
             query.addBindValue(1);
@@ -797,7 +791,7 @@ bool HitTargetsTabForm::onSaveSetup() {
             }
 
             query.prepare(updateMapObject);
-            query.addBindValue(2); //костыль (2 - точка с направлением, 3 - линия). должно быть 3, т.е. TYPE_METRIC_LINE, т.к. поражаемые цели должны быть площадными
+            query.addBindValue(TYPE_METRIC_LINE);
             query.addBindValue(mapObjectId);
             if (!query.exec()) {
                 qDebug() << "Ошибка обновления цели в таблице для карты!" << query.lastError();

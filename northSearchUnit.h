@@ -19,14 +19,10 @@ public:
 
 private:
     QSerialPort* serial;
-    QTimer* readPortTimer;
-
     QComboBox* portNumberCB;
     QComboBox* portBaudRateCB;
 
 private slots:
-
-
     void slotGetSearchResult();
     void slotEnterCalibrationData();
     void slotUseCalibrationData();

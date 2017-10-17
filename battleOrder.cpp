@@ -5,11 +5,12 @@
 
 BattleOrder::BattleOrder(QSqlDatabase db, QString combatHierarchy, QString currentMode, QTreeWidget *navigatorTree,
                          QTableWidget *navigatorReciversTable, QTableWidget *changesTable,
-                         QTableWidget *changesReciversTable, QWidget *parent) :
+                         QTableWidget *changesReciversTable, MapModule* map, QWidget *parent) :
     combatHierarchy(combatHierarchy),
     currentMode(currentMode),
     navigatorTree(navigatorTree),
     changesTable(changesTable),
+    map(map),
     BaseToolClass(db, navigatorReciversTable, changesReciversTable, parent)
 {
     connect(this->navigatorTree, SIGNAL(itemSelectionChanged()), this, SLOT(showAttribute()));
@@ -183,7 +184,7 @@ QWidget *BattleOrder::onEdit()
         break;
     case 2: //Диалог BM
     {
-        m_changesBM = new battleOrderChangesBM(db, ID);
+        m_changesBM = new battleOrderChangesBM(db, ID, map);
         m_changesBM->slotData();
         return m_changesBM;//new battleOrderChangesBM(db, ID);
         break;

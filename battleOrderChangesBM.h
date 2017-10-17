@@ -12,6 +12,7 @@ class battleOrderChangesBM;
 }
 
 class battleOrderDialogBM;
+class MapModule;
 class NorthSearchUnit;
 
 class battleOrderChangesBM : public QWidget
@@ -19,7 +20,7 @@ class battleOrderChangesBM : public QWidget
     Q_OBJECT
 
 public:
-    explicit battleOrderChangesBM(QSqlDatabase db, QString combatHierarchy, QWidget *parent = 0);
+    explicit battleOrderChangesBM(QSqlDatabase db, QString combatHierarchy, MapModule* map, QWidget *parent = 0);
     virtual ~battleOrderChangesBM();
 
 //private:
@@ -29,14 +30,10 @@ public:
     QString combatHierarchy;    
     battleOrderDialogBM *m_DialogBM ;
     NorthSearchUnit* northSearchUnit;
+    MapModule* map;
 
     QTimer* clockTimer;
     QTime* time;
-
-    //!Процесс для запуска карты
-    QProcess* mapProc;
-    //!Путь к файлам карты
-    QString mapPath = QCoreApplication::applicationDirPath() + "/mapFiles";
 
     /*!
     Метод преобразования широты, долготы и высоты, выраженных десятичной дробью,

@@ -2,47 +2,42 @@
 
 NorthSearchUnit::NorthSearchUnit(QObject *parent) : QObject(parent)
 {
-    serial = new QSerialPort(this);
-//    readPortTimer = new QTimer;
-    qDebug() << readNorthSearchResult();
+//    serial = new QSerialPort(this);
 
-    portNumberCB = new QComboBox;
-    foreach (const QSerialPortInfo &port, QSerialPortInfo::availablePorts()){
-        portNumberCB->addItem(port.portName());
-    }
-    portBaudRateCB = new QComboBox;
-    foreach (qint32 baudRate, QSerialPortInfo::standardBaudRates()){
-        portBaudRateCB->addItem(QString::number(baudRate));
-    }
-    portBaudRateCB->setCurrentText("115200");
-
-//    connect(readPortTimer, SIGNAL(timeout()), this, SLOT(slotReadPort()));
+//    portNumberCB = new QComboBox;
+//    foreach (const QSerialPortInfo &port, QSerialPortInfo::availablePorts()){
+//        portNumberCB->addItem(port.portName());
+//    }
+//    portBaudRateCB = new QComboBox;
+//    foreach (qint32 baudRate, QSerialPortInfo::standardBaudRates()){
+//        portBaudRateCB->addItem(QString::number(baudRate));
+//    }
+//    portBaudRateCB->setCurrentText("115200");
 }
 
 bool NorthSearchUnit::openPort() {
-    serial->setPortName(portNumberCB->currentText());
-    serial->setBaudRate(portBaudRateCB->currentText().toInt());
-    serial->setDataBits(QSerialPort::Data8);
-    serial->setStopBits(QSerialPort::OneStop);
-    if (serial->open(QIODevice::ReadWrite)) {
-//        readPortTimer->start(1000);
-        return true;
-    } else {
-        QMessageBox::critical(0, tr("Error"), serial->errorString());
-    }
-    return false;
+//    serial->setPortName(portNumberCB->currentText());
+//    serial->setBaudRate(portBaudRateCB->currentText().toInt());
+//    serial->setDataBits(QSerialPort::Data8);
+//    serial->setStopBits(QSerialPort::OneStop);
+//    if (serial->open(QIODevice::ReadWrite)) {
+//        return true;
+//    } else {
+//        QMessageBox::critical(0, tr("Error"), serial->errorString());
+//    }
+//    return false;
+    return true;
 }
 
 void NorthSearchUnit::closePort() {
-    if (serial->isOpen()) {
-        serial->close();
-//        readPortTimer->stop();
-    }
+//    if (serial->isOpen()) {
+//        serial->close();
+//    }
 }
 
 void NorthSearchUnit::northSearch() {
-    QByteArray transmitCommand("\x74\x31\x38\x34\x33\x30\x31\x30\x30\x30\x30\x0d");
-    serial->write(transmitCommand);
+    QByteArray transmitCommand("t1843010100\x0D");
+//    serial->write(transmitCommand);
 }
 
 int NorthSearchUnit::readNorthSearchResult() {

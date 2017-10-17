@@ -13,12 +13,7 @@
 #include "hitTargets.h"
 #include "commands.h"
 #include "gpsModule.h"
-
-#include <QProcess>
-#include <QTcpSocket>
-#include "mapsrc/NetworkObjectManager.h"
-#include "mapsrc/networkmodule.h"
-#include "mapsrc/PropertyObj.h"
+#include "mapModule.h"
 
 namespace Ui {
 class MainWindow;
@@ -51,11 +46,7 @@ private:
     HitTargets    *c_hitTargets;
     Commands      *c_commands;
     GPSModule     *gps;
-
-    QProcess      *mapProcess;
-    NetworkObjectManager manager;
-
-    QString mapPath = QCoreApplication::applicationDirPath() + "/mapFiles";
+    MapModule     *map;
 
     void windowsTitle(int idUser);  //Формирование названия формы
 
@@ -68,25 +59,12 @@ private slots:
     void slotDelete();    //реализация функции "Удалить"
     void slotSave();      //реализация функции "Сохранить"
     void slotMap();
+    void slotMapClose();
     void slotSend();
 
     void slotOnChangeTab(int);
     void slotOnCloseTab(int);
     void slotOnItemSelected();
-
-    void finished(int);
-    void serverError(QString);
-    void sendNetworkUserMap(QTcpSocket* pSocket);
-    void receiveInsertObjectNetwork(QByteArray&);
-    void receiveInsertObjectNetworkFromDB(QByteArray&);
-
-    /**
-    \fn   receiveDeleteObjectNetwork
-    Слот для обработки сигнала о приеме пакета данных, в котором хранятся идентификаторы удаленных объектов
-    \param[in] QByteArray & mas - ссылка пакет данных, в который был упакован список идентификаторов удаленных объектов
-    \return не возвращает
-    */
-    void receiveDeleteObjectNetwork(QByteArray&);
 };
 
 #endif // MAINWINDOW_H

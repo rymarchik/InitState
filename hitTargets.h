@@ -14,6 +14,8 @@
 #include "hittargetstabform.h"
 #include "utility.h"
 
+class MapModule;
+
 class HitTargets : public BaseToolClass
 {
     Q_OBJECT
@@ -21,7 +23,7 @@ class HitTargets : public BaseToolClass
 public:
     HitTargets(QSqlDatabase db, QTableWidget *navigatorTable,
                QTableWidget *navigatorReceiversTable, QTableWidget *changesTable,
-               QTableWidget *changesReceiversTable, QWidget* parent = 0);
+               QTableWidget *changesReceiversTable, MapModule* map, QWidget* parent = 0);
 
     //! Метод заполнения верхней таблицы вкладки Навигатор
     void fillNavigator();
@@ -83,6 +85,8 @@ private:
     QTableWidget* changesTable;
     //! Список, хранящий формы открытых вкладок с поражаемыми целями
     QList<HitTargetsTabForm*> formList;
+    //! Объект карты
+    MapModule* map;
 
 public slots:
 

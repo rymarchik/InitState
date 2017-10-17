@@ -1,20 +1,18 @@
 #include "battleOrderChangesBM.h"
 #include "ui_battleOrderChangesBM.h"
-
-#include "mapsrc/networkmodule.h"
-#include "mapsrc/NetworkObject.h"
+#include "mapModule.h"
 #include "northSearchUnit.h"
 
-battleOrderChangesBM::battleOrderChangesBM(QSqlDatabase db, QString combatHierarchy, QWidget *parent) :
+battleOrderChangesBM::battleOrderChangesBM(QSqlDatabase db, QString combatHierarchy, MapModule* map, QWidget *parent) :
     db(db),
     combatHierarchy(combatHierarchy),
+    map(map),
+    northSearchUnit(new NorthSearchUnit(this)),
     QWidget(parent),
     ui(new Ui::battleOrderChangesBM),
-    m_DialogBM(new battleOrderDialogBM(db, combatHierarchy, this)),
-    northSearchUnit(new NorthSearchUnit(this))
+    m_DialogBM(new battleOrderDialogBM(db, combatHierarchy, this))
 {
     ui->setupUi(this);
-    mapProc = new QProcess(this);
     clockTimer = new QTimer;
     time = new QTime(0, 3, 0);
     ui->lcdNorthSearch->display(time->toString("mm:ss"));
@@ -452,17 +450,13 @@ void battleOrderChangesBM::slotSave()
 */
 void battleOrderChangesBM::slotPickCoordinates()
 {
-    if (mapProc->state() != QProcess::Running ) {
-        mapProc->setWorkingDirectory(mapPath + "/BIN");
-        mapProc->start(mapProc->workingDirectory() + QString("/Karta.exe"));
-    }
+    map->launchMap();
 /*
     QString title1 = "КАРТА-2017 - [Окно Карты" + mapPath + "/maps/100000.rag]";
     LPCWSTR title = (const wchar_t*) title1.utf16();
     HWND hwnd = FindWindow(0,title);
     SetForegroundWindow(hwnd);
 */
-
     NetworkModule::Instance().sendMetricsReq(TYPE_METRIC_LINE);
 }
 

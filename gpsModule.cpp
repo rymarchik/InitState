@@ -1,5 +1,5 @@
 #include "gpsModule.h"
-#include "QMessageBox"
+#include <QMessageBox>
 
 GPSModule::GPSModule(QSqlDatabase db, QObject *parent) :
     QObject(parent),

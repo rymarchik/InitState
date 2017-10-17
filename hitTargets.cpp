@@ -1,16 +1,12 @@
 #include "hitTargets.h"
-
-#include <QProcess>
-#include <QTcpSocket>
-#include "mapsrc/NetworkObjectManager.h"
-#include "mapsrc/networkmodule.h"
-#include "mapsrc/PropertyObj.h"
+#include "mapModule.h"
 
 HitTargets::HitTargets(QSqlDatabase db, QTableWidget *navigatorTable,
                        QTableWidget *navigatorReceiversTable, QTableWidget *changesTable,
-                       QTableWidget *changesReceiversTable, QWidget *parent) :
+                       QTableWidget *changesReceiversTable, MapModule* map, QWidget *parent) :
     navigatorTable(navigatorTable),
     changesTable(changesTable),
+    map(map),
     BaseToolClass(db, navigatorReceiversTable, changesReceiversTable, parent)
 {
 
@@ -20,7 +16,6 @@ HitTargets::HitTargets(QSqlDatabase db, QTableWidget *navigatorTable,
 void HitTargets::fillNavigator() {
     Utility::initializeTableSettings(navigatorTable);
     Utility::initializeTableSettings(navigatorReceiversTable);
-//    Utility::closeNewEditTab(this);
 
     navigatorTable->setRowCount(0);
     navigatorReceiversTable->setRowCount(0);
@@ -59,7 +54,6 @@ void HitTargets::fillNavigator() {
 void HitTargets::fillChanges() {
     Utility::initializeTableSettings(changesTable);
     Utility::initializeTableSettings(changesReceiversTable);
-//    Utility::closeNewEditTab(this);
 
     changesTable->setRowCount(0);
     changesReceiversTable->setRowCount(0);
@@ -73,7 +67,7 @@ void HitTargets::fillChanges() {
 \return возвращает созданную форму HitTargetsForm
 */
 QWidget* HitTargets::onAdd() {
-    HitTargetsTabForm* form = new HitTargetsTabForm(db);
+    HitTargetsTabForm* form = new HitTargetsTabForm(db, map);
     formList.append(form);
     form->onAddSetup();
     return form;
@@ -84,7 +78,7 @@ QWidget* HitTargets::onAdd() {
 \return возвращает созданную форму HitTargetsForm
 */
 QWidget* HitTargets::onEdit() {
-    HitTargetsTabForm* form = new HitTargetsTabForm(db);
+    HitTargetsTabForm* form = new HitTargetsTabForm(db, map);
     formList.append(form);
     form->onEditSetup(navigatorTable);
     return form;
@@ -109,8 +103,11 @@ bool HitTargets::onSend()
 Метод удаления поражаемой цели
 \return возвращает true, если удаление прошло успешно, иначе false
 */
-bool HitTargets::onDelete() {
+bool HitTargets::onDelete() {  
     QSqlQuery query = QSqlQuery(db);
+    QString targetNumber = navigatorTable->item(navigatorTable->currentRow(), 0)->text();
+    QString targetName = navigatorTable->item(navigatorTable->currentRow(), 1)->text();
+    NetworkObjectManager manager = map->getObjectManager();
 
     QMessageBox warningDialog(QMessageBox::Warning, "Подтверждение удаления",
                               "Действительно хотить удалить этот элемент?\n" +
@@ -130,13 +127,11 @@ bool HitTargets::onDelete() {
                               "         AND cs.type_army = ? "
                               "         AND ot.date_delete is null";
         query.prepare(deleteQuery);
-        QString targetNumber = navigatorTable->item(navigatorTable->currentRow(), 0)->text();
-        QString targetName = navigatorTable->item(navigatorTable->currentRow(), 1)->text();
         query.addBindValue(targetNumber);
         query.addBindValue(Utility::convertReferenceNameTOCode(db, targetName));
         query.addBindValue("22.10");
         if (!query.exec()) {
-            qDebug() << "1" << query.lastError();
+            qDebug() << query.lastError();
         }
 
         //! Запрос на получение айди удаляемой цели из таблицы карты
@@ -146,7 +141,7 @@ bool HitTargets::onDelete() {
                                     "WHERE ot.date_delete = (SELECT MAX(date_delete) FROM targets.obj_targets)";
         query.prepare(selectMapObjectId);
         if (!query.exec()) {
-            qDebug() << "2" << query.lastError();
+            qDebug() << query.lastError();
         }
         query.next();
         int mapObjectId = query.value(0).toInt();
@@ -160,9 +155,10 @@ bool HitTargets::onDelete() {
                 query.prepare(deleteMapObject);
                 query.addBindValue(mapObjectId);
                 if (!query.exec()) {
-                    qDebug() << "3" << query.lastError();
+                    qDebug() << query.lastError();
                 }
-                manager.listObject.remove(i);
+                manager.listObject.removeAt(i);
+                map->setObjectManager(manager);
                 break;
             }
         }
@@ -171,7 +167,7 @@ bool HitTargets::onDelete() {
             QMessageBox::critical(this, "Ошибка", "Удалить данные не удалось!");
         }
         else {
-            QByteArray mas = NetworkModule::Instance().maskData(NETWORK_SEND_MAP, manager.serialize());
+            QByteArray mas = NetworkModule::Instance().maskData(NETWORK_SEND_MAP, map->getObjectManager().serialize());
             NetworkModule::Instance().sendDataFromMap(mas);
             QMessageBox::information(this, "Уведомление", "Удаление прошло успешно!");
             return true;

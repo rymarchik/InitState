@@ -205,7 +205,7 @@ void NetworkModule::slotReadServer()
 		pos+=sizeof(quint32);
 		bool fl=true;
 
-        qDebug() << "4e tam, 4e tam: " << command;
+        qDebug() << "COMMAND: " << command;
         switch(command)
 		{
 		case 0:		//квитанция готовности 
@@ -263,9 +263,8 @@ void NetworkModule::slotConnected()
 /** \fn slotReadClient 
 Слот для ситуации когда клиенту приходит пакет данных от сервера
 */
-void NetworkModule::slotReadClient()
+void NetworkModule::slotReadClient() //походу не юзается
 {
-    qDebug() << "zahodit li kogda-nibud?";
 	QByteArray mas;
 	QByteArray dataBlock;
 	QTcpSocket* pClientSocket = (QTcpSocket*)sender();
@@ -440,8 +439,7 @@ void NetworkModule::sendDataFromMap(QByteArray mas)
 		for(int i=0;i<listSocket.size();i++)
 		{
             listSocket[i]->write(mas);
-		}
-        qDebug() << "sending to map";
+        }
 	}
     else if(m_ptcpSocket)
     {

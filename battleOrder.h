@@ -11,6 +11,8 @@
 #include <QStringList>
 #include <QMessageBox>
 
+class MapModule;
+
 class BattleOrder : public BaseToolClass
 {
     Q_OBJECT
@@ -18,7 +20,7 @@ class BattleOrder : public BaseToolClass
 public:
     BattleOrder(QSqlDatabase db, QString combatHierarchy, QString currentMode, QTreeWidget *navigatorTree,
                 QTableWidget *navigatorReciversTable, QTableWidget *changesTable,
-                QTableWidget *changesReciversTable, QWidget* parent = 0);
+                QTableWidget *changesReciversTable, MapModule* map, QWidget* parent = 0);
 
     battleOrderChangesBM *m_changesBM;
     QString combatHierarchy;
@@ -40,6 +42,7 @@ private:
 
     int attribute = 0;
     QString ID;
+    MapModule* map;
 
 private slots:    
     void showAttribute(); //признак для текущей выбранной записи

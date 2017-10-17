@@ -14,13 +14,14 @@
 namespace Ui {
 class HitTargets;
 }
+class MapModule;
 
 class HitTargetsTabForm : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit HitTargetsTabForm(QSqlDatabase db, QWidget *parent = 0);
+    explicit HitTargetsTabForm(QSqlDatabase db, MapModule* map, QWidget *parent = 0);
     ~HitTargetsTabForm();
     Ui::HitTargets *ui;
 
@@ -92,11 +93,8 @@ public:
 
 private:
     QSqlDatabase db;
+    MapModule* map;
     QFont font = QFont("MS Shell Dlg 2", 9, QFont::Bold);
-    //!Процесс для запуска карты
-    QProcess* mapProc;
-    //!Путь к файлам карты
-    QString mapPath = QCoreApplication::applicationDirPath() + "/mapFiles";
 
 signals:
     void insertMapObjectCompleted();
