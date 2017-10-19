@@ -129,7 +129,7 @@ bool HitTargets::onDelete() {
         query.prepare(deleteQuery);
         query.addBindValue(targetNumber);
         query.addBindValue(Utility::convertReferenceNameTOCode(db, targetName));
-        query.addBindValue("22.10");
+        query.addBindValue("22.10"); //костыль
         if (!query.exec()) {
             qDebug() << query.lastError();
         }

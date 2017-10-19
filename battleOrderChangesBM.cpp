@@ -536,12 +536,13 @@ void battleOrderChangesBM::slotAzimuthResult() {
 
         QString insertAzimuth = "INSERT INTO own_forces.combatobject_location (combat_hierarchy, "
                                 "   obj_location, direction, tid, date_add, id_manager) "
-                                "VALUES (?, own_forces.coordinates_input(?), ?, txid_current(), now(), ?)";
+                                "VALUES (?, own_forces.coordinates_input(?), ?, txid_current(), ?, ?)";
         query.prepare(insertAzimuth);
         query.addBindValue(combatHierarchy);
         query.addBindValue(getCoordinates());
         query.addBindValue(parsedAzimuth);
-        query.addBindValue(10);
+        query.addBindValue(QDateTime::currentDateTime());
+        query.addBindValue(10); //костыль
         query.exec();
         if (!db.commit()) {
             qDebug() << query.lastError();

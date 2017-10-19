@@ -10,10 +10,14 @@ class GPSModule : public QObject
 {
     Q_OBJECT
 public:
-    explicit GPSModule(QSqlDatabase db, QObject *parent = 0);
+    explicit GPSModule(QSqlDatabase db, QString combatHierarchy, QObject *parent = 0);
+
+    void updateDatabaseGeoInfo(double, double, double, QDateTime);
+    int getLastDirectionValue();
 
 private:
     QSqlDatabase db;
+    QString combatHierarchy;
     QSerialPort* serial;
     QTimer* readPortTimer;
 

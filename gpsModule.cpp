@@ -1,9 +1,10 @@
 #include "gpsModule.h"
 #include <QMessageBox>
 
-GPSModule::GPSModule(QSqlDatabase db, QObject *parent) :
-    QObject(parent),
-    db(db)
+GPSModule::GPSModule(QSqlDatabase db, QString combatHierarchy, QObject *parent) :
+    db(db),
+    combatHierarchy(combatHierarchy),
+    QObject(parent)
 {
     if (QSerialPortInfo::availablePorts().size() != 0) {
         serial = new QSerialPort(this);
@@ -14,7 +15,7 @@ GPSModule::GPSModule(QSqlDatabase db, QObject *parent) :
         serial->setDataBits(QSerialPort::Data8);
         serial->setStopBits(QSerialPort::OneStop);
         if (serial->open(QIODevice::ReadOnly)) {
-            readPortTimer->start(5000);
+            readPortTimer->start(2000);
         } else {
             QMessageBox::critical(0, tr("Error"), serial->errorString());
         }
@@ -31,9 +32,9 @@ void GPSModule::slotParseInput() {
     QRegExp lonRegExp("(\\d{3})(\\d{2}\\.\\d+)", Qt::CaseInsensitive);
     QSqlQuery query = QSqlQuery(db);
     QDateTime dateTime;
-    double latitude;
-    double longitude;
-    double altitude;
+    double latitude = 0.0;
+    double longitude = 0.0;
+    double altitude = 0.0;
 
     QString line = serial->readAll();
     QStringList lines = line.split('$');
@@ -75,26 +76,58 @@ void GPSModule::slotParseInput() {
         }
     }
 
-    QString updateRow = "UPDATE own_forces.combatobject_location "
-                        "SET obj_location = ST_SetSRID(ST_MakePoint(?, ?, ?), 4326), "
-                        "       date_edit = ? "
-                        "WHERE combat_hierarchy = ? "
-//                        "       AND date_delete is null "
-                        "       AND tid = ?";
-    query.prepare(updateRow);
-    query.addBindValue(longitude);
-    query.addBindValue(latitude);
-    query.addBindValue(altitude);
-    query.addBindValue(dateTime);
-    query.addBindValue("1.11"); //значение взято для теста
-    query.addBindValue(10341); //значение взято для теста
-    if (!query.exec()) {
-        qDebug() << query.lastError();
-    }
+    updateDatabaseGeoInfo(latitude, longitude, altitude, dateTime);
 
 //    qDebug() << "longitude: " << longitude;
 //    qDebug() << "latitude: " << latitude;
 //    qDebug() << "altitude: " << altitude;
 //    qDebug() << "utc time: " << dateTime.toString("hh:mm:ss dd-MMM-yyyy");
 //    qDebug() << "local time: " << dateTime.toLocalTime().toString("hh:mm:ss dd-MMM-yyyy") << endl;
+}
+
+void GPSModule::updateDatabaseGeoInfo(double latitude, double longitude, double altitude, QDateTime dateTime) {
+    QSqlQuery query(db);
+    db.transaction();
+    QString updateRow = "UPDATE own_forces.combatobject_location "
+                        "SET date_delete = ? "
+                        "WHERE combat_hierarchy = ? "
+                        "AND date_add = (SELECT MAX(date_add) FROM own_forces.combatobject_location)";
+    query.prepare(updateRow);
+    query.addBindValue(dateTime);
+    query.addBindValue(combatHierarchy);
+    if (!query.exec()) {
+        qDebug() << query.lastError();
+    }
+
+    QString insertRow = "INSERT INTO own_forces.combatobject_location (combat_hierarchy, obj_location, "
+                        "       direction, tid, date_add, id_manager)"
+                        "VALUES (?, ST_SetSRID(ST_MakePoint(?, ?, ?), 4326), ?, txid_current(), ?, ?)";
+    query.prepare(insertRow);
+    query.addBindValue(combatHierarchy);
+    query.addBindValue(latitude);
+    query.addBindValue(longitude);
+    query.addBindValue(altitude);
+    query.addBindValue(getLastDirectionValue());
+    query.addBindValue(dateTime);
+    query.addBindValue(10); //костыль
+    if (!query.exec()) {
+        qDebug() << query.lastError();
+    }
+    db.commit();
+}
+
+int GPSModule::getLastDirectionValue() {
+    QSqlQuery query(db);
+    QString selectLastDirection = "SELECT direction "
+                                  "FROM own_forces.combatobject_location "
+                                  "WHERE combat_hierarchy = ? "
+                                  "     AND tid = (SELECT MAX(tid) FROM own_forces.combatobject_location)";
+    query.prepare(selectLastDirection);
+    query.addBindValue(combatHierarchy);
+    if (!query.exec()) {
+        qDebug() << query.lastError();
+    }
+    query.next();
+    int direction = query.value(0).toInt();
+    return direction;
 }

@@ -11,7 +11,7 @@ MainWindow::MainWindow(QSqlDatabase DB, int UserID, QWidget *parent) :
     //Формирование названия формы:
     windowsTitle(idUser);
 
-    gps = new GPSModule(db, this);
+    gps = new GPSModule(db, combatHierarchy, this);
     map = new MapModule(db, this);
 
     ui->battleOrderTabWidget->tabBar()->tabButton(0, QTabBar::RightSide)->resize(0, 0);
