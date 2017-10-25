@@ -12,7 +12,7 @@ MainWindow::MainWindow(QSqlDatabase DB, int UserID, QWidget *parent) :
     windowsTitle(idUser);
 
     gps = new GPSModule(db, combatHierarchy, this);
-    map = new MapModule(db, this);
+    map = new MapModule(db, combatHierarchy, this);
 
     ui->battleOrderTabWidget->tabBar()->tabButton(0, QTabBar::RightSide)->resize(0, 0);
     ui->battleOrderTabWidget->tabBar()->tabButton(1, QTabBar::RightSide)->resize(0, 0);

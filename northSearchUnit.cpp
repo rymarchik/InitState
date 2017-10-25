@@ -12,6 +12,7 @@ NorthSearchUnit::NorthSearchUnit(QObject *parent) : QObject(parent)
 //    foreach (qint32 baudRate, QSerialPortInfo::standardBaudRates()){
 //        portBaudRateCB->addItem(QString::number(baudRate));
 //    }
+//    portNumberCB->setCurrentText("COM4");
 //    portBaudRateCB->setCurrentText("115200");
 }
 
@@ -25,8 +26,7 @@ bool NorthSearchUnit::openPort() {
 //    } else {
 //        QMessageBox::critical(0, tr("Error"), serial->errorString());
 //    }
-//    return false;
-    return true;
+    return false;
 }
 
 void NorthSearchUnit::closePort() {

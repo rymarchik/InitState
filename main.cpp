@@ -24,6 +24,7 @@ int main(int argc, char *argv[])
     DB.setUserName("postgres");
     DB.setPassword("qwerty");
     DB.setHostName("192.168.1.42");
+//    DB.setHostName("localhost");
 
     if (!DB.open())
     {

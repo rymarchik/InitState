@@ -509,7 +509,7 @@ QString battleOrderChangesBM::getParsedCoordinates(double lat, double lon, doubl
 void battleOrderChangesBM::slotAzimuthSearch()
 {
     if (northSearchUnit->openPort()) {
-        time->setHMS(0, 0, 5);
+        time->setHMS(0, 3, 0);
         ui->lcdNorthSearch->display(time->toString("mm:ss"));
 
         northSearchUnit->northSearch();

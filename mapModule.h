@@ -13,7 +13,7 @@ class MapModule : public QObject
 {
     Q_OBJECT
 public:
-    explicit MapModule(QSqlDatabase db, QObject *parent = 0);
+    explicit MapModule(QSqlDatabase db, QString combatHierarchy, QObject *parent = 0);
 
     QProcess* getMapProcess();
     QString getMapPath();
@@ -21,9 +21,11 @@ public:
     void setObjectManager(NetworkObjectManager);
     void clearObjectManager();
     void launchMap();
+    void addBMtoMap();
 
 private:
     QSqlDatabase db;
+    QString combatHierarchy;
     QProcess* mapProcess;
     QString mapPath = QCoreApplication::applicationDirPath() + "/mapFiles";
     NetworkObjectManager manager;

@@ -339,7 +339,7 @@ bool HitTargetsTabForm::onSaveSetup() {
         query.addBindValue(ui->targetNumberLE->text());
         query.addBindValue(ui->targetNameCB->currentData());
         query.addBindValue(ui->dataSourceWeaponryCB->currentData());
-        query.addBindValue(1);
+        query.addBindValue(10); //костыль
         if (!query.exec()) {
             qDebug() << "Ошибка добавления данных номера и наименования цели в БД!" << query.lastError();
         }

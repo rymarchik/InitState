@@ -1,9 +1,10 @@
 #include "mapModule.h"
 #include <QMessageBox>
 
-MapModule::MapModule(QSqlDatabase db, QObject *parent) :
-    QObject(parent),
-    db(db)
+MapModule::MapModule(QSqlDatabase db, QString combatHierarchy, QObject *parent) :
+    db(db),
+    combatHierarchy(combatHierarchy),
+    QObject(parent)
 {
     mapProcess = new QProcess(this);
     if (!NetworkModule::Instance().serverFunc()) {
@@ -44,12 +45,56 @@ void MapModule::launchMap() {
     }
 }
 
+void MapModule::addBMtoMap() {
+    QSqlQuery query = QSqlQuery(db);
+    db.transaction();
+
+    //создание и добавление боевой машины в менеджер объектов
+    NetworkObject obj;
+    obj.data.m_OBJECT_ID = 1; //будет зарезервировано за боевой машиной
+    obj.data.m_CODE = 1253010110; //код Боевой машины РСЗО
+    obj.data.m_NAME = "Боевая машина";
+    obj.data.m_TYPE_ID = TYPE_METRIC_POINT; //но нужно TYPE_METRIC_POINT2
+    obj.data.m_ENEMY = 0;
+    obj.data.m_VISIBLE = true;
+
+    QString selectLocation = "SELECT obj_location "
+                             "FROM own_forces.combatobject_location "
+                             "WHERE combat_hierarchy = ? "
+                             "  AND date_add = (SELECT MAX(date_add) FROM own_forces.combatobject_location)";
+    query.prepare(selectLocation);
+    query.addBindValue(combatHierarchy);
+    query.exec();
+    query.next();
+    QString rawCoords = query.value(0).toString();
+
+
+    QString getParsedCoordinates = "SELECT ST_X(geom), ST_Y(geom), ST_Z(geom) "
+                                   "FROM (SELECT (ST_dumppoints(?)).geom) AS foo";
+    query.prepare(getParsedCoordinates);
+    query.addBindValue(rawCoords);
+    query.exec();
+    query.next();
+    tagDataPoint point;
+    point.m_LATITUDE = query.value(0).toDouble();
+    point.m_LONGITUDE = query.value(1).toDouble();
+    point.m_HEIGHT = query.value(2).toDouble();
+    obj.metrics.append(point);
+    manager.listObject.push_back(obj);
+
+    db.commit();
+
+    QByteArray mas = NetworkModule::Instance().maskData(NETWORK_INSERT_OBJECT_FROM_DB, obj.serialize());
+    NetworkModule::Instance().sendDataFromMap(mas);
+}
+
 void MapModule::serverError(QString str) {
     QMessageBox::critical(0, "Server Error", "Unable to start the server:" + str);
 }
 
 void MapModule::sendNetworkUserMap(QTcpSocket* pSocket) {
     QSqlQuery query = QSqlQuery(db);
+
     QString selectMapObjects = "SELECT id, code, object_name, geometry_type, enemy, visibility, "
                                "        access_level, object_location, mas_object "
                                "FROM map_objects.object_params "
@@ -87,8 +132,11 @@ void MapModule::sendNetworkUserMap(QTcpSocket* pSocket) {
 
         manager.listObject.push_back(obj);
     }
+
     QByteArray mas = NetworkModule::Instance().maskData(NETWORK_SEND_MAP, manager.serialize());
     NetworkModule::Instance().SendToClient(pSocket, mas);
+
+    addBMtoMap();
 }
 
 void MapModule::receiveInsertObjectNetwork(QByteArray& data) {
@@ -219,12 +267,14 @@ void MapModule::receiveInsertObjectNetwork(QByteArray& data) {
 
 void MapModule::receiveInsertObjectNetworkFromDB(QByteArray& data)
 {
-    qDebug() << "object back to server with mas_object";
-
     unsigned char * lp=(unsigned char *)(data.data());
     lp+=2*sizeof(quint32);
     NetworkObject obj;
     obj.deserialize(lp,data.size()-8);
+
+    if (obj.data.m_OBJECT_ID == 1) {
+        return;
+    }
 
     qDebug() << obj.metrics[0].m_LATITUDE;
     qDebug() << obj.metrics[0].m_LONGITUDE;
