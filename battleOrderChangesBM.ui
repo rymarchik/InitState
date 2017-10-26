@@ -488,6 +488,9 @@
      </item>
      <item row="2" column="1">
       <widget class="QPushButton" name="buttonPickCoordinates">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Съем координат</string>
        </property>
@@ -555,7 +558,6 @@
   <zorder>tableWidgetData</zorder>
   <zorder>comboBoxManner</zorder>
   <zorder>lineEditAzimuth</zorder>
-  <zorder></zorder>
   <zorder>lineEditCoordinates</zorder>
   <zorder></zorder>
  </widget>

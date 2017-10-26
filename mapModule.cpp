@@ -1,9 +1,10 @@
 #include "mapModule.h"
 #include <QMessageBox>
 
-MapModule::MapModule(QSqlDatabase db, QString combatHierarchy, QObject *parent) :
+MapModule::MapModule(QSqlDatabase db, QString combatHierarchy, QString currentMode, QObject *parent) :
     db(db),
     combatHierarchy(combatHierarchy),
+    currentMode(currentMode),
     QObject(parent)
 {
     mapProcess = new QProcess(this);
@@ -45,47 +46,90 @@ void MapModule::launchMap() {
     }
 }
 
-void MapModule::addBMtoMap() {
+void MapModule::addBMsToMap() {
     QSqlQuery query = QSqlQuery(db);
     db.transaction();
 
-    //создание и добавление боевой машины в менеджер объектов
-    NetworkObject obj;
-    obj.data.m_OBJECT_ID = 1; //будет зарезервировано за боевой машиной
-    obj.data.m_CODE = 1253010110; //код Боевой машины РСЗО
-    obj.data.m_NAME = "Боевая машина";
-    obj.data.m_TYPE_ID = TYPE_METRIC_POINT; //но нужно TYPE_METRIC_POINT2
-    obj.data.m_ENEMY = 0;
-    obj.data.m_VISIBLE = true;
-
-    QString selectLocation = "SELECT obj_location "
-                             "FROM own_forces.combatobject_location "
-                             "WHERE combat_hierarchy = ? "
-                             "  AND date_add = (SELECT MAX(date_add) FROM own_forces.combatobject_location)";
-    query.prepare(selectLocation);
-    query.addBindValue(combatHierarchy);
+    QString kostil = "50.10";
+    QString selectMachineNames = "SELECT c.combat_hierarchy, t.termname "
+                                 "FROM own_forces.combatstructure c "
+                                 "JOIN own_forces.currentmode cm ON cm.combat_hierarchy = c.combat_hierarchy "
+                                 "   AND cm.date_delete IS NULL "
+                                 "JOIN reference_data.terms t ON c.object_name = t.termhierarchy "
+                                 "WHERE cm.currentmode_tid = ? "
+                                 "   AND nlevel(c.object_name) = 2 "
+                                 "   AND c.date_delete is NULL";
+    query.prepare(selectMachineNames);
+    query.addBindValue(kostil); //currentMode
     query.exec();
-    query.next();
-    QString rawCoords = query.value(0).toString();
+    QStringList machineCodes;
+    QStringList machineNames;
+    while (query.next()) {
+        machineCodes << query.value(0).toString();
+        machineNames << query.value(1).toString();
+    }
+
+    for (int i = 0; i < machineCodes.size(); i++) {
+        //создание и добавление боевой машины в менеджер объектов
+        NetworkObject obj;
+        obj.data.m_OBJECT_ID = i + 1;
+        obj.data.m_TYPE_ID = TYPE_METRIC_POINT; //но нужно TYPE_METRIC_POINT2
+        obj.data.m_ENEMY = 0;
+        obj.data.m_VISIBLE = true;
+
+                qDebug() << machineCodes.at(i) << " " << machineNames.at(i);
+
+        QString selectLocation = "SELECT obj_location "
+                                 "FROM own_forces.combatobject_location "
+                                 "WHERE combat_hierarchy = ? "
+                                 "  AND date_add = (SELECT MAX(date_add) FROM own_forces.combatobject_location "
+                                 "                  WHERE combat_hierarchy = ?)";
+        query.prepare(selectLocation);
+        query.addBindValue(machineCodes.at(i));
+        query.addBindValue(machineCodes.at(i));
+        query.exec();
+        query.next();
+        QString rawCoords = query.value(0).toString();
+        qDebug() << rawCoords;
 
 
-    QString getParsedCoordinates = "SELECT ST_X(geom), ST_Y(geom), ST_Z(geom) "
-                                   "FROM (SELECT (ST_dumppoints(?)).geom) AS foo";
-    query.prepare(getParsedCoordinates);
-    query.addBindValue(rawCoords);
-    query.exec();
-    query.next();
-    tagDataPoint point;
-    point.m_LATITUDE = query.value(0).toDouble();
-    point.m_LONGITUDE = query.value(1).toDouble();
-    point.m_HEIGHT = query.value(2).toDouble();
-    obj.metrics.append(point);
-    manager.listObject.push_back(obj);
+        QString getParsedCoordinates = "SELECT ST_X(geom), ST_Y(geom), ST_Z(geom) "
+                                       "FROM (SELECT (ST_dumppoints(?)).geom) AS foo";
+        query.prepare(getParsedCoordinates);
+        query.addBindValue(rawCoords);
+        query.exec();
+        query.next();
+        tagDataPoint point;
+        point.m_LATITUDE = query.value(0).toDouble();
+        point.m_LONGITUDE = query.value(1).toDouble();
+        point.m_HEIGHT = query.value(2).toDouble();
+        qDebug() << query.value(0).toDouble();
+        qDebug() << query.value(1).toDouble();
+        qDebug() << query.value(2).toDouble();
+        obj.metrics.append(point);
 
+        if (machineNames.at(i) == "Боевая машина В-200") {
+            obj.data.m_CODE = 1253010110; //код Боевой машины РСЗО
+            obj.data.m_NAME = "Боевая машина B-200";
+        }
+        else if (machineNames.at(i) == "Машина боевого управления") {
+            obj.data.m_CODE = 1015030110; //код КП батальона
+            obj.data.m_NAME = "Машина боевого управления";
+        }
+        else if (machineNames.at(i) == "Транспортно-заряжающая машина") {
+            obj.data.m_CODE = 1015030110; //код Боевой машины РСЗО
+            obj.data.m_NAME = "Транспортно-заряжающая машина";
+        }
+
+        qDebug() << obj.metrics[0].m_LATITUDE;
+        qDebug() << obj.metrics[0].m_LONGITUDE;
+        qDebug() << obj.metrics[0].m_HEIGHT;
+        manager.listObject.push_back(obj);
+
+        QByteArray mas = NetworkModule::Instance().maskData(NETWORK_INSERT_OBJECT_FROM_DB, obj.serialize());
+        NetworkModule::Instance().sendDataFromMap(mas);
+    }
     db.commit();
-
-    QByteArray mas = NetworkModule::Instance().maskData(NETWORK_INSERT_OBJECT_FROM_DB, obj.serialize());
-    NetworkModule::Instance().sendDataFromMap(mas);
 }
 
 void MapModule::serverError(QString str) {
@@ -136,7 +180,7 @@ void MapModule::sendNetworkUserMap(QTcpSocket* pSocket) {
     QByteArray mas = NetworkModule::Instance().maskData(NETWORK_SEND_MAP, manager.serialize());
     NetworkModule::Instance().SendToClient(pSocket, mas);
 
-    addBMtoMap();
+    addBMsToMap();
 }
 
 void MapModule::receiveInsertObjectNetwork(QByteArray& data) {

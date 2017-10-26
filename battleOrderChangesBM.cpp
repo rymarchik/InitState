@@ -20,12 +20,18 @@ battleOrderChangesBM::battleOrderChangesBM(QSqlDatabase db, QString combatHierar
     ui->lineEditCoordinates->setInputMask(">99°99'99.99\''A 999°99'99.99\''A 9999.9;_");
     ui->lineEditAzimuth->setInputMask(">999°99'99.99\'';_");
 
+    if (map->getMapProcess()->state() == QProcess::Running) {
+        ui->buttonPickCoordinates->setEnabled(true);
+    }
+
     connect( ui->tableWidgetData,        SIGNAL(cellClicked(int, int)),    this, SLOT(slotTableMunitionSignal()) );
     connect( m_DialogBM,                 SIGNAL(signalRecordDB()),         this, SLOT(slotTableMunition())       );
     //connect( m_twView, SIGNAL(tabCloseRequested(int)), this, SLOT(slotCloseTab(int)));
     connect( &NetworkModule::Instance(), SIGNAL(receiveMetricsNetwork(QByteArray&)),
              this, SLOT(receiveMetricsNetwork(QByteArray&)));
-    connect( ui->buttonPickCoordinates,  SIGNAL(clicked(bool)),            this, SLOT(slotPickCoordinates()));
+    connect( map->getMapProcess(),       SIGNAL(started()),                this, SLOT(slotMapOpen()));
+    connect( map->getMapProcess(),       SIGNAL(finished(int)),            this, SLOT(slotMapClose()));
+    connect( ui->buttonPickCoordinates,  SIGNAL(clicked(bool)),            this, SLOT(slotPickCoordinates())); 
     connect( ui->buttonNorthSearch,      SIGNAL(clicked(bool)),            this, SLOT(slotAzimuthSearch()));
     connect( this,                       SIGNAL(readyReadAzimuthResult()), this, SLOT(slotAzimuthResult()));
     connect( clockTimer,                 SIGNAL(timeout()),                this, SLOT(slotShowRemainingTime()));
@@ -443,20 +449,28 @@ void battleOrderChangesBM::slotSave()
     db.commit();
 }
 
+//!Слот обработки открытия карты
+void battleOrderChangesBM::slotMapOpen() {
+    ui->buttonPickCoordinates->setEnabled(true);
+}
+
+//!Слот обработки закрытия карты
+void battleOrderChangesBM::slotMapClose() {
+    ui->buttonPickCoordinates->setEnabled(false);
+}
+
 /*!
 \brief Слот обработки нажатия на кнопку Съем координат
 
-Открывает карту и посылает запрос на переход в режим съема координат
+Посылает запрос на переход в режим съема координат
 */
 void battleOrderChangesBM::slotPickCoordinates()
 {
-    map->launchMap();
-/*
-    QString title1 = "КАРТА-2017 - [Окно Карты" + mapPath + "/maps/100000.rag]";
+    QString title1 = "КАРТА-2017 - [Окно Карты" + map->getMapPath() + "/maps/200000.rag]";
     LPCWSTR title = (const wchar_t*) title1.utf16();
     HWND hwnd = FindWindow(0,title);
     SetForegroundWindow(hwnd);
-*/
+
     NetworkModule::Instance().sendMetricsReq(TYPE_METRIC_LINE);
 }
 

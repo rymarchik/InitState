@@ -3,15 +3,23 @@
 #include "mapModule.h"
 #include "utility.h"
 
-HitTargetsTabForm::HitTargetsTabForm(QSqlDatabase db, MapModule* map, QWidget *parent) :
+HitTargetsTabForm::HitTargetsTabForm(QSqlDatabase db, QString combatHierarchy, MapModule* map, QWidget *parent) :
     db(db),
+    combatHierarchy(combatHierarchy),
     map(map),
     QWidget(parent),
     ui(new Ui::HitTargets)
 {
     ui->setupUi(this);
-    ui->coordinateLE->setInputMask("99°99'99.99\''A 999°99'99.99\''A 9999.9;_");    
+    ui->coordinateLE->setInputMask("99°99'99.99\''A 999°99'99.99\''A 9999.9;_");
+
+    if (map->getMapProcess()->state() == QProcess::Running) {
+        ui->pickCoordinatesBtn->setEnabled(true);
+    }
+
     connect(&NetworkModule::Instance(), SIGNAL(receiveMetricsNetwork(QByteArray&)), this, SLOT(receiveMetricsNetwork(QByteArray&)));
+    connect(map->getMapProcess(), SIGNAL(started()), this, SLOT(slotMapOpen()));
+    connect(map->getMapProcess(), SIGNAL(finished(int)), this, SLOT(slotMapClose()));
 }
 
 /*!
@@ -30,20 +38,28 @@ QString HitTargetsTabForm::getTargetNameString() {
     return ui->targetNameCB->currentText();
 }
 
+//!Слот обработки открытия карты
+void HitTargetsTabForm::slotMapOpen() {
+    ui->pickCoordinatesBtn->setEnabled(true);
+}
+
+//!Слот обработки закрытия карты
+void HitTargetsTabForm::slotMapClose() {
+    ui->pickCoordinatesBtn->setEnabled(false);
+}
+
 /*!
 \brief Слот обработки нажатия на кнопку Съем координат
 
-Открывает карту и посылает запрос на переход в режим съема координат,
+Посылает запрос на переход в режим съема координат,
 учитывая выбор геометрии цели (ломаная, прямоугольник или круг)
 */
 void HitTargetsTabForm::slotPickCoordinates() {
-    map->launchMap();
-/*
-    QString title1 = "КАРТА-2017 - [Окно Карты" + mapPath + "/maps/100000.rag]";
+    QString title1 = "КАРТА-2017 - [Окно Карты" + map->getMapPath() + "/maps/200000.rag]";
     LPCWSTR title = (const wchar_t*) title1.utf16();
     HWND hwnd = FindWindow(0,title);
     SetForegroundWindow(hwnd);
-*/
+
     if (ui->randomRB->isChecked()) {
         NetworkModule::Instance().sendMetricsReq(TYPE_METRIC_LINE);
     }
@@ -138,10 +154,10 @@ void HitTargetsTabForm::receiveMetricsNetwork(QByteArray& data)
 //!Метод инициализации формы для новой поражаемой цели
 void HitTargetsTabForm::onAddSetup() {
     addCommonFormData();
+    setCurrentDataSourceBattery();
+    setCurrentDataSourceWeaponry();
     ui->detectionTimeDTE->setDateTime(QDateTime::currentDateTime());
 
-    ui->dataSourceBatteryCB->setEnabled(true);
-    ui->dataSourceWeaponryCB->setEnabled(true);
     ui->targetNumberLE->setEnabled(true);
     ui->targetNameCB->setEnabled(true);
 
@@ -165,8 +181,6 @@ void HitTargetsTabForm::onEditSetup(QTableWidget* table) {
     ui->targetNumberLE->setText(table->item(table->currentRow(), 0)->text());
     ui->targetNameCB->setCurrentText(table->item(table->currentRow(), 1)->text());
 
-    ui->dataSourceBatteryCB->setEnabled(false);
-    ui->dataSourceWeaponryCB->setEnabled(false);
     ui->targetNumberLE->setEnabled(false);
     ui->targetNameCB->setEnabled(false);
 
@@ -1337,11 +1351,8 @@ void HitTargetsTabForm::getDataSourceBatteries() {
                           "WHERE combat_hierarchy IN (SELECT combat_hierarchy "
                           "                           FROM own_forces.combatstructure "
                           "                           WHERE nlevel(combat_hierarchy) = 1 "
-                          "                                 AND type_army = ? "
-                          "                                 AND date_delete is null) "
-                          "ORDER BY object_number";
+                          "                                 AND date_delete is null) ";
     query.prepare(selectQuery);
-    query.addBindValue("22.10");
     if (!query.exec()) {
         qDebug() << query.lastError();
     }
@@ -1359,8 +1370,7 @@ void HitTargetsTabForm::getDataSourceWeaponry() {
                           "FROM own_forces.combatstructure "
                           "JOIN reference_data.terms ON termhierarchy = object_name "
                           "WHERE subltree(combat_hierarchy, 0, 1) = ? "
-                          "     AND nlevel(combat_hierarchy) = 2 "
-                          "ORDER BY object_number";
+                          "     AND nlevel(combat_hierarchy) = 2 ";
     query.prepare(selectQuery);
     query.addBindValue(ui->dataSourceBatteryCB->currentData());
     if (!query.exec()) {
@@ -1371,6 +1381,18 @@ void HitTargetsTabForm::getDataSourceWeaponry() {
         ui->dataSourceWeaponryCB->addItem(tr("%1").arg(query.value(0).toInt()) + " " + query.value(1).toString(),
                                           query.value(2).toString());
     }
+}
+
+//!Метод выбора текущей батареи
+void HitTargetsTabForm::setCurrentDataSourceBattery() {
+    int index = ui->dataSourceBatteryCB->findData(combatHierarchy.left(1));
+    ui->dataSourceBatteryCB->setCurrentIndex(index);
+}
+
+//!Метод выбора текущей боевой машины
+void HitTargetsTabForm::setCurrentDataSourceWeaponry() {
+    int index = ui->dataSourceWeaponryCB->findData(combatHierarchy);
+    ui->dataSourceWeaponryCB->setCurrentIndex(index);
 }
 
 //!Метод заполнения комбобокса списком поражаемых целей (на интерфейсе поле Наименование)

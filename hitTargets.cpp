@@ -1,9 +1,10 @@
 #include "hitTargets.h"
 #include "mapModule.h"
 
-HitTargets::HitTargets(QSqlDatabase db, QTableWidget *navigatorTable,
+HitTargets::HitTargets(QSqlDatabase db, QString combatHierarchy, QTableWidget *navigatorTable,
                        QTableWidget *navigatorReceiversTable, QTableWidget *changesTable,
                        QTableWidget *changesReceiversTable, MapModule* map, QWidget *parent) :
+    combatHierarchy(combatHierarchy),
     navigatorTable(navigatorTable),
     changesTable(changesTable),
     map(map),
@@ -67,7 +68,7 @@ void HitTargets::fillChanges() {
 \return возвращает созданную форму HitTargetsForm
 */
 QWidget* HitTargets::onAdd() {
-    HitTargetsTabForm* form = new HitTargetsTabForm(db, map);
+    HitTargetsTabForm* form = new HitTargetsTabForm(db, combatHierarchy, map);
     formList.append(form);
     form->onAddSetup();
     return form;
@@ -78,7 +79,7 @@ QWidget* HitTargets::onAdd() {
 \return возвращает созданную форму HitTargetsForm
 */
 QWidget* HitTargets::onEdit() {
-    HitTargetsTabForm* form = new HitTargetsTabForm(db, map);
+    HitTargetsTabForm* form = new HitTargetsTabForm(db, combatHierarchy, map);
     formList.append(form);
     form->onEditSetup(navigatorTable);
     return form;

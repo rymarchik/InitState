@@ -21,7 +21,7 @@ class HitTargetsTabForm : public QWidget
     Q_OBJECT
 
 public:
-    explicit HitTargetsTabForm(QSqlDatabase db, MapModule* map, QWidget *parent = 0);
+    explicit HitTargetsTabForm(QSqlDatabase db, QString combatHierarchy, MapModule* map, QWidget *parent = 0);
     ~HitTargetsTabForm();
     Ui::HitTargets *ui;
 
@@ -50,6 +50,10 @@ public:
     void getDataSourceBatteries();
     //!Метод заполнения комбобокса списком боевых машин определенной батареи
     void getDataSourceWeaponry();
+    //!Метод выбора текущей батареи
+    void setCurrentDataSourceBattery();
+    //!Метод выбора текущей боевой машины
+    void setCurrentDataSourceWeaponry();
     //!Метод заполнения комбобокса списком поражаемых целей (на интерфейсе поле Наименование)
     void getHitTargets();
     //!Метод заполнения комбобокса списком степеней укрытия
@@ -93,6 +97,7 @@ public:
 
 private:
     QSqlDatabase db;
+    QString combatHierarchy;
     MapModule* map;
     QFont font = QFont("MS Shell Dlg 2", 9, QFont::Bold);
 
@@ -106,10 +111,14 @@ private slots:
      */
     void slotChangeDataSourceBattery(int n);
 
+    //!Слот обработки открытия карты
+    void slotMapOpen();
+    //!Слот обработки закрытия карты
+    void slotMapClose();
     /*!
     \brief Слот обработки нажатия на кнопку Съем координат
 
-    Открывает карту и посылает запрос на переход в режим съема координат,
+    Посылает запрос на переход в режим съема координат,
     учитывая выбор геометрии цели (ломаная, прямоугольник или круг)
     */
     void slotPickCoordinates();

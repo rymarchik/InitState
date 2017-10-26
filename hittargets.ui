@@ -57,7 +57,7 @@
       <item row="0" column="1" colspan="3">
        <widget class="QComboBox" name="dataSourceBatteryCB">
         <property name="enabled">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
         <property name="font">
          <font>
@@ -151,6 +151,9 @@
       </item>
       <item row="1" column="1" colspan="3">
        <widget class="QComboBox" name="dataSourceWeaponryCB">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="font">
          <font>
           <pointsize>8</pointsize>
@@ -225,6 +228,9 @@
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="1" column="3">
        <widget class="QPushButton" name="pickCoordinatesBtn">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
           <horstretch>0</horstretch>

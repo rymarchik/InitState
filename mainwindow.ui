@@ -1096,6 +1096,9 @@
    </property>
   </action>
   <action name="m_history">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="resources.qrc">
      <normaloff>:/resources/toolbar/history.png</normaloff>:/resources/toolbar/history.png</iconset>
@@ -1105,6 +1108,9 @@
    </property>
   </action>
   <action name="m_changeMode">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="resources.qrc">
      <normaloff>:/resources/toolbar/change_mode.png</normaloff>:/resources/toolbar/change_mode.png</iconset>

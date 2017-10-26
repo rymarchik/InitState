@@ -12,7 +12,7 @@ MainWindow::MainWindow(QSqlDatabase DB, int UserID, QWidget *parent) :
     windowsTitle(idUser);
 
     gps = new GPSModule(db, combatHierarchy, this);
-    map = new MapModule(db, combatHierarchy, this);
+    map = new MapModule(db, combatHierarchy, currentMode, this);
 
     ui->battleOrderTabWidget->tabBar()->tabButton(0, QTabBar::RightSide)->resize(0, 0);
     ui->battleOrderTabWidget->tabBar()->tabButton(1, QTabBar::RightSide)->resize(0, 0);
@@ -24,7 +24,7 @@ MainWindow::MainWindow(QSqlDatabase DB, int UserID, QWidget *parent) :
     c_battleOrder = new BattleOrder(db, combatHierarchy, currentMode, ui->navigatorBattleOrderTree, ui->navigatorBattleOrderReceivers,
                                     ui->changesBattleOrderTable, ui->changesBattleOrderReceivers, map);
 
-    c_hitTargets  = new HitTargets(db, ui->navigatorHitTargetsTable, ui->navigatorHitTargetsReceivers,
+    c_hitTargets  = new HitTargets(db, combatHierarchy, ui->navigatorHitTargetsTable, ui->navigatorHitTargetsReceivers,
                                    ui->changesHitTargetsTable, ui->changesHitTargetsReceivers, map);
     c_commands    = new Commands(db, ui->navigatorCommandsTree, ui->navigatorCommandsReceivers,
                                  ui->changesCommandsTree, ui->changesCommandsReceivers);
@@ -196,12 +196,11 @@ void MainWindow::slotSave()
 void MainWindow::slotMap()
 {
     map->launchMap();
-/*
-    QString title1 = "КАРТА-2017 - [Окно Карты" + map->getMapPath() + "/maps/100000.rag]";
+
+    QString title1 = "КАРТА-2017 - [Окно Карты" + map->getMapPath() + "/maps/200000.rag]";
     LPCWSTR title = (const wchar_t*) title1.utf16();
     HWND hwnd = FindWindow(0,title);
     SetForegroundWindow(hwnd);
-*/
 }
 
 void MainWindow::slotMapClose()

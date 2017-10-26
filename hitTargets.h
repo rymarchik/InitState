@@ -21,7 +21,7 @@ class HitTargets : public BaseToolClass
     Q_OBJECT
 
 public:
-    HitTargets(QSqlDatabase db, QTableWidget *navigatorTable,
+    HitTargets(QSqlDatabase db, QString combatHierarchy, QTableWidget *navigatorTable,
                QTableWidget *navigatorReceiversTable, QTableWidget *changesTable,
                QTableWidget *changesReceiversTable, MapModule* map, QWidget* parent = 0);
 
@@ -79,6 +79,7 @@ public:
     QString getTargetNumber();
 
 private:
+    QString combatHierarchy;
     //! Верхняя таблица вкладки Навигатор
     QTableWidget* navigatorTable;
     //! Верхняя таблица вкладки Изменения
