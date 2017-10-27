@@ -7,7 +7,6 @@
 #include <QTcpSocket>
 #include "mapsrc/NetworkObjectManager.h"
 #include "mapsrc/networkmodule.h"
-#include "mapsrc/PropertyObj.h"
 
 class MapModule : public QObject
 {
@@ -19,6 +18,7 @@ public:
     QString getMapPath();
     NetworkObjectManager getObjectManager();
     void setObjectManager(NetworkObjectManager);
+    void removeObjectFromManager(NetworkObject);
     void clearObjectManager();
     void launchMap();
     void addBMsToMap();

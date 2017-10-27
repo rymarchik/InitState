@@ -65,10 +65,10 @@ HEADERS  += mainwindow.h \
     mapsrc/networkmodule.h \
     mapsrc/NetworkObject.h \
     mapsrc/NetworkObjectManager.h \
-    mapsrc/PropertyObj.h \
     gpsModule.h \
     northSearchUnit.h \
-    mapModule.h
+    mapModule.h \
+    mapsrc/PropertyObj.h
 
 RESOURCES += \
     resources.qrc

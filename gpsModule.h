@@ -12,7 +12,7 @@ class GPSModule : public QObject
 public:
     explicit GPSModule(QSqlDatabase db, QString combatHierarchy, QObject *parent = 0);
 
-    void updateDatabaseGeoInfo(double, double, double, QDateTime);
+    void updateDatabaseGeoInfo(double, double, double);
     int getLastDirectionValue();
 
 private:

@@ -10,7 +10,8 @@ GPSModule::GPSModule(QSqlDatabase db, QString combatHierarchy, QObject *parent) 
         serial = new QSerialPort(this);
         readPortTimer = new QTimer;
 
-        serial->setPortName(QSerialPortInfo::availablePorts().at(0).portName());
+//        serial->setPortName(QSerialPortInfo::availablePorts().at(0).portName());
+        serial->setPortName("COM6");
         serial->setBaudRate(QSerialPort::Baud115200);
         serial->setDataBits(QSerialPort::Data8);
         serial->setStopBits(QSerialPort::OneStop);
@@ -76,7 +77,9 @@ void GPSModule::slotParseInput() {
         }
     }
 
-    updateDatabaseGeoInfo(latitude, longitude, altitude, dateTime);
+    if (latitude != 0 && longitude != 0 && altitude !=0) {
+        updateDatabaseGeoInfo(latitude, longitude, altitude);
+    }
 
 //    qDebug() << "longitude: " << longitude;
 //    qDebug() << "latitude: " << latitude;
@@ -85,15 +88,14 @@ void GPSModule::slotParseInput() {
 //    qDebug() << "local time: " << dateTime.toLocalTime().toString("hh:mm:ss dd-MMM-yyyy") << endl;
 }
 
-void GPSModule::updateDatabaseGeoInfo(double latitude, double longitude, double altitude, QDateTime dateTime) {
+void GPSModule::updateDatabaseGeoInfo(double latitude, double longitude, double altitude) {
     QSqlQuery query(db);
     db.transaction();
     QString updateRow = "UPDATE own_forces.combatobject_location "
-                        "SET date_delete = ? "
+                        "SET date_delete = now() "
                         "WHERE combat_hierarchy = ? "
                         "AND date_add = (SELECT MAX(date_add) FROM own_forces.combatobject_location)";
     query.prepare(updateRow);
-    query.addBindValue(dateTime);
     query.addBindValue(combatHierarchy);
     if (!query.exec()) {
         qDebug() << query.lastError();
@@ -101,14 +103,13 @@ void GPSModule::updateDatabaseGeoInfo(double latitude, double longitude, double 
 
     QString insertRow = "INSERT INTO own_forces.combatobject_location (combat_hierarchy, obj_location, "
                         "       direction, tid, date_add, id_manager)"
-                        "VALUES (?, ST_SetSRID(ST_MakePoint(?, ?, ?), 4326), ?, txid_current(), ?, ?)";
+                        "VALUES (?, ST_SetSRID(ST_MakePoint(?, ?, ?), 4326), ?, txid_current(), now(), ?)";
     query.prepare(insertRow);
     query.addBindValue(combatHierarchy);
     query.addBindValue(latitude);
     query.addBindValue(longitude);
     query.addBindValue(altitude);
     query.addBindValue(getLastDirectionValue());
-    query.addBindValue(dateTime);
     query.addBindValue(10); //костыль
     if (!query.exec()) {
         qDebug() << query.lastError();

@@ -154,8 +154,12 @@ void HitTargetsTabForm::receiveMetricsNetwork(QByteArray& data)
 //!Метод инициализации формы для новой поражаемой цели
 void HitTargetsTabForm::onAddSetup() {
     addCommonFormData();
-    setCurrentDataSourceBattery();
-    setCurrentDataSourceWeaponry();
+    int index = ui->dataSourceBatteryCB->findData("1");
+    ui->dataSourceBatteryCB->setCurrentIndex(index);
+    int index2 = ui->dataSourceWeaponryCB->findData("1.11");
+    ui->dataSourceWeaponryCB->setCurrentIndex(index2);
+//    setCurrentDataSourceBattery();
+//    setCurrentDataSourceWeaponry();
     ui->detectionTimeDTE->setDateTime(QDateTime::currentDateTime());
 
     ui->targetNumberLE->setEnabled(true);
@@ -342,7 +346,7 @@ bool HitTargetsTabForm::onSaveSetup() {
 
     QSqlQuery query = QSqlQuery(db);
 
-    if (ui->dataSourceBatteryCB->isEnabled()) { //i.e. add tab
+    if (ui->targetNameCB->isEnabled()) { //i.e. add tab
         db.transaction();
 
         //! Запрос на добавление данных номера, наименования цели и машины, ее обнаружившей
@@ -390,10 +394,10 @@ bool HitTargetsTabForm::onSaveSetup() {
         QString selectMapObject = "SELECT id, code, object_name, geometry_type, enemy, visibility, access_level "
                                   "FROM map_objects.object_params "
                                   "WHERE id = ?";
-        QString getParsedCoordinates = "SELECT ST_X(geom), ST_Y(geom), ST_Z(geom) "
-                                       "FROM (SELECT (ST_dumppoints(object_location)).geom "
-                                       "      FROM map_objects.object_params"
-                                       "      WHERE id = ?) AS foo";
+        QString getLatLonAtiValues = "SELECT ST_X(geom), ST_Y(geom), ST_Z(geom) "
+                                     "FROM (SELECT (ST_dumppoints(object_location)).geom "
+                                     "      FROM map_objects.object_params"
+                                     "      WHERE id = ?) AS foo";
         NetworkObject obj;
 
         if (ui->randomRB->isChecked()) {
@@ -467,7 +471,7 @@ bool HitTargetsTabForm::onSaveSetup() {
             obj.data.m_VISIBLE = query.value(5).toBool();
             obj.data.m_ACCESS_LVL = query.value(6).toInt();
 
-            query.prepare(getParsedCoordinates);
+            query.prepare(getLatLonAtiValues);
             query.addBindValue(mapObjectId);
             query.exec();
             tagDataPoint point;
@@ -551,7 +555,7 @@ bool HitTargetsTabForm::onSaveSetup() {
             obj.data.m_VISIBLE = query.value(5).toBool();
             obj.data.m_ACCESS_LVL = query.value(6).toInt();
 
-            query.prepare(getParsedCoordinates);
+            query.prepare(getLatLonAtiValues);
             query.addBindValue(mapObjectId);
             query.exec();
             query.next();
@@ -634,7 +638,7 @@ bool HitTargetsTabForm::onSaveSetup() {
             obj.data.m_VISIBLE = query.value(5).toBool();
             obj.data.m_ACCESS_LVL = query.value(6).toInt();
 
-            query.prepare(getParsedCoordinates);
+            query.prepare(getLatLonAtiValues);
             query.addBindValue(mapObjectId);
             query.exec();
             query.next();
@@ -708,7 +712,7 @@ bool HitTargetsTabForm::onSaveSetup() {
             return true;
         }
     }
-    else if (!ui->dataSourceBatteryCB->isEnabled()) { //i.e. edit tab
+    else if (!ui->targetNameCB->isEnabled()) { //i.e. edit tab
         db.transaction();
 
         //! Запрос на получение айди цели по выбранному номеру, наименованию цели и машине, ее обнаружившей
@@ -753,7 +757,7 @@ bool HitTargetsTabForm::onSaveSetup() {
         QString selectMapObject = "SELECT id, code, object_name, geometry_type, enemy, visibility, access_level "
                                   "FROM map_objects.object_params "
                                   "WHERE id = ?";
-        QString getParsedCoordinates = "SELECT ST_X(geom), ST_Y(geom), ST_Z(geom) "
+        QString getLatLonAtiValues = "SELECT ST_X(geom), ST_Y(geom), ST_Z(geom) "
                                        "FROM (SELECT (ST_dumppoints(object_location)).geom "
                                        "      FROM map_objects.object_params"
                                        "      WHERE id = ?) AS foo";
@@ -777,9 +781,9 @@ bool HitTargetsTabForm::onSaveSetup() {
                                              "       tid = ?, date_edit = now() "
                                              "WHERE id_target = ?";
             QString updateMapObjectPatt = "UPDATE map_objects.object_params "
-                                          "SET geometry_type = ?, object_location = %1, update_time = now() "
+                                          "SET geometry_type = ?, object_location = %1, front = null, "
+                                          "     depth = null, deviation = null, radius = null, update_time = now() "
                                           "WHERE id = ?";
-            qDebug() << "extraCoordinatesLayout: " << ui->extraCoordinatesLayout->count();
             if (ui->extraCoordinatesLayout->count() >= 2) {
                 //! Запрос на обновление в БД поражаемой цели, представленной полигоном
                 updateTargetsParam = updateTargetsParamPatt.arg(getMakePolygonString());
@@ -817,9 +821,15 @@ bool HitTargetsTabForm::onSaveSetup() {
                 qDebug() << "Ошибка выбора данных цели из таблицы для карты!" << query.lastError();
             }
             query.next();
-            obj.data.m_TYPE_ID = query.value(0).toInt();
+            obj.data.m_OBJECT_ID = query.value(0).toInt();
+            obj.data.m_CODE = query.value(1).toInt();
+            obj.data.m_NAME = query.value(2).toString();
+            obj.data.m_TYPE_ID = query.value(3).toInt();
+            obj.data.m_ENEMY = query.value(4).toInt();
+            obj.data.m_VISIBLE = query.value(5).toBool();
+            obj.data.m_ACCESS_LVL = query.value(6).toInt();
 
-            query.prepare(getParsedCoordinates);
+            query.prepare(getLatLonAtiValues);
             query.addBindValue(mapObjectId);
             query.exec();
             tagDataPoint point;
@@ -868,11 +878,14 @@ bool HitTargetsTabForm::onSaveSetup() {
             //! Запрос на обновление в таблице для карты поражаемой цели, представленной прямоугольником
             updateMapObject = "UPDATE map_objects.object_params "
                               "SET geometry_type = ?, object_location = own_forces.coordinates_input(?), "
-                              "     update_time = now() "
+                              "     front = ?, depth = ?, deviation = ?, radius = null, update_time = now() "
                               "WHERE id = ?";
             query.prepare(updateMapObject);
             query.addBindValue(TYPE_METRIC_RECT);
             query.addBindValue(ui->coordinateLE->text());
+            query.addBindValue(ui->frontLE->text().toDouble());
+            query.addBindValue(ui->depthLE->text().toDouble());
+            query.addBindValue(ui->deviationLE->text().toDouble());
             query.addBindValue(mapObjectId);
             if (!query.exec()) {
                 qDebug() << "Ошибка обновления цели в таблице для карты!" << query.lastError();
@@ -884,9 +897,15 @@ bool HitTargetsTabForm::onSaveSetup() {
                 qDebug() << "Ошибка выбора данных цели из таблицы для карты!" << query.lastError();
             }
             query.next();
-            obj.data.m_TYPE_ID = query.value(0).toInt();
+            obj.data.m_OBJECT_ID = query.value(0).toInt();
+            obj.data.m_CODE = query.value(1).toInt();
+            obj.data.m_NAME = query.value(2).toString();
+            obj.data.m_TYPE_ID = query.value(3).toInt();
+            obj.data.m_ENEMY = query.value(4).toInt();
+            obj.data.m_VISIBLE = query.value(5).toBool();
+            obj.data.m_ACCESS_LVL = query.value(6).toInt();
 
-            query.prepare(getParsedCoordinates);
+            query.prepare(getLatLonAtiValues);
             query.addBindValue(mapObjectId);
             query.exec();
             query.next();
@@ -936,11 +955,12 @@ bool HitTargetsTabForm::onSaveSetup() {
             //! Запрос на обновление в таблице для карты поражаемой цели, представленной кругом
             updateMapObject = "UPDATE map_objects.object_params "
                               "SET geometry_type = ?, object_location = own_forces.coordinates_input(?), "
-                              "     update_time = now() "
+                              "     front = null, depth = null, deviation = null, radius = ?, update_time = now() "
                               "WHERE id = ?";
             query.prepare(updateMapObject);
             query.addBindValue(TYPE_METRIC_CIRCLE);
             query.addBindValue(ui->coordinateLE->text());
+            query.addBindValue(ui->radiusLE->text().toDouble());
             query.addBindValue(mapObjectId);
             if (!query.exec()) {
                 qDebug() << "Ошибка обновления цели в таблице для карты!" << query.lastError();
@@ -952,9 +972,15 @@ bool HitTargetsTabForm::onSaveSetup() {
                 qDebug() << "Ошибка выбора данных цели из таблицы для карты!" << query.lastError();
             }
             query.next();
-            obj.data.m_TYPE_ID = query.value(0).toInt();
+            obj.data.m_OBJECT_ID = query.value(0).toInt();
+            obj.data.m_CODE = query.value(1).toInt();
+            obj.data.m_NAME = query.value(2).toString();
+            obj.data.m_TYPE_ID = query.value(3).toInt();
+            obj.data.m_ENEMY = query.value(4).toInt();
+            obj.data.m_VISIBLE = query.value(5).toBool();
+            obj.data.m_ACCESS_LVL = query.value(6).toInt();
 
-            query.prepare(getParsedCoordinates);
+            query.prepare(getLatLonAtiValues);
             query.addBindValue(mapObjectId);
             query.exec();
             query.next();
@@ -972,8 +998,11 @@ bool HitTargetsTabForm::onSaveSetup() {
 
             qDebug() << "onSave radius" << obj.metrics[1].m_LATITUDE;
         }   
-//        QByteArray mas = NetworkModule::Instance().maskData(NETWORK_UPDATE_OBJECT, obj.serialize()); //еще не реализовано со стороны карты
-//        NetworkModule::Instance().sendDataFromMap(mas);
+        map->removeObjectFromManager(obj);
+        QByteArray refreshMap = NetworkModule::Instance().maskData(NETWORK_SEND_MAP, map->getObjectManager().serialize());
+        NetworkModule::Instance().sendDataFromMap(refreshMap);
+        QByteArray newObject = NetworkModule::Instance().maskData(NETWORK_INSERT_OBJECT_FROM_DB, obj.serialize()); //NETWORK_UPDATE_OBJECT на карте еще не реализовано, поэтому пока что через удаление и создание нового
+        NetworkModule::Instance().sendDataFromMap(newObject);
 
         if (ui->launchTimeDTE->isEnabled()) {
             //! Проверка наличия айди редактируемой цели в таблице damage_condition
@@ -1104,7 +1133,7 @@ void HitTargetsTabForm::addFilledPoints() {
     while (query.next()) {
         hexCoords << query.value(0).toString();
     }
-    qDebug() << hexCoords;
+//    qDebug() << hexCoords;
 
 
     QString selectParsedCoordsQuery = "SELECT ";
@@ -1124,10 +1153,6 @@ void HitTargetsTabForm::addFilledPoints() {
     }
     db.commit();
     query.next();
-
-    for (int i = 0; i < query.record().count(); i++) {
-        qDebug() << query.value(i).toString();
-    }
 
     ui->coordinateLE->setText(query.value(0).toString());
     QHBoxLayout* coordStringLayout;

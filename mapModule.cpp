@@ -35,6 +35,15 @@ void MapModule::setObjectManager(NetworkObjectManager manager) {
     this->manager = manager;
 }
 
+void MapModule::removeObjectFromManager(NetworkObject obj) {
+    for (int i = 0; i < manager.listObject.size(); i++) {
+        if (manager.listObject.at(i).data.m_OBJECT_ID == obj.data.m_OBJECT_ID) {
+            manager.listObject.removeAt(i);
+            break;
+        }
+    }
+}
+
 void MapModule::clearObjectManager() {
     manager.listObject.clear();
 }
@@ -73,11 +82,9 @@ void MapModule::addBMsToMap() {
         //создание и добавление боевой машины в менеджер объектов
         NetworkObject obj;
         obj.data.m_OBJECT_ID = i + 1;
-        obj.data.m_TYPE_ID = TYPE_METRIC_POINT; //но нужно TYPE_METRIC_POINT2
+        obj.data.m_TYPE_ID = TYPE_METRIC_POINT; //но нужно TYPE_METRIC_POINT2 и добавить направление
         obj.data.m_ENEMY = 0;
         obj.data.m_VISIBLE = true;
-
-                qDebug() << machineCodes.at(i) << " " << machineNames.at(i);
 
         QString selectLocation = "SELECT obj_location "
                                  "FROM own_forces.combatobject_location "
@@ -90,7 +97,6 @@ void MapModule::addBMsToMap() {
         query.exec();
         query.next();
         QString rawCoords = query.value(0).toString();
-        qDebug() << rawCoords;
 
 
         QString getParsedCoordinates = "SELECT ST_X(geom), ST_Y(geom), ST_Z(geom) "
@@ -103,9 +109,6 @@ void MapModule::addBMsToMap() {
         point.m_LATITUDE = query.value(0).toDouble();
         point.m_LONGITUDE = query.value(1).toDouble();
         point.m_HEIGHT = query.value(2).toDouble();
-        qDebug() << query.value(0).toDouble();
-        qDebug() << query.value(1).toDouble();
-        qDebug() << query.value(2).toDouble();
         obj.metrics.append(point);
 
         if (machineNames.at(i) == "Боевая машина В-200") {
@@ -117,13 +120,9 @@ void MapModule::addBMsToMap() {
             obj.data.m_NAME = "Машина боевого управления";
         }
         else if (machineNames.at(i) == "Транспортно-заряжающая машина") {
-            obj.data.m_CODE = 1015030110; //код Боевой машины РСЗО
+            obj.data.m_CODE = 1018030110; //код НП
             obj.data.m_NAME = "Транспортно-заряжающая машина";
         }
-
-        qDebug() << obj.metrics[0].m_LATITUDE;
-        qDebug() << obj.metrics[0].m_LONGITUDE;
-        qDebug() << obj.metrics[0].m_HEIGHT;
         manager.listObject.push_back(obj);
 
         QByteArray mas = NetworkModule::Instance().maskData(NETWORK_INSERT_OBJECT_FROM_DB, obj.serialize());
@@ -316,26 +315,26 @@ void MapModule::receiveInsertObjectNetworkFromDB(QByteArray& data)
     NetworkObject obj;
     obj.deserialize(lp,data.size()-8);
 
-    if (obj.data.m_OBJECT_ID == 1) {
+    if (obj.data.m_OBJECT_ID < 10) { //добавлять боевые машины в менеджер еще раз не надо (условно машин до 10)
         return;
     }
 
-    qDebug() << obj.metrics[0].m_LATITUDE;
-    qDebug() << obj.metrics[0].m_LONGITUDE;
-    qDebug() << obj.metrics[0].m_HEIGHT;
+//    qDebug() << obj.metrics[0].m_LATITUDE;
+//    qDebug() << obj.metrics[0].m_LONGITUDE;
+//    qDebug() << obj.metrics[0].m_HEIGHT;
 
 //    qDebug() << obj.metrics[1].m_LATITUDE;
 //    qDebug() << obj.metrics[1].m_LONGITUDE;
 //    qDebug() << obj.metrics[1].m_HEIGHT;
 
-    qDebug() << "ID" << obj.data.m_OBJECT_ID;
-    qDebug() << obj.data.m_CODE;
-    qDebug() << obj.data.m_NAME;
-    qDebug() << obj.data.m_TYPE_ID;
-    qDebug() << obj.data.m_ENEMY;
-    qDebug() << obj.data.m_VISIBLE;
-    qDebug() << obj.data.m_ACCESS_LVL;
-    qDebug() << obj.masObject;
+//    qDebug() << "ID" << obj.data.m_OBJECT_ID;
+//    qDebug() << obj.data.m_CODE;
+//    qDebug() << obj.data.m_NAME;
+//    qDebug() << obj.data.m_TYPE_ID;
+//    qDebug() << obj.data.m_ENEMY;
+//    qDebug() << obj.data.m_VISIBLE;
+//    qDebug() << obj.data.m_ACCESS_LVL;
+//    qDebug() << obj.masObject;
 
     QSqlQuery query = QSqlQuery(db);
     QString updateMasObject = "UPDATE map_objects.object_params "
