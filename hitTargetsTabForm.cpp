@@ -154,12 +154,12 @@ void HitTargetsTabForm::receiveMetricsNetwork(QByteArray& data)
 //!Метод инициализации формы для новой поражаемой цели
 void HitTargetsTabForm::onAddSetup() {
     addCommonFormData();
-    int index = ui->dataSourceBatteryCB->findData("1");
-    ui->dataSourceBatteryCB->setCurrentIndex(index);
-    int index2 = ui->dataSourceWeaponryCB->findData("1.11");
-    ui->dataSourceWeaponryCB->setCurrentIndex(index2);
-//    setCurrentDataSourceBattery();
-//    setCurrentDataSourceWeaponry();
+//    int index = ui->dataSourceBatteryCB->findData("1");
+//    ui->dataSourceBatteryCB->setCurrentIndex(index);
+//    int index2 = ui->dataSourceWeaponryCB->findData("1.11");
+//    ui->dataSourceWeaponryCB->setCurrentIndex(index2);
+    setCurrentDataSourceBattery();
+    setCurrentDataSourceWeaponry();
     ui->detectionTimeDTE->setDateTime(QDateTime::currentDateTime());
 
     ui->targetNumberLE->setEnabled(true);
@@ -997,7 +997,7 @@ bool HitTargetsTabForm::onSaveSetup() {
             qDebug() << "onSave ati" << obj.metrics[0].m_HEIGHT;
 
             qDebug() << "onSave radius" << obj.metrics[1].m_LATITUDE;
-        }   
+        }
         map->removeObjectFromManager(obj);
         QByteArray refreshMap = NetworkModule::Instance().maskData(NETWORK_SEND_MAP, map->getObjectManager().serialize());
         NetworkModule::Instance().sendDataFromMap(refreshMap);

@@ -59,7 +59,7 @@ void MapModule::addBMsToMap() {
     QSqlQuery query = QSqlQuery(db);
     db.transaction();
 
-    QString kostil = "50.10";
+//    QString kostil = "50.10";
     QString selectMachineNames = "SELECT c.combat_hierarchy, t.termname "
                                  "FROM own_forces.combatstructure c "
                                  "JOIN own_forces.currentmode cm ON cm.combat_hierarchy = c.combat_hierarchy "
@@ -69,7 +69,8 @@ void MapModule::addBMsToMap() {
                                  "   AND nlevel(c.object_name) = 2 "
                                  "   AND c.date_delete is NULL";
     query.prepare(selectMachineNames);
-    query.addBindValue(kostil); //currentMode
+    query.addBindValue(currentMode);
+//    query.addBindValue(kostil);
     query.exec();
     QStringList machineCodes;
     QStringList machineNames;
@@ -123,7 +124,6 @@ void MapModule::addBMsToMap() {
             obj.data.m_CODE = 1018030110; //код НП
             obj.data.m_NAME = "Транспортно-заряжающая машина";
         }
-        manager.listObject.push_back(obj);
 
         QByteArray mas = NetworkModule::Instance().maskData(NETWORK_INSERT_OBJECT_FROM_DB, obj.serialize());
         NetworkModule::Instance().sendDataFromMap(mas);
@@ -315,7 +315,8 @@ void MapModule::receiveInsertObjectNetworkFromDB(QByteArray& data)
     NetworkObject obj;
     obj.deserialize(lp,data.size()-8);
 
-    if (obj.data.m_OBJECT_ID < 10) { //добавлять боевые машины в менеджер еще раз не надо (условно машин до 10)
+    if (obj.data.m_OBJECT_ID < 10) { //для боевых машин (условно машин до 10)
+        manager.listObject.push_front(obj);
         return;
     }
 
