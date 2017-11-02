@@ -2,47 +2,40 @@
 
 NorthSearchUnit::NorthSearchUnit(QObject *parent) : QObject(parent)
 {
-//    serial = new QSerialPort(this);
-
-//    portNumberCB = new QComboBox;
-//    foreach (const QSerialPortInfo &port, QSerialPortInfo::availablePorts()){
-//        portNumberCB->addItem(port.portName());
-//    }
-//    portBaudRateCB = new QComboBox;
-//    foreach (qint32 baudRate, QSerialPortInfo::standardBaudRates()){
-//        portBaudRateCB->addItem(QString::number(baudRate));
-//    }
-//    portNumberCB->setCurrentText("COM4");
-//    portBaudRateCB->setCurrentText("115200");
+    serial = new QSerialPort(this);
 }
 
-bool NorthSearchUnit::openPort() {
-//    serial->setPortName(portNumberCB->currentText());
-//    serial->setBaudRate(portBaudRateCB->currentText().toInt());
-//    serial->setDataBits(QSerialPort::Data8);
-//    serial->setStopBits(QSerialPort::OneStop);
-//    if (serial->open(QIODevice::ReadWrite)) {
-//        return true;
-//    } else {
-//        QMessageBox::critical(0, tr("Error"), serial->errorString());
-//    }
+void NorthSearchUnit::setPortName(QString portName) {
+    serial->setPortName(portName);
+}
+
+bool NorthSearchUnit::openSerialPort() {
+    serial->setBaudRate(QSerialPort::Baud115200);
+    serial->setDataBits(QSerialPort::Data8);
+    serial->setStopBits(QSerialPort::OneStop);
+    if (serial->open(QIODevice::ReadWrite)) {
+        return true;
+    }
+    else {
+        QMessageBox::critical(0, tr("Error"), serial->errorString());
+    }
     return false;
 }
 
-void NorthSearchUnit::closePort() {
-//    if (serial->isOpen()) {
-//        serial->close();
-//    }
+void NorthSearchUnit::closeSerialPort() {
+    if (serial->isOpen()) {
+        serial->close();
+    }
 }
 
 void NorthSearchUnit::northSearch() {
-    QByteArray transmitCommand("t1843010100\x0D");
-//    serial->write(transmitCommand);
+    QByteArray transmitCommand("t1843010000\x0D");
+    serial->write(transmitCommand);
 }
 
 int NorthSearchUnit::readNorthSearchResult() {
-//    QByteArray input = serial->readAll();
-    QByteArray input("t204705358B358B358B");
+    QByteArray input = serial->readAll().right(20);
+//    QByteArray input("t204705358B358B358B");
     int parsedAzim = -1;
     if (input.contains("t204705")) {
         QString azimInHex;

@@ -12,7 +12,6 @@
 #include "battleOrder.h"
 #include "hitTargets.h"
 #include "commands.h"
-#include "gpsModule.h"
 #include "mapModule.h"
 
 namespace Ui {
@@ -45,7 +44,6 @@ private:
     BattleOrder   *c_battleOrder;
     HitTargets    *c_hitTargets;
     Commands      *c_commands;
-    GPSModule     *gps;
     MapModule     *map;
 
     void windowsTitle(int idUser);  //Формирование названия формы

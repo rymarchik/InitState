@@ -59,7 +59,7 @@ void MapModule::addBMsToMap() {
     QSqlQuery query = QSqlQuery(db);
     db.transaction();
 
-//    QString kostil = "50.10";
+    QString kostil = "50.10";
     QString selectMachineNames = "SELECT c.combat_hierarchy, t.termname "
                                  "FROM own_forces.combatstructure c "
                                  "JOIN own_forces.currentmode cm ON cm.combat_hierarchy = c.combat_hierarchy "

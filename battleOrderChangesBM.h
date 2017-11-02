@@ -13,6 +13,7 @@ class battleOrderChangesBM;
 
 class battleOrderDialogBM;
 class MapModule;
+class GPSModule;
 class NorthSearchUnit;
 
 class battleOrderChangesBM : public QWidget
@@ -29,8 +30,9 @@ public:
     QSqlDatabase db;
     QString combatHierarchy;    
     battleOrderDialogBM *m_DialogBM ;
-    NorthSearchUnit* northSearchUnit;
     MapModule* map;
+    GPSModule* gps;
+    NorthSearchUnit* northSearchUnit;
 
     QTimer* clockTimer;
     QTime* time;
@@ -72,6 +74,10 @@ public slots:
     void slotMapOpen();
     //!Слот обработки закрытия карты
     void slotMapClose();
+    void slotOpenPortGPS();
+    void slotClosePortGPS();
+    void slotOpenPortAPS();
+    void slotClosePortAPS();
     /*!
     \brief Слот обработки нажатия на кнопку Съем координат
 

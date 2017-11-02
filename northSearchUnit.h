@@ -12,15 +12,14 @@ class NorthSearchUnit : public QObject
 public:
     explicit NorthSearchUnit(QObject *parent = 0);
 
-    bool openPort();
-    void closePort();
+    void setPortName(QString);
+    bool openSerialPort();
+    void closeSerialPort();
     void northSearch();
     int readNorthSearchResult();
 
 private:
     QSerialPort* serial;
-    QComboBox* portNumberCB;
-    QComboBox* portBaudRateCB;
 
 private slots:
     void slotGetSearchResult();

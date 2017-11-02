@@ -6,22 +6,30 @@ GPSModule::GPSModule(QSqlDatabase db, QString combatHierarchy, QObject *parent) 
     combatHierarchy(combatHierarchy),
     QObject(parent)
 {
-    if (QSerialPortInfo::availablePorts().size() != 0) {
-        serial = new QSerialPort(this);
-        readPortTimer = new QTimer;
+    serial = new QSerialPort(this);
+    readPortTimer = new QTimer;
+    connect(readPortTimer, SIGNAL(timeout()), this, SLOT(slotParseInput()));
+}
 
-//        serial->setPortName(QSerialPortInfo::availablePorts().at(0).portName());
-        serial->setPortName("COM6");
-        serial->setBaudRate(QSerialPort::Baud115200);
-        serial->setDataBits(QSerialPort::Data8);
-        serial->setStopBits(QSerialPort::OneStop);
-        if (serial->open(QIODevice::ReadOnly)) {
-            readPortTimer->start(2000);
-        } else {
-            QMessageBox::critical(0, tr("Error"), serial->errorString());
-        }
+void GPSModule::setPortName(QString portName) {
+    serial->setPortName(portName);
+}
 
-        connect(readPortTimer, SIGNAL(timeout()), this, SLOT(slotParseInput()));
+void GPSModule::openSerialPort() {
+    serial->setBaudRate(QSerialPort::Baud115200);
+    serial->setDataBits(QSerialPort::Data8);
+    serial->setStopBits(QSerialPort::OneStop);
+    if (serial->open(QIODevice::ReadOnly)) {
+        readPortTimer->start(3000);
+    } else {
+        QMessageBox::critical(0, tr("Error"), serial->errorString());
+    }
+}
+
+void GPSModule::closeSerialPort() {
+    if (serial->isOpen()) {
+        serial->close();
+        readPortTimer->stop();
     }
 }
 

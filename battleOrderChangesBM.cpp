@@ -1,12 +1,15 @@
+#include <QSerialPortInfo>
 #include "battleOrderChangesBM.h"
 #include "ui_battleOrderChangesBM.h"
 #include "mapModule.h"
+#include "gpsModule.h"
 #include "northSearchUnit.h"
 
 battleOrderChangesBM::battleOrderChangesBM(QSqlDatabase db, QString combatHierarchy, MapModule* map, QWidget *parent) :
     db(db),
     combatHierarchy(combatHierarchy),
     map(map),
+    gps(new GPSModule(db, combatHierarchy, this)),
     northSearchUnit(new NorthSearchUnit(this)),
     QWidget(parent),
     ui(new Ui::battleOrderChangesBM),
@@ -16,6 +19,11 @@ battleOrderChangesBM::battleOrderChangesBM(QSqlDatabase db, QString combatHierar
     clockTimer = new QTimer;
     time = new QTime(0, 3, 0);
     ui->lcdNorthSearch->display(time->toString("mm:ss"));
+
+    foreach (const QSerialPortInfo &port, QSerialPortInfo::availablePorts()){
+        ui->comboBoxPortListGPS->addItem(port.portName());
+        ui->comboBoxPortListAPS->addItem(port.portName());
+    }
 
     ui->lineEditCoordinates->setInputMask(">99°99'99.99\''A 999°99'99.99\''A 9999.9;_");
     ui->lineEditAzimuth->setInputMask(">999°99'99.99\'';_");
@@ -31,6 +39,10 @@ battleOrderChangesBM::battleOrderChangesBM(QSqlDatabase db, QString combatHierar
              this, SLOT(receiveMetricsNetwork(QByteArray&)));
     connect( map->getMapProcess(),       SIGNAL(started()),                this, SLOT(slotMapOpen()));
     connect( map->getMapProcess(),       SIGNAL(finished(int)),            this, SLOT(slotMapClose()));
+    connect( ui->buttonOpenPortGPS,      SIGNAL(clicked(bool)),            this, SLOT(slotOpenPortGPS()));
+    connect( ui->buttonClosePortGPS,     SIGNAL(clicked(bool)),            this, SLOT(slotClosePortGPS()));
+    connect( ui->buttonOpenPortAPS,      SIGNAL(clicked(bool)),            this, SLOT(slotOpenPortAPS()));
+    connect( ui->buttonClosePortAPS,     SIGNAL(clicked(bool)),            this, SLOT(slotClosePortAPS()));
     connect( ui->buttonPickCoordinates,  SIGNAL(clicked(bool)),            this, SLOT(slotPickCoordinates())); 
     connect( ui->buttonNorthSearch,      SIGNAL(clicked(bool)),            this, SLOT(slotAzimuthSearch()));
     connect( this,                       SIGNAL(readyReadAzimuthResult()), this, SLOT(slotAzimuthResult()));
@@ -459,6 +471,27 @@ void battleOrderChangesBM::slotMapClose() {
     ui->buttonPickCoordinates->setEnabled(false);
 }
 
+void battleOrderChangesBM::slotOpenPortGPS() {
+    gps->setPortName(ui->comboBoxPortListGPS->currentText());
+    gps->openSerialPort();
+}
+
+void battleOrderChangesBM::slotClosePortGPS() {
+    gps->closeSerialPort();
+}
+
+void battleOrderChangesBM::slotOpenPortAPS() {
+    northSearchUnit->setPortName(ui->comboBoxPortListAPS->currentText());
+    if (northSearchUnit->openSerialPort()) {
+        ui->buttonNorthSearch->setEnabled(true);
+    }
+}
+
+void battleOrderChangesBM::slotClosePortAPS() {
+    northSearchUnit->closeSerialPort();
+    ui->buttonNorthSearch->setEnabled(false);
+}
+
 /*!
 \brief Слот обработки нажатия на кнопку Съем координат
 
@@ -522,16 +555,15 @@ QString battleOrderChangesBM::getParsedCoordinates(double lat, double lon, doubl
 
 void battleOrderChangesBM::slotAzimuthSearch()
 {
-    if (northSearchUnit->openPort()) {
-        time->setHMS(0, 3, 0);
-        ui->lcdNorthSearch->display(time->toString("mm:ss"));
+    time->setHMS(0, 3, 0);
+    ui->lcdNorthSearch->display(time->toString("mm:ss"));
+    ui->buttonNorthSearch->setEnabled(false);
 
-        northSearchUnit->northSearch();
+    northSearchUnit->northSearch();
 
-        if (clockTimer->isActive())
-            clockTimer->stop();
-        clockTimer->start(1000);
-    }
+    if (clockTimer->isActive())
+        clockTimer->stop();
+    clockTimer->start(1000);
 }
 
 void battleOrderChangesBM::slotAzimuthResult() {
@@ -540,22 +572,21 @@ void battleOrderChangesBM::slotAzimuthResult() {
         QSqlQuery query = QSqlQuery(db);
         db.transaction();
 
-//        QString deleteOldLocation = "UPDATE own_forces.combatobject_location "
-//                                    "SET date_delete = now() "
-//                                    "WHERE combat_hierarchy = ? "
-//                                    "   AND date_delete is null";
-//        query.prepare(deleteOldLocation);
-//        query.addBindValue(combatHierarchy);
-//        query.exec();
+        QString deleteOldLocation = "UPDATE own_forces.combatobject_location "
+                                    "SET date_delete = now() "
+                                    "WHERE combat_hierarchy = ? "
+                                    "   AND date_delete is null";
+        query.prepare(deleteOldLocation);
+        query.addBindValue(combatHierarchy);
+        query.exec();
 
         QString insertAzimuth = "INSERT INTO own_forces.combatobject_location (combat_hierarchy, "
                                 "   obj_location, direction, tid, date_add, id_manager) "
-                                "VALUES (?, own_forces.coordinates_input(?), ?, txid_current(), ?, ?)";
+                                "VALUES (?, own_forces.coordinates_input(?), ?, txid_current(), now(), ?)";
         query.prepare(insertAzimuth);
         query.addBindValue(combatHierarchy);
         query.addBindValue(getCoordinates());
         query.addBindValue(parsedAzimuth);
-        query.addBindValue(QDateTime::currentDateTime());
         query.addBindValue(10); //костыль
         query.exec();
         if (!db.commit()) {
@@ -565,7 +596,6 @@ void battleOrderChangesBM::slotAzimuthResult() {
             QMessageBox::information(this, "Уведомление", "Азимут обновлен!");
         }
     }
-    northSearchUnit->closePort();
 }
 
 void battleOrderChangesBM::slotShowRemainingTime()
@@ -577,6 +607,7 @@ void battleOrderChangesBM::slotShowRemainingTime()
     ui->lcdNorthSearch->display(text);
     if (time->minute() == 0 && time->second() == 0) {
         clockTimer->stop();
+        ui->buttonNorthSearch->setEnabled(true);
         emit readyReadAzimuthResult();
     }
 }

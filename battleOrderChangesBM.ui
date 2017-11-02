@@ -19,7 +19,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
+  <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="0">
     <widget class="QLabel" name="labelMode">
      <property name="font">
@@ -36,7 +36,70 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="0" colspan="2">
+   <item row="0" column="1">
+    <widget class="QLineEdit" name="lineEditMode">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2" colspan="2">
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QLabel" name="labelGPS">
+       <property name="text">
+        <string>GPS порт</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="comboBoxPortListGPS"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="buttonOpenPortGPS">
+       <property name="text">
+        <string>Открыть порт</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="buttonClosePortGPS">
+       <property name="text">
+        <string>Закрыть порт</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="1" column="2" colspan="2">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="labelAPS">
+       <property name="text">
+        <string>АПС порт</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="comboBoxPortListAPS"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="buttonOpenPortAPS">
+       <property name="text">
+        <string>Открыть порт</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="buttonClosePortAPS">
+       <property name="text">
+        <string>Закрыть порт</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="2" column="0" colspan="2">
     <widget class="QLabel" name="labelPosition">
      <property name="font">
       <font>
@@ -49,41 +112,115 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="1">
-    <widget class="QLineEdit" name="lineEditMode">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1">
-    <widget class="QComboBox" name="comboBoxManner">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="0">
+   <item row="3" column="0">
     <widget class="QLabel" name="labelState">
      <property name="text">
       <string>Состояние</string>
      </property>
     </widget>
    </item>
-   <item row="3" column="0">
+   <item row="3" column="1">
+    <widget class="QComboBox" name="comboBoxManner">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="2" rowspan="3" colspan="2">
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="labelTime_1">
+       <property name="text">
+        <string>Время</string>
+       </property>
+       <property name="buddy">
+        <cstring>lineEditTimeState</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="lineEditTimeState">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="labelTime_2">
+       <property name="text">
+        <string>Время</string>
+       </property>
+       <property name="buddy">
+        <cstring>lineEditTimeCoordinates</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="lineEditTimeCoordinates">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2">
+      <widget class="QPushButton" name="buttonPickCoordinates">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Съем координат</string>
+       </property>
+       <property name="autoRepeatDelay">
+        <number>285</number>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="labelTime_3">
+       <property name="text">
+        <string>Время поиска</string>
+       </property>
+       <property name="buddy">
+        <cstring>lcdNorthSearch</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLCDNumber" name="lcdNorthSearch">
+       <property name="lineWidth">
+        <number>0</number>
+       </property>
+       <property name="midLineWidth">
+        <number>1</number>
+       </property>
+       <property name="segmentStyle">
+        <enum>QLCDNumber::Flat</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="2">
+      <widget class="QPushButton" name="buttonNorthSearch">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Поиск севера</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="4" column="0">
     <widget class="QLabel" name="labelCoordinates">
      <property name="text">
       <string>Координаты</string>
      </property>
     </widget>
    </item>
-   <item row="3" column="1">
+   <item row="4" column="1">
     <widget class="QLineEdit" name="lineEditCoordinates"/>
    </item>
-   <item row="4" column="1">
-    <widget class="QLineEdit" name="lineEditAzimuth"/>
-   </item>
-   <item row="4" column="0">
+   <item row="5" column="0">
     <widget class="QLabel" name="labelAzimuth">
      <property name="text">
       <string>Азимут</string>
@@ -93,7 +230,10 @@
      </property>
     </widget>
    </item>
-   <item row="5" column="0" colspan="2">
+   <item row="5" column="1">
+    <widget class="QLineEdit" name="lineEditAzimuth"/>
+   </item>
+   <item row="6" column="0" colspan="2">
     <widget class="QLabel" name="labelDataRockets_1">
      <property name="font">
       <font>
@@ -106,7 +246,7 @@
      </property>
     </widget>
    </item>
-   <item row="6" column="0" colspan="2">
+   <item row="7" column="0" colspan="2">
     <layout class="QFormLayout" name="formLayout">
      <item row="0" column="0">
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -178,7 +318,7 @@
      </item>
     </layout>
    </item>
-   <item row="6" column="2">
+   <item row="7" column="2">
     <layout class="QVBoxLayout" name="verticalLayout_3">
      <item>
       <widget class="QLabel" name="labelDataTime_1">
@@ -217,7 +357,7 @@
      </item>
     </layout>
    </item>
-   <item row="6" column="3">
+   <item row="7" column="3">
     <layout class="QVBoxLayout" name="verticalLayout_4">
      <item>
       <widget class="QLabel" name="labelDataState_1">
@@ -240,7 +380,7 @@
      </item>
     </layout>
    </item>
-   <item row="7" column="0" colspan="2">
+   <item row="8" column="0" colspan="2">
     <widget class="QLabel" name="labelDataRockets_2">
      <property name="font">
       <font>
@@ -253,7 +393,7 @@
      </property>
     </widget>
    </item>
-   <item row="8" column="0" colspan="2">
+   <item row="9" column="0" colspan="2">
     <layout class="QFormLayout" name="formLayout_2">
      <item row="0" column="0">
       <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -329,7 +469,7 @@
      </item>
     </layout>
    </item>
-   <item row="8" column="2">
+   <item row="9" column="2">
     <layout class="QVBoxLayout" name="verticalLayout_7">
      <item>
       <widget class="QLabel" name="labelDataTime_2">
@@ -368,7 +508,7 @@
      </item>
     </layout>
    </item>
-   <item row="8" column="3">
+   <item row="9" column="3">
     <layout class="QVBoxLayout" name="verticalLayout_8">
      <item>
       <widget class="QLabel" name="labelDataState_2">
@@ -391,7 +531,7 @@
      </item>
     </layout>
    </item>
-   <item row="9" column="0" colspan="2">
+   <item row="10" column="0" colspan="2">
     <widget class="QLabel" name="labelData">
      <property name="font">
       <font>
@@ -404,7 +544,7 @@
      </property>
     </widget>
    </item>
-   <item row="10" column="0" colspan="4">
+   <item row="11" column="0" colspan="4">
     <widget class="QTableWidget" name="tableWidgetData">
      <property name="frameShape">
       <enum>QFrame::Panel</enum>
@@ -453,98 +593,6 @@
      </column>
     </widget>
    </item>
-   <item row="2" column="2" rowspan="4">
-    <layout class="QGridLayout" name="gridLayout_2">
-     <property name="sizeConstraint">
-      <enum>QLayout::SetDefaultConstraint</enum>
-     </property>
-     <property name="leftMargin">
-      <number>0</number>
-     </property>
-     <property name="topMargin">
-      <number>0</number>
-     </property>
-     <property name="rightMargin">
-      <number>143</number>
-     </property>
-     <property name="bottomMargin">
-      <number>24</number>
-     </property>
-     <property name="horizontalSpacing">
-      <number>8</number>
-     </property>
-     <property name="verticalSpacing">
-      <number>5</number>
-     </property>
-     <item row="0" column="0">
-      <widget class="QLabel" name="labelTime_1">
-       <property name="text">
-        <string>Время</string>
-       </property>
-       <property name="buddy">
-        <cstring>lineEditTimeState</cstring>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QPushButton" name="buttonPickCoordinates">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="text">
-        <string>Съем координат</string>
-       </property>
-       <property name="autoRepeatDelay">
-        <number>285</number>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QLineEdit" name="lineEditTimeCoordinates">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="1">
-      <widget class="QPushButton" name="buttonNorthSearch">
-       <property name="text">
-        <string>Поиск севера</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QLineEdit" name="lineEditTimeState">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="labelTime_2">
-       <property name="text">
-        <string>Время</string>
-       </property>
-       <property name="buddy">
-        <cstring>lineEditTimeCoordinates</cstring>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="2">
-      <widget class="QLCDNumber" name="lcdNorthSearch">
-       <property name="lineWidth">
-        <number>0</number>
-       </property>
-       <property name="midLineWidth">
-        <number>1</number>
-       </property>
-       <property name="segmentStyle">
-        <enum>QLCDNumber::Flat</enum>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
   </layout>
   <zorder>labelMode</zorder>
   <zorder>lineEditMode</zorder>
@@ -559,6 +607,16 @@
   <zorder>comboBoxManner</zorder>
   <zorder>lineEditAzimuth</zorder>
   <zorder>lineEditCoordinates</zorder>
+  <zorder></zorder>
+  <zorder></zorder>
+  <zorder>comboBoxPortListGPS</zorder>
+  <zorder>buttonClosePortGPS</zorder>
+  <zorder>labelGPS</zorder>
+  <zorder>buttonOpenPortGPS</zorder>
+  <zorder>labelAPS</zorder>
+  <zorder>comboBoxPortListAPS</zorder>
+  <zorder>buttonClosePortAPS</zorder>
+  <zorder>buttonOpenPortAPS</zorder>
   <zorder></zorder>
  </widget>
  <resources/>
