@@ -21,9 +21,9 @@ class HitTargets : public BaseToolClass
     Q_OBJECT
 
 public:
-    HitTargets(QSqlDatabase db, QString combatHierarchy, QTableWidget *navigatorTable,
-               QTableWidget *navigatorReceiversTable, QTableWidget *changesTable,
-               QTableWidget *changesReceiversTable, MapModule* map, QWidget* parent = 0);
+    HitTargets(QSqlDatabase db, QString combatHierarchy, QTableWidget* navigatorTable,
+               QTableWidget* navigatorReceiversTable, QTableWidget* changesTable,
+               QTableWidget* changesReceiversTable, MapModule* map, QWidget* parent = 0);
 
     //! Метод заполнения верхней таблицы вкладки Навигатор
     void fillNavigator();
@@ -89,8 +89,7 @@ private:
     //! Объект карты
     MapModule* map;
 
-public slots:
-
+    int idManager = 10; //костыль
 };
 
 #endif // HITTARGETS_H

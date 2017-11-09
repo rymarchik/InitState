@@ -101,6 +101,11 @@ private:
     MapModule* map;
     QFont font = QFont("MS Shell Dlg 2", 9, QFont::Bold);
 
+    //костыли
+    QString dataSourceBatteryTemp = "1";
+    QString dataSourceWeaponryTemp = "1.11";
+    int idManager = 10;
+
 signals:
     void insertMapObjectCompleted();
 

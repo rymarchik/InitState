@@ -37,6 +37,8 @@ public:
     QTimer* clockTimer;
     QTime* time;
 
+    int idManager = 10; //костыль
+
     /*!
     Метод преобразования широты, долготы и высоты, выраженных десятичной дробью,
     в градусы, минуты и секунды
@@ -61,6 +63,7 @@ public:
 
 signals:
     void signalRecordDB();
+    //! Сигнал, предупреждающий об истечении времени на таймере
     void readyReadAzimuthResult();
 
 public slots:
@@ -70,18 +73,23 @@ public slots:
     void slotTableMunition();                //Данные об имуществе и обеспеченности
     void slotSave();                         //Сохранение изменений в закладке
 
-    //!Слот обработки открытия карты
+    //! Слот обработки открытия карты
     void slotMapOpen();
-    //!Слот обработки закрытия карты
+    //! Слот обработки закрытия карты
     void slotMapClose();
+    //! Слот открытия порта для GPS-приемника
     void slotOpenPortGPS();
+    //! Слот закрытия порта для GPS-приемника
     void slotClosePortGPS();
+    //! Слот открытия порта для АПС
     void slotOpenPortAPS();
+    //! Слот закрытия порта для АПС
     void slotClosePortAPS();
+
     /*!
     \brief Слот обработки нажатия на кнопку Съем координат
 
-    Посылает запрос на переход в режим съема координат
+    Посылает запрос карте на переход в режим съема координат
     */
     void slotPickCoordinates();
     /*!
@@ -89,8 +97,15 @@ public slots:
     \param[in] data массив данных, содержащий информацию о координатах
     */
     void receiveMetricsNetwork(QByteArray& data);
+    /*!
+    \brief Слот обработки нажатия на кнопку Поиск севера
+
+    Посылает запрос АПС на поиск севера и запускает трехминутный таймер
+    */
     void slotAzimuthSearch();
+    //! Слот чтения порта АПС по истечению времени и получение результата
     void slotAzimuthResult();
+    //! Слот работы таймера
     void slotShowRemainingTime();
 
 private slots:

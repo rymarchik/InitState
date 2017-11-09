@@ -5,10 +5,18 @@ NorthSearchUnit::NorthSearchUnit(QObject *parent) : QObject(parent)
     serial = new QSerialPort(this);
 }
 
+/*!
+Метод задания имени порта
+\param[in] portName имя порта
+*/
 void NorthSearchUnit::setPortName(QString portName) {
     serial->setPortName(portName);
 }
 
+/*!
+Метод открытия порта
+\return true, если порт открылся успешно, иначе false
+*/
 bool NorthSearchUnit::openSerialPort() {
     serial->setBaudRate(QSerialPort::Baud115200);
     serial->setDataBits(QSerialPort::Data8);
@@ -22,20 +30,26 @@ bool NorthSearchUnit::openSerialPort() {
     return false;
 }
 
+//! Метод закрытия порта
 void NorthSearchUnit::closeSerialPort() {
     if (serial->isOpen()) {
         serial->close();
     }
 }
 
+//! Метод посылки команды на поиск севера
 void NorthSearchUnit::northSearch() {
     QByteArray transmitCommand("t1843010000\x0D");
     serial->write(transmitCommand);
 }
 
+/*!
+Метод считывания результата поиска севера
+\return готовое значение для записи в БД
+*/
 int NorthSearchUnit::readNorthSearchResult() {
     QByteArray input = serial->readAll().right(20);
-//    QByteArray input("t204705358B358B358B");
+//    QByteArray input("t204705358B358B358B"); костыль, чтобы сымитировать результат работы АПС (если требуется)
     int parsedAzim = -1;
     if (input.contains("t204705")) {
         QString azimInHex;
@@ -45,16 +59,4 @@ int NorthSearchUnit::readNorthSearchResult() {
         parsedAzim = qRound((double)azimInDec / 60000 * 360 * 3600) * 100;
     }
     return parsedAzim;
-}
-
-void NorthSearchUnit::slotGetSearchResult() {
-
-}
-
-void NorthSearchUnit::slotEnterCalibrationData() {
-
-}
-
-void NorthSearchUnit::slotUseCalibrationData() {
-
 }

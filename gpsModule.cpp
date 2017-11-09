@@ -11,10 +11,15 @@ GPSModule::GPSModule(QSqlDatabase db, QString combatHierarchy, QObject *parent) 
     connect(readPortTimer, SIGNAL(timeout()), this, SLOT(slotParseInput()));
 }
 
+/*!
+Метод задания имени порта
+\param[in] portName имя порта
+*/
 void GPSModule::setPortName(QString portName) {
     serial->setPortName(portName);
 }
 
+//! Слот открытия порта
 void GPSModule::openSerialPort() {
     serial->setBaudRate(QSerialPort::Baud115200);
     serial->setDataBits(QSerialPort::Data8);
@@ -26,6 +31,7 @@ void GPSModule::openSerialPort() {
     }
 }
 
+//! Слот закрытия порта
 void GPSModule::closeSerialPort() {
     if (serial->isOpen()) {
         serial->close();
@@ -33,6 +39,7 @@ void GPSModule::closeSerialPort() {
     }
 }
 
+//! Слот обработки приходящих от GPS-приемника данных
 void GPSModule::slotParseInput() {
     QRegExp ggaRegExp("(GP|GN|GL)GGA", Qt::CaseInsensitive);
     QRegExp rmcRegExp("(GP|GN|GL)RMC", Qt::CaseInsensitive);
@@ -96,15 +103,22 @@ void GPSModule::slotParseInput() {
 //    qDebug() << "local time: " << dateTime.toLocalTime().toString("hh:mm:ss dd-MMM-yyyy") << endl;
 }
 
+/*!
+Метод записи в БД координат местоположения
+\param[in] latitude широта
+\param[in] longitude долгота
+\param[in] altitude высота
+*/
 void GPSModule::updateDatabaseGeoInfo(double latitude, double longitude, double altitude) {
     QSqlQuery query(db);
     db.transaction();
     QString updateRow = "UPDATE own_forces.combatobject_location "
                         "SET date_delete = now() "
                         "WHERE combat_hierarchy = ? "
-                        "AND date_add = (SELECT MAX(date_add) FROM own_forces.combatobject_location)";
+                        "   AND date_add = (SELECT MAX(date_add) FROM own_forces.combatobject_location)"
+                        "   AND date_delete is NULL";
     query.prepare(updateRow);
-    query.addBindValue(combatHierarchy);
+    query.addBindValue(combatHierarchyTemp); //костыль, заменить на combatHierarchy
     if (!query.exec()) {
         qDebug() << query.lastError();
     }
@@ -113,18 +127,22 @@ void GPSModule::updateDatabaseGeoInfo(double latitude, double longitude, double 
                         "       direction, tid, date_add, id_manager)"
                         "VALUES (?, ST_SetSRID(ST_MakePoint(?, ?, ?), 4326), ?, txid_current(), now(), ?)";
     query.prepare(insertRow);
-    query.addBindValue(combatHierarchy);
+    query.addBindValue(combatHierarchyTemp); //костыль, заменить на combatHierarchy
     query.addBindValue(latitude);
     query.addBindValue(longitude);
     query.addBindValue(altitude);
     query.addBindValue(getLastDirectionValue());
-    query.addBindValue(10); //костыль
+    query.addBindValue(idManager);
     if (!query.exec()) {
         qDebug() << query.lastError();
     }
     db.commit();
 }
 
+/*!
+Метод получения последнего добавленного в БД значения азимута
+\return значение азимута
+*/
 int GPSModule::getLastDirectionValue() {
     QSqlQuery query(db);
     QString selectLastDirection = "SELECT direction "
@@ -132,7 +150,7 @@ int GPSModule::getLastDirectionValue() {
                                   "WHERE combat_hierarchy = ? "
                                   "     AND tid = (SELECT MAX(tid) FROM own_forces.combatobject_location)";
     query.prepare(selectLastDirection);
-    query.addBindValue(combatHierarchy);
+    query.addBindValue(combatHierarchyTemp); //костыль, заменить на combatHierarchy
     if (!query.exec()) {
         qDebug() << query.lastError();
     }

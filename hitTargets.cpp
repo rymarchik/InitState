@@ -23,7 +23,7 @@ void HitTargets::fillNavigator() {
 
     QSqlQuery query = QSqlQuery(db);
     QString selectPattern = "SELECT ot.target_number, t.termname, cs.object_number, t1.termname, "
-                            "   cs2.object_number, t2.termname "
+                            "   cs2.object_number, t2.termname, ot.id_target "
                             "FROM targets.obj_targets ot "
                             "JOIN reference_data.terms t ON ot.target_name = t.termhierarchy "
                             "JOIN own_forces.combatstructure cs ON ot.combat_hierarchy = cs.combat_hierarchy "
@@ -44,8 +44,10 @@ void HitTargets::fillNavigator() {
                                                            query.value(3).toString() + "/" +
                                                            tr("%1").arg(query.value(4).toInt()) + " " +
                                                            query.value(5).toString()));
+        navigatorTable->setItem(i, 3, new QTableWidgetItem(tr("%1").arg(query.value(6).toInt())));
         i++;
-    }    
+    }
+    navigatorTable->hideColumn(3);
 
     navigatorTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     navigatorReceiversTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
@@ -95,8 +97,7 @@ bool HitTargets::onSave(int index) {
     return form->onSaveSetup();
 }
 
-bool HitTargets::onSend()
-{
+bool HitTargets::onSend() {
     return true;
 }
 
@@ -108,6 +109,7 @@ bool HitTargets::onDelete() {
     QSqlQuery query = QSqlQuery(db);
     QString targetNumber = navigatorTable->item(navigatorTable->currentRow(), 0)->text();
     QString targetName = navigatorTable->item(navigatorTable->currentRow(), 1)->text();
+    int targetId = navigatorTable->item(navigatorTable->currentRow(), 3)->text().toInt();
     NetworkObjectManager manager = map->getObjectManager();
 
     QMessageBox warningDialog(QMessageBox::Warning, "Подтверждение удаления",
@@ -119,41 +121,32 @@ bool HitTargets::onDelete() {
     if (warningDialog.exec() == QMessageBox::Yes) {
         db.transaction();
 
-        QString deleteQuery = "UPDATE targets.obj_targets ot "
-                              "SET date_delete = now() "
-                              "FROM own_forces.combatstructure cs "
-                              "WHERE ot.combat_hierarchy = cs.combat_hierarchy "
-                              "         AND ot.target_number = ? "
-                              "         AND ot.target_name = ? "
-                              "         AND cs.type_army = ? "
-                              "         AND ot.date_delete is null";
-        query.prepare(deleteQuery);
-        query.addBindValue(targetNumber);
-        query.addBindValue(Utility::convertReferenceNameTOCode(db, targetName));
-        query.addBindValue("22.10"); //костыль
-        if (!query.exec()) {
-            qDebug() << query.lastError();
-        }
+        QString deleteObject = "UPDATE targets.obj_targets "
+                               "SET date_delete = now(), id_manager = ? "
+                               "WHERE id_target = ?";
+        query.prepare(deleteObject);
+        query.addBindValue(idManager);
+        query.addBindValue(targetId);
+        query.exec();
 
-        //! Запрос на получение айди удаляемой цели из таблицы карты
-        QString selectMapObjectId = "SELECT id "
-                                    "FROM map_objects.object_params op "
-                                    "JOIN targets.obj_targets ot on op.create_time = ot.date_add "
-                                    "WHERE ot.date_delete = (SELECT MAX(date_delete) FROM targets.obj_targets)";
+        QString selectMapObjectId = "SELECT id_terrain_objective "
+                                    "FROM map_objects.object_params "
+                                    "WHERE CAST(military_object AS INTEGER) = ? "
+                                    "      AND date_delete is null";
         query.prepare(selectMapObjectId);
-        if (!query.exec()) {
-            qDebug() << query.lastError();
-        }
+        query.addBindValue(targetId);
+        query.exec();
         query.next();
         int mapObjectId = query.value(0).toInt();
 
         for (int i = 0; i < manager.listObject.size(); i++) {
+            qDebug() << QString::number(manager.listObject[i].data.m_OBJECT_ID);
             if (manager.listObject[i].data.m_OBJECT_ID == mapObjectId) {
                 //! Запрос на удаление цели из таблицы карты
-                QString deleteMapObject = "UPDATE map_objects.object_params "
-                                          "SET visibility = false, delete_time = now() "
-                                          "WHERE id = ?";
-                query.prepare(deleteMapObject);
+                QString deleteFromMapObjects = "UPDATE map_objects.object_params "
+                                               "SET visibility = false, date_delete = now() "
+                                               "WHERE id_terrain_objective = ?";
+                query.prepare(deleteFromMapObjects);
                 query.addBindValue(mapObjectId);
                 if (!query.exec()) {
                     qDebug() << query.lastError();

@@ -18,9 +18,17 @@ public:
     QString getMapPath();
     NetworkObjectManager getObjectManager();
     void setObjectManager(NetworkObjectManager);
-    void removeObjectFromManager(NetworkObject);
+
+    /*!
+    Метод удаления объекта из менеджера объектов
+    \param[in] obj удаляемый объект
+    */
+    void removeObjectFromManager(NetworkObject obj);
+    //! Метод удаления всех объектов из менеджера объектов
     void clearObjectManager();
+    //! Метод запуска карты
     void launchMap();
+    //! Метод загрузки боевых машин на карту
     void addBMsToMap();
 
 private:
@@ -31,19 +39,39 @@ private:
     QString mapPath = QCoreApplication::applicationDirPath() + "/mapFiles";
     NetworkObjectManager manager;
 
-public slots:
-    void serverError(QString);
-    void sendNetworkUserMap(QTcpSocket* pSocket);
-    void receiveInsertObjectNetwork(QByteArray&);
-    void receiveInsertObjectNetworkFromDB(QByteArray&);
+    //костыли
+    QString currentModeTemp = "50.10";
+    QString combatHierarchyTemp = "1.11";
+    int importance = 100;
+    QString mannerTid = "95.20.10";
+    int idManager = 10;
 
-    /**
-    \fn   receiveDeleteObjectNetwork
-    Слот для обработки сигнала о приеме пакета данных, в котором хранятся идентификаторы удаленных объектов
-    \param[in] QByteArray & mas - ссылка пакет данных, в который был упакован список идентификаторов удаленных объектов
-    \return не возвращает
+public slots:
+    /*!
+    Слот обработки ошибок сервера
+    \param[in] error текст ошибки
     */
-    void receiveDeleteObjectNetwork(QByteArray&);
+    void serverError(QString error);
+    /*!
+    Слот для посылки на карту всех имеющихся объектов с БД
+    \param[in] pSocket сокет, по которому передается информация
+    */
+    void sendNetworkUserMap(QTcpSocket* pSocket);
+    /*!
+    Слот для обработки сигнала о приеме пакета данных, в котором хранится информация о созданном на карте объекте
+    \param[in] mas пакет данных, в который была упакована информация о созданном объекте
+    */
+    void receiveInsertObjectNetwork(QByteArray& mas);
+    /*!
+    Слот для обработки сигнала о приеме пакета данных, в котором хранится поле mas_object созданного на сервере объекта
+    \param[in] mas пакет данных, в который был упакован mas_object созданного на сервере объекта
+    */
+    void receiveInsertObjectNetworkFromDB(QByteArray& mas);
+    /*!
+    Слот для обработки сигнала о приеме пакета данных, в котором хранятся идентификаторы удаленных объектов
+    \param[in] mas пакет данных, в который был упакован список идентификаторов удаленных объектов
+    */
+    void receiveDeleteObjectNetwork(QByteArray& mas);
 };
 
 #endif // MAPMODULE_H

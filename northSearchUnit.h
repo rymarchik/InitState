@@ -12,19 +12,28 @@ class NorthSearchUnit : public QObject
 public:
     explicit NorthSearchUnit(QObject *parent = 0);
 
-    void setPortName(QString);
+    /*!
+    Метод задания имени порта
+    \param[in] portName имя порта
+    */
+    void setPortName(QString portName);
+    /*!
+    Метод открытия порта
+    \return true, если порт открылся успешно, иначе false
+    */
     bool openSerialPort();
+    //! Метод закрытия порта
     void closeSerialPort();
+    //! Метод посылки команды на поиск севера
     void northSearch();
+    /*!
+    Метод считывания результата поиска севера
+    \return готовое значение для записи в БД
+    */
     int readNorthSearchResult();
 
 private:
     QSerialPort* serial;
-
-private slots:
-    void slotGetSearchResult();
-    void slotEnterCalibrationData();
-    void slotUseCalibrationData();
 };
 
 #endif // MAINWINDOW_H

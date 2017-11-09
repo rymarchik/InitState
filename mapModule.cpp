@@ -35,6 +35,10 @@ void MapModule::setObjectManager(NetworkObjectManager manager) {
     this->manager = manager;
 }
 
+/*!
+Метод удаления объекта из менеджера объектов
+\param[in] obj удаляемый объект
+*/
 void MapModule::removeObjectFromManager(NetworkObject obj) {
     for (int i = 0; i < manager.listObject.size(); i++) {
         if (manager.listObject.at(i).data.m_OBJECT_ID == obj.data.m_OBJECT_ID) {
@@ -44,10 +48,12 @@ void MapModule::removeObjectFromManager(NetworkObject obj) {
     }
 }
 
+//! Метод удаления всех объектов из менеджера объектов
 void MapModule::clearObjectManager() {
     manager.listObject.clear();
 }
 
+//! Метод запуска карты
 void MapModule::launchMap() {
     if (mapProcess->state() != QProcess::Running ) {
         mapProcess->setWorkingDirectory(mapPath + "/BIN");
@@ -55,12 +61,12 @@ void MapModule::launchMap() {
     }
 }
 
+//! Метод загрузки боевых машин на карту
 void MapModule::addBMsToMap() {
     QSqlQuery query = QSqlQuery(db);
     db.transaction();
 
-    QString kostil = "50.10";
-    QString selectMachineNames = "SELECT c.combat_hierarchy, t.termname "
+    QString selectMachineNames = "SELECT c.combat_hierarchy, t.termhierarchy, t.termname "
                                  "FROM own_forces.combatstructure c "
                                  "JOIN own_forces.currentmode cm ON cm.combat_hierarchy = c.combat_hierarchy "
                                  "   AND cm.date_delete IS NULL "
@@ -69,23 +75,35 @@ void MapModule::addBMsToMap() {
                                  "   AND nlevel(c.object_name) = 2 "
                                  "   AND c.date_delete is NULL";
     query.prepare(selectMachineNames);
-    query.addBindValue(currentMode);
-//    query.addBindValue(kostil);
+    query.addBindValue(currentModeTemp); //костыль, заменить на currentMode
     query.exec();
-    QStringList machineCodes;
+    QStringList machineCombatHierarchies;
+    QStringList machineTermHierarchies;
     QStringList machineNames;
     while (query.next()) {
-        machineCodes << query.value(0).toString();
-        machineNames << query.value(1).toString();
+        machineCombatHierarchies << query.value(0).toString();
+        machineTermHierarchies << query.value(1).toString();
+        machineNames << query.value(2).toString();
     }
 
-    for (int i = 0; i < machineCodes.size(); i++) {
+    for (int i = 0; i < machineCombatHierarchies.size(); i++) {
         //создание и добавление боевой машины в менеджер объектов
         NetworkObject obj;
         obj.data.m_OBJECT_ID = i + 1;
-        obj.data.m_TYPE_ID = TYPE_METRIC_POINT; //но нужно TYPE_METRIC_POINT2 и добавить направление
+        obj.data.m_TYPE_ID = TYPE_METRIC_POINT; //но нужно TYPE_METRIC_POINT2 и добавить вторую точку для направления
         obj.data.m_ENEMY = 0;
         obj.data.m_VISIBLE = true;
+
+        QString selectClassifierCode = "SELECT id_terms "
+                                       "FROM reference_data.map_code "
+                                       "WHERE termhierarchy = ?";
+        query.prepare(selectClassifierCode);
+        query.addBindValue(machineTermHierarchies.at(i));
+        query.exec();
+        query.next();
+        obj.data.m_CODE = query.value(0).toInt();
+        obj.data.m_NAME = machineNames.at(i);
+
 
         QString selectLocation = "SELECT obj_location "
                                  "FROM own_forces.combatobject_location "
@@ -93,8 +111,8 @@ void MapModule::addBMsToMap() {
                                  "  AND date_add = (SELECT MAX(date_add) FROM own_forces.combatobject_location "
                                  "                  WHERE combat_hierarchy = ?)";
         query.prepare(selectLocation);
-        query.addBindValue(machineCodes.at(i));
-        query.addBindValue(machineCodes.at(i));
+        query.addBindValue(machineCombatHierarchies.at(i));
+        query.addBindValue(machineCombatHierarchies.at(i));
         query.exec();
         query.next();
         QString rawCoords = query.value(0).toString();
@@ -112,36 +130,35 @@ void MapModule::addBMsToMap() {
         point.m_HEIGHT = query.value(2).toDouble();
         obj.metrics.append(point);
 
-        if (machineNames.at(i) == "Боевая машина В-200") {
-            obj.data.m_CODE = 1253010110; //код Боевой машины РСЗО
-            obj.data.m_NAME = "Боевая машина B-200";
-        }
-        else if (machineNames.at(i) == "Машина боевого управления") {
-            obj.data.m_CODE = 1015030110; //код КП батальона
-            obj.data.m_NAME = "Машина боевого управления";
-        }
-        else if (machineNames.at(i) == "Транспортно-заряжающая машина") {
-            obj.data.m_CODE = 1018030110; //код НП
-            obj.data.m_NAME = "Транспортно-заряжающая машина";
-        }
-
         QByteArray mas = NetworkModule::Instance().maskData(NETWORK_INSERT_OBJECT_FROM_DB, obj.serialize());
         NetworkModule::Instance().sendDataFromMap(mas);
     }
     db.commit();
 }
 
+/*!
+Слот обработки ошибок сервера
+\param[in] error текст ошибки
+*/
 void MapModule::serverError(QString str) {
     QMessageBox::critical(0, "Server Error", "Unable to start the server:" + str);
 }
 
+/*!
+Слот для посылки на карту всех имеющихся объектов с БД
+\param[in] pSocket сокет, по которому передается информация
+*/
 void MapModule::sendNetworkUserMap(QTcpSocket* pSocket) {
     QSqlQuery query = QSqlQuery(db);
 
-    QString selectMapObjects = "SELECT id, code, object_name, geometry_type, enemy, visibility, "
-                               "        access_level, object_location, mas_object "
-                               "FROM map_objects.object_params "
-                               "WHERE delete_time is null";
+    QString selectMapObjects = "SELECT id_terrain_objective, mc.id_terms, t.termname, geometry_type, enemy, "
+                               "        visibility, access_level, tp.obj_location, mas_object "
+                               "FROM map_objects.object_params op "
+                               "JOIN targets.obj_targets ot ON CAST(op.military_object AS INTEGER) = ot.id_target "
+                               "JOIN targets.targets_param tp ON ot.id_target = tp.id_target "
+                               "JOIN reference_data.map_code mc ON ot.target_name = mc.termhierarchy "
+                               "JOIN reference_data.terms t ON mc.termhierarchy = t.termhierarchy "
+                               "WHERE op.date_delete is null";
     if (!query.exec(selectMapObjects)) {
         qDebug() << query.lastError();
         QMessageBox::critical(0, "Ошибка", "Загрузить объекты с БД не удалось!");
@@ -160,19 +177,49 @@ void MapModule::sendNetworkUserMap(QTcpSocket* pSocket) {
 
         QSqlQuery coordQuery = QSqlQuery(db);
         QString getParsedCoordinates = "SELECT ST_X(geom), ST_Y(geom), ST_Z(geom) "
-                                       "FROM (SELECT (ST_dumppoints(?)).geom "
-                                       "      FROM map_objects.object_params) AS foo";
+                                       "FROM (SELECT (ST_dumppoints(?)).geom) AS foo";
         coordQuery.prepare(getParsedCoordinates);
         coordQuery.addBindValue(rawCoords);
         coordQuery.exec();
-        coordQuery.next();
+        tagDataPoint point;
 
-        tagDataPoint metrics;
-        metrics.m_LATITUDE = coordQuery.value(0).toDouble();
-        metrics.m_LONGITUDE = coordQuery.value(1).toDouble();
-        metrics.m_HEIGHT = coordQuery.value(2).toDouble();
-        obj.metrics.append(metrics);
-
+        switch (obj.data.m_TYPE_ID) {
+        case TYPE_METRIC_LINE: {
+            while (coordQuery.next()) {
+                point.m_LATITUDE = query.value(0).toDouble();
+                point.m_LONGITUDE = query.value(1).toDouble();
+                point.m_HEIGHT = query.value(2).toDouble();
+                obj.metrics.append(point);
+            }
+            break;
+        }
+        case TYPE_METRIC_RECT: {
+            coordQuery.next();
+            point.m_LATITUDE = query.value(0).toDouble();
+            point.m_LONGITUDE = query.value(1).toDouble();
+            point.m_HEIGHT = query.value(2).toDouble();
+            coordQuery.next();
+            tagDataPoint squareData;
+            squareData.m_LATITUDE = query.value(0).toDouble();
+            squareData.m_LONGITUDE = query.value(1).toDouble();
+            squareData.m_HEIGHT = query.value(2).toDouble();
+            obj.metrics.append(point);
+            obj.metrics.append(squareData);
+            break;
+        }
+        case TYPE_METRIC_CIRCLE: {
+            coordQuery.next();
+            point.m_LATITUDE = query.value(0).toDouble();
+            point.m_LONGITUDE = query.value(1).toDouble();
+            point.m_HEIGHT = query.value(2).toDouble();
+            coordQuery.next();
+            tagDataPoint roundData;
+            roundData.m_LATITUDE = query.value(0).toDouble();
+            obj.metrics.append(point);
+            obj.metrics.append(roundData);
+            break;
+        }
+        }
         manager.listObject.push_back(obj);
     }
 
@@ -182,6 +229,10 @@ void MapModule::sendNetworkUserMap(QTcpSocket* pSocket) {
     addBMsToMap();
 }
 
+/*!
+Слот для обработки сигнала о приеме пакета данных, в котором хранится информация о созданном на карте объекте
+\param[in] mas пакет данных, в который была упакована информация о созданном объекте
+*/
 void MapModule::receiveInsertObjectNetwork(QByteArray& data) {
     unsigned char * lp=(unsigned char *)(data.data());
     lp+=2*sizeof(quint32);
@@ -204,17 +255,79 @@ void MapModule::receiveInsertObjectNetwork(QByteArray& data) {
 
     QSqlQuery query = QSqlQuery(db);
     db.transaction();
+
+    //! Запрос на получение termhierarchy по названию, формируемому картой
+    QString selectTermHierarchy = "SELECT termhierarchy FROM reference_data.map_code "
+                                  "WHERE terms = ?";
+    query.prepare(selectTermHierarchy);
+    query.addBindValue(obj.data.m_NAME);
+    query.exec();
+    query.next();
+    QString termHierarchy = query.value(0).toString();
+
+    //! Запрос на получение последнего номера цели (временно)
+    QString selectLastTargetNumber =  "SELECT MAX(target_number) FROM targets.obj_targets";
+    query.prepare(selectLastTargetNumber);
+    query.exec();
+    query.next();
+    int targetNumber = query.value(0).toInt();
+
+
+    qDebug() << termHierarchy;
+    qDebug() << targetNumber + 1;
+    qDebug() << combatHierarchyTemp;
+    qDebug() << idManager;
+    //! Вставка данных в таблицу obj_targets
+    QString insertObjTargets = "INSERT INTO targets.obj_targets (target_name, target_number, combat_hierarchy, id_manager) "
+                               "VALUES (?, ?, ?, ?)";
+    query.prepare(insertObjTargets);
+    query.addBindValue(termHierarchy);
+    query.addBindValue(targetNumber + 1); //костыль
+    query.addBindValue(combatHierarchyTemp); //костыль, заменить на combatHierarchy
+    query.addBindValue(idManager);
+    query.exec();
+
+    //! Запрос на получение последней добавленной цели
+    QString selectLastIdTarget = "SELECT MAX(id_target) FROM targets.obj_targets";
+    query.prepare(selectLastIdTarget);
+    query.exec();
+    query.next();
+    int targetId = query.value(0).toInt();
+
+
     QString insertPattern;
-    QString insertObjectFromMap;
+    QString insertTargetsParam;
     QString makePointPattern = "ST_MakePoint(%1, %2, %3)";
     QString makeStartPointString = makePointPattern.arg(obj.metrics[0].m_LATITUDE)
                                                    .arg(obj.metrics[0].m_LONGITUDE)
                                                    .arg(obj.metrics[0].m_HEIGHT);
     switch (obj.data.m_TYPE_ID) {
-    case TYPE_METRIC_LINE:
-        insertPattern = "INSERT INTO map_objects.object_params (code, object_name, geometry_type, "
-                        "       enemy, visibility, access_level, object_location, mas_object) "
-                        "VALUES (?, ?, ?, ?, ?, ?, %1, ?)";
+    case TYPE_METRIC_POINT2: {
+        insertPattern = "INSERT INTO targets.targets_param (id_target, target_time, importance, "
+                        "   method_location, obj_location, manner_tid, tid, id_manager) "
+                        "VALUES (?, now(), ?, ?, %1, ?, txid_current(), ?)";
+        QString makeLinePattern = "ST_MakeLine(ST_MakePoint(%1, %2, %3), ST_MakePoint(%4, %5, %6))";
+        QString makeLineString = makeLinePattern.arg(obj.metrics[0].m_LATITUDE)
+                                                .arg(obj.metrics[0].m_LONGITUDE)
+                                                .arg(obj.metrics[0].m_HEIGHT)
+                                                .arg(obj.metrics[1].m_LATITUDE)
+                                                .arg(obj.metrics[1].m_LONGITUDE)
+                                                .arg(obj.metrics[1].m_HEIGHT);
+        insertTargetsParam = insertPattern.arg(makeLineString);
+        query.prepare(insertTargetsParam);
+        query.addBindValue(targetId);
+        query.addBindValue(importance);
+        query.addBindValue(0);
+        query.addBindValue(mannerTid);
+        query.addBindValue(idManager);
+        query.exec();
+        break;
+    }
+
+    case TYPE_METRIC_LINE: {
+        insertPattern = "INSERT INTO targets.targets_param (id_target, target_time, importance, "
+                        "   method_location, obj_location, manner_tid, tid, id_manager) "
+                        "VALUES (?, now(), ?, ?, %1, ?, txid_current(), ?)";
         if (obj.metrics.size() == 2) {
             QString makeLinePattern = "ST_MakeLine(ST_MakePoint(%1, %2, %3), ST_MakePoint(%4, %5, %6))";
             QString makeLineString = makeLinePattern.arg(obj.metrics[0].m_LATITUDE)
@@ -223,7 +336,7 @@ void MapModule::receiveInsertObjectNetwork(QByteArray& data) {
                                                     .arg(obj.metrics[1].m_LATITUDE)
                                                     .arg(obj.metrics[1].m_LONGITUDE)
                                                     .arg(obj.metrics[1].m_HEIGHT);
-            insertObjectFromMap = insertPattern.arg(makeLineString);
+            insertTargetsParam = insertPattern.arg(makeLineString);
         }
         else if (obj.metrics.size() > 2) {
             QString makePolygonString = "ST_MakePolygon(ST_MakeLine(ARRAY[";
@@ -234,61 +347,71 @@ void MapModule::receiveInsertObjectNetwork(QByteArray& data) {
                 makePolygonString.append(makePointString).append(", ");
             }
             makePolygonString.append(makeStartPointString).append("]))");
-            insertObjectFromMap = insertPattern.arg(makePolygonString);
+            insertTargetsParam = insertPattern.arg(makePolygonString);
         }
-        query.prepare(insertObjectFromMap);
-        query.addBindValue(obj.data.m_CODE);
-        query.addBindValue(obj.data.m_NAME);
-        query.addBindValue(obj.data.m_TYPE_ID);
-        query.addBindValue(obj.data.m_ENEMY);
-        query.addBindValue(obj.data.m_VISIBLE);
-        query.addBindValue(obj.data.m_ACCESS_LVL);
-        query.addBindValue(obj.masObject);
+        query.prepare(insertTargetsParam);
+        query.addBindValue(targetId);
+        query.addBindValue(importance);
+        query.addBindValue(0);
+        query.addBindValue(mannerTid);
+        query.addBindValue(idManager);
+        query.exec();
         break;
+    }
 
-    case TYPE_METRIC_RECT:
-        insertPattern = "INSERT INTO map_objects.object_params (code, object_name, geometry_type, enemy, "
-                        "       visibility, access_level, object_location, front, depth, deviation, mas_object) "
-                        "VALUES (?, ?, ?, ?, ?, ?, %1, ?, ?, ?, ?)";
-        insertObjectFromMap = insertPattern.arg(makeStartPointString);
+    case TYPE_METRIC_RECT: {
+        insertPattern = "INSERT INTO targets.targets_param (id_target, target_time, importance, "
+                        "   method_location, obj_location, front, depth, deviation, manner_tid, tid, id_manager) "
+                        "VALUES (?, now(), ?, ?, %1, ?, ?, ?, ?, txid_current(), ?)";
+        insertTargetsParam = insertPattern.arg(makeStartPointString);
 
-        query.prepare(insertObjectFromMap);
-        query.addBindValue(obj.data.m_CODE);
-        query.addBindValue(obj.data.m_NAME);
-        query.addBindValue(obj.data.m_TYPE_ID);
-        query.addBindValue(obj.data.m_ENEMY);
-        query.addBindValue(obj.data.m_VISIBLE);
-        query.addBindValue(obj.data.m_ACCESS_LVL);
+        query.prepare(insertTargetsParam);
+        query.addBindValue(targetId);
+        query.addBindValue(importance);
+        query.addBindValue(1);
         query.addBindValue(obj.metrics[1].m_LATITUDE);
         query.addBindValue(obj.metrics[1].m_LONGITUDE);
         query.addBindValue(obj.metrics[1].m_HEIGHT);
-        query.addBindValue(obj.masObject);
+        query.addBindValue(mannerTid);
+        query.addBindValue(idManager);
+        query.exec();
         break;
+    }
 
-    case TYPE_METRIC_CIRCLE:
-        insertPattern = "INSERT INTO map_objects.object_params (code, object_name, geometry_type, enemy, "
-                        "       visibility, access_level, object_location, radius, mas_object) "
-                        "VALUES (?, ?, ?, ?, ?, ?, %1, ?, ?)";
-        insertObjectFromMap = insertPattern.arg(makeStartPointString);
+    case TYPE_METRIC_CIRCLE: {
+        insertPattern = "INSERT INTO targets.targets_param (id_target, target_time, importance, "
+                        "   method_location, obj_location, radius, manner_tid, tid, id_manager) "
+                        "VALUES (?, now(), ?, ?, %1, ?, ?, txid_current(), ?)";
+        insertTargetsParam = insertPattern.arg(makeStartPointString);
 
-        query.prepare(insertObjectFromMap);
-        query.addBindValue(obj.data.m_CODE);
-        query.addBindValue(obj.data.m_NAME);
-        query.addBindValue(obj.data.m_TYPE_ID);
-        query.addBindValue(obj.data.m_ENEMY);
-        query.addBindValue(obj.data.m_VISIBLE);
-        query.addBindValue(obj.data.m_ACCESS_LVL);
+        query.prepare(insertTargetsParam);
+        query.addBindValue(targetId);
+        query.addBindValue(importance);
+        query.addBindValue(2);
         query.addBindValue(obj.metrics[1].m_LATITUDE);
-        query.addBindValue(obj.masObject);
+        query.addBindValue(mannerTid);
+        query.addBindValue(idManager);
+        query.exec();
         break;
     }
-    if (!query.exec()) {
-        qDebug() << query.lastError();
-        QMessageBox::critical(0, "Ошибка", "Добавить объект не удалось!");
     }
 
 
-    QString selectId = "SELECT id "
+    //! Вставка данных в таблицу для объектов карты object_params
+    QString insertObjectParams = "INSERT INTO map_objects.object_params (military_object, geometry_type, "
+                                 "        enemy, visibility, access_level, mas_object, id_manager) "
+                                 "VALUES (?, ?, ?, ?, ?, ?, ?)";
+    query.prepare(insertObjectParams);
+    query.addBindValue(151);
+    query.addBindValue(obj.data.m_TYPE_ID);
+    query.addBindValue(obj.data.m_ENEMY);
+    query.addBindValue(obj.data.m_VISIBLE);
+    query.addBindValue(obj.data.m_ACCESS_LVL);
+    query.addBindValue(obj.masObject);
+    query.addBindValue(idManager);
+    qDebug() << query.exec() << "    " << query.lastError();
+
+    QString selectId = "SELECT id_terrain_objective "
                        "FROM map_objects.object_params "
                        "WHERE mas_object = ?";
     query.prepare(selectId);
@@ -299,7 +422,6 @@ void MapModule::receiveInsertObjectNetwork(QByteArray& data) {
     }
     query.next();
     obj.data.m_OBJECT_ID = query.value(0).toInt();
-    qDebug() << "ID" << obj.data.m_OBJECT_ID;
     manager.listObject.push_back(obj);
 
     db.commit();
@@ -308,6 +430,10 @@ void MapModule::receiveInsertObjectNetwork(QByteArray& data) {
     NetworkModule::Instance().sendDataFromMap(mas);
 }
 
+/*!
+Слот для обработки сигнала о приеме пакета данных, в котором хранится поле mas_object созданного на сервере объекта
+\param[in] mas пакет данных, в который был упакован mas_object созданного на сервере объекта
+*/
 void MapModule::receiveInsertObjectNetworkFromDB(QByteArray& data)
 {
     unsigned char * lp=(unsigned char *)(data.data());
@@ -340,7 +466,7 @@ void MapModule::receiveInsertObjectNetworkFromDB(QByteArray& data)
     QSqlQuery query = QSqlQuery(db);
     QString updateMasObject = "UPDATE map_objects.object_params "
                               "SET mas_object = ? "
-                              "WHERE id = ?";
+                              "WHERE id_terrain_objective = ?";
     query.prepare(updateMasObject);
     query.addBindValue(obj.masObject);
     query.addBindValue(obj.data.m_OBJECT_ID);
@@ -351,8 +477,11 @@ void MapModule::receiveInsertObjectNetworkFromDB(QByteArray& data)
     manager.listObject.push_back(obj);
 }
 
-void MapModule::receiveDeleteObjectNetwork(QByteArray& mas)
-{
+/*!
+Слот для обработки сигнала о приеме пакета данных, в котором хранятся идентификаторы удаленных объектов
+\param[in] mas пакет данных, в который был упакован список идентификаторов удаленных объектов
+*/
+void MapModule::receiveDeleteObjectNetwork(QByteArray& mas) {
     QVector<int> masId;
 
     unsigned char * lp=(unsigned char *)(mas.data());
@@ -362,29 +491,38 @@ void MapModule::receiveDeleteObjectNetwork(QByteArray& mas)
     memcpy(&count,lp,sizeof(quint32));
     lp+=sizeof(quint32);
 
-    for(quint32 i=0;i<count;i++)
-    {
+    for (quint32 i = 0; i < count; i++) {
         quint32 index;
         memcpy(&index,lp,sizeof(quint32));
         lp+=sizeof(quint32);
         masId.push_back(index);
     }
 
-    for(int i=0;i<masId.size();i++)
-    {
-        for(int j=0;j<manager.listObject.size();j++)
-        {
-            if(masId[i]==manager.listObject[j].data.m_OBJECT_ID)
-            {
-                QSqlQuery query;
-//                QString deleteObject = "DELETE FROM map_objects.object_params WHERE id = ?";
-                QString deleteObject = "UPDATE map_objects.object_params "
-                                       "SET visibility = false, delete_time = now() "
-                                       "WHERE id = ?";
-                query.prepare(deleteObject);
-                query.addBindValue(manager.listObject[j].data.m_OBJECT_ID);
-                if (!query.exec()) {
-                    qDebug() << query.lastError();
+    for (int i=0; i < masId.size(); i++) {
+        for (int j = 0; j < manager.listObject.size(); j++) {
+            if (masId[i] == manager.listObject[j].data.m_OBJECT_ID) {
+                QSqlQuery query = QSqlQuery(db);
+                db.transaction();
+
+                QString deleteFromObjTargets = "UPDATE targets.obj_targets "
+                                               "SET date_delete = now(), id_manager = ? "
+                                               "FROM map_objects.object_params "
+                                               "WHERE id_target = CAST(military_object AS INTEGER) "
+                                               "    AND id_terrain_objective = ?";
+                query.prepare(deleteFromObjTargets);
+                query.addBindValue(idManager);
+                query.addBindValue(masId[i]);
+                query.exec();
+
+                QString deleteFromMapObjects = "UPDATE map_objects.object_params "
+                                               "SET visibility = false, date_delete = now(), id_manager = ? "
+                                               "WHERE id_terrain_objective = ?";
+                query.prepare(deleteFromMapObjects);
+                query.addBindValue(idManager);
+                query.addBindValue(masId[i]);
+                query.exec();
+
+                if (!db.commit()) {
                     QMessageBox::critical(0, "Ошибка", "Удалить объект не удалось!");
                 }
                 manager.listObject.remove(j);

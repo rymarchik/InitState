@@ -471,15 +471,18 @@ void battleOrderChangesBM::slotMapClose() {
     ui->buttonPickCoordinates->setEnabled(false);
 }
 
+//! Слот открытия порта для GPS-приемника
 void battleOrderChangesBM::slotOpenPortGPS() {
     gps->setPortName(ui->comboBoxPortListGPS->currentText());
     gps->openSerialPort();
 }
 
+//! Слот закрытия порта для GPS-приемника
 void battleOrderChangesBM::slotClosePortGPS() {
     gps->closeSerialPort();
 }
 
+//! Слот открытия порта для АПС
 void battleOrderChangesBM::slotOpenPortAPS() {
     northSearchUnit->setPortName(ui->comboBoxPortListAPS->currentText());
     if (northSearchUnit->openSerialPort()) {
@@ -487,6 +490,7 @@ void battleOrderChangesBM::slotOpenPortAPS() {
     }
 }
 
+//! Слот закрытия порта для АПС
 void battleOrderChangesBM::slotClosePortAPS() {
     northSearchUnit->closeSerialPort();
     ui->buttonNorthSearch->setEnabled(false);
@@ -495,7 +499,7 @@ void battleOrderChangesBM::slotClosePortAPS() {
 /*!
 \brief Слот обработки нажатия на кнопку Съем координат
 
-Посылает запрос на переход в режим съема координат
+Посылает запрос карте на переход в режим съема координат
 */
 void battleOrderChangesBM::slotPickCoordinates()
 {
@@ -553,6 +557,11 @@ QString battleOrderChangesBM::getParsedCoordinates(double lat, double lon, doubl
     return query.value(0).toString();
 }
 
+/*!
+\brief Слот обработки нажатия на кнопку Поиск севера
+
+Посылает запрос АПС на поиск севера и запускает трехминутный таймер
+*/
 void battleOrderChangesBM::slotAzimuthSearch()
 {
     time->setHMS(0, 3, 0);
@@ -566,7 +575,9 @@ void battleOrderChangesBM::slotAzimuthSearch()
     clockTimer->start(1000);
 }
 
-void battleOrderChangesBM::slotAzimuthResult() {
+//! Слот чтения порта АПС по истечению времени таймера и получение результата
+void battleOrderChangesBM::slotAzimuthResult()
+{
     int parsedAzimuth = northSearchUnit->readNorthSearchResult();
     if (parsedAzimuth != -1) {
         QSqlQuery query = QSqlQuery(db);
@@ -587,7 +598,7 @@ void battleOrderChangesBM::slotAzimuthResult() {
         query.addBindValue(combatHierarchy);
         query.addBindValue(getCoordinates());
         query.addBindValue(parsedAzimuth);
-        query.addBindValue(10); //костыль
+        query.addBindValue(idManager);
         query.exec();
         if (!db.commit()) {
             qDebug() << query.lastError();
@@ -598,6 +609,7 @@ void battleOrderChangesBM::slotAzimuthResult() {
     }
 }
 
+//! Слот работы таймера
 void battleOrderChangesBM::slotShowRemainingTime()
 {
     time->setHMS(0, time->addSecs(-1).minute(), time->addSecs(-1).second());
